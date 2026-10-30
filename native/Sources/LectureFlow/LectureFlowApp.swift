@@ -188,15 +188,18 @@ struct LibraryView: View {
                         Text("笔记").tag("summary")
                     }.pickerStyle(.segmented).labelsHidden()
                     if ["audio", "transcript", "summary"].contains(tab), let task = model.activeTask { taskView(task) }
-                    if tab == "audio" { audioList(lecture) }
-                    else if tab == "live" {
-                        LiveTranscriptView(live: model.live, lecture: lecture, backend: model.backend)
-                    } else if tab == "materials" {
-                        KnowledgeCenterView(workspace: model, lecture: lecture)
-                    } else if tab == "summary" {
-                        SummaryView(workspace: model, lecture: lecture).id(lecture.id)
-                    } else { transcriptView }
-                }.padding(18).id(lecture.id)
+                    Group {
+                        if tab == "audio" { audioList(lecture) }
+                        else if tab == "live" {
+                            LiveTranscriptView(live: model.live, lecture: lecture, backend: model.backend)
+                        } else if tab == "materials" {
+                            KnowledgeCenterView(workspace: model, lecture: lecture)
+                        } else if tab == "summary" {
+                            SummaryView(workspace: model, lecture: lecture).id(lecture.id)
+                        } else { transcriptView }
+                    }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    .padding(18).id(lecture.id)
                     .dropDestination(for: URL.self) { urls, _ in
                         let audio = urls.filter { ["m4a", "mp3", "wav", "flac"].contains($0.pathExtension.lowercased()) }
                         guard !audio.isEmpty, !model.busy else { return false }
