@@ -4,7 +4,7 @@
 
 ## 本轮代码交付
 
-0.3 使用反馈改进已完成代码与本机构建，正在走发布检查。详细范围见 `FEEDBACK-0.3.md`。
+0.3 使用反馈改进已完成、合并到主分支并公开发布。详细范围见 `FEEDBACK-0.3.md`。
 
 | 需求 | 实现范围 |
 |---|---|
@@ -26,6 +26,9 @@ README 改为简明软件下载首页；采用用户提供参考指导的琪露�
 - 0.3 本机轻量 ZIP 已构建，157,134,642 字节；模型不内置，默认模型约 1.86 GB，首次后台准备。
 - 0.2 交付时已打开主界面、课堂导航与设置检查；当时未采集真实麦克风或触发总结服务。
 - 0.3 隔离预览中检查了紧凑主界面、共享课件页码大纲、术语表和独立字幕面板。用户已自行开启预览字幕试用；未将其视为完整质量或长时验收，未上传试用资料。
+- 0.3 独立发行包中的 Python 运行环境检查通过：索引版本 4、课件自动提示、同名课程隔离、确认清空及外键一致性。
+- [PR #3](https://github.com/lotus116/LectureFlow/pull/3) 已合并；[PR 检查](https://github.com/lotus116/LectureFlow/actions/runs/41058687604)、[主分支检查](https://github.com/lotus116/LectureFlow/actions/runs/41058945407)与[发布构建](https://github.com/lotus116/LectureFlow/actions/runs/41058945514)均通过。
+- [0.3.0 已公开发布](https://github.com/lotus116/LectureFlow/releases/tag/v0.3.0)，正式 ZIP 为 153,180,963 字节，SHA-256：`b7c73f49e399db680a9d6c403a973b6bf35eaf57769cdd2dffefe59cbb14d465`。正式产物与本机构建分别记录，不混用校验和；模型仍不内置。
 - [PR 检查](https://github.com/lotus116/LectureFlow/actions/runs/41030614950)通过；[正式发布构建](https://github.com/lotus116/LectureFlow/actions/runs/41031020592)完成检查和打包。
 - [0.2.0 已公开发布](https://github.com/lotus116/LectureFlow/releases/tag/v0.2.0)，正式 ZIP 为 153,001,193 字节，附 SHA256SUMS。发布包不内置模型，首次自动后台下载并保留缓存。
 - 独立应用的推理模块可加载、Metal 可用，HTTPS 证书验证通过；这些是运行组件检查，不是效果或性能评估。
