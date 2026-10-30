@@ -53,8 +53,11 @@ struct LiveTranscriptView: View {
                 Text(follow ? "跟随最新 · 临时字幕会更新，最近几句可修订" : "正在查看历史 · 点击“返回最新”继续跟随")
                     .font(.caption).foregroundStyle(.secondary)
                 if live.captions.isEmpty {
-                    ContentUnavailableView("等待课堂讲话", systemImage: "waveform",
-                        description: Text("开启英文转写或中文翻译后，字幕会出现在这里。"))
+                    EmptyPanel(
+                        title: "等待课堂讲话",
+                        systemImage: "waveform",
+                        description: "开启英文转写或中文翻译后，字幕会出现在这里。"
+                    )
                 } else {
                     ScrollView {
                         LazyVStack(alignment: .leading, spacing: 20) {
@@ -64,17 +67,26 @@ struct LiveTranscriptView: View {
                                         Text(clock(caption.start)).monospacedDigit()
                                         Text(label(caption.status))
                                     }.font(.caption).foregroundStyle(.secondary)
-                                    if language != "en" && !caption.chinese.isEmpty { Text(caption.chinese).font(.title3).lineSpacing(4) }
-                                    if language != "zh" && !caption.english.isEmpty { Text(caption.english).foregroundStyle(.secondary) }
-                                }.frame(maxWidth: .infinity, alignment: .leading)
-                                    .textSelection(.enabled).id(caption.id)
+                                    if language != "en" && !caption.chinese.isEmpty {
+                                        Text(caption.chinese).font(.title3).lineSpacing(4)
+                                    }
+                                    if language != "zh" && !caption.english.isEmpty {
+                                        Text(caption.english).foregroundStyle(.secondary)
+                                    }
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .textSelection(.enabled)
+                                .id(caption.id)
                                 Divider()
                             }
                             Color.clear.frame(height: 1).id("latest-caption")
                         }.padding(.vertical, 8)
-                    }.background(ScrollActivityObserver { follow = false })
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(ScrollActivityObserver { follow = false })
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .onChange(of: updateKey) { _, _ in
                 if follow && search.isEmpty { proxy.scrollTo("latest-caption", anchor: .bottom) }
             }

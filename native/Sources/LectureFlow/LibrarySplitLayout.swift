@@ -13,10 +13,13 @@ struct LibrarySplitLayout<Sidebar: View, Detail: View>: View {
     var body: some View {
         HStack(spacing: 0) {
             if sidebarVisible {
-                sidebar.frame(width: 225)
-                Divider()
+                sidebar
+                    .frame(width: 248)
+                    .background(.background.opacity(0.92))
+                Divider().opacity(0.7)
             }
             detail.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
+        .background(Color(nsColor: .windowBackgroundColor))
     }
 }

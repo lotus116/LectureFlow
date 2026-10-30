@@ -204,8 +204,12 @@ struct MaterialsView: View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 14) {
                 if scopedDocuments.isEmpty {
-                    ContentUnavailableView("让课件参与课堂理解", systemImage: "doc.text.magnifyingglass",
-                        description: Text("导入后建立内容大纲、概念与中英文术语。资料和模型处理均留在本机。"))
+                    EmptyPanel(
+                        title: "让课件参与课堂理解",
+                        systemImage: "doc.text.magnifyingglass",
+                        description: "导入后建立内容大纲、概念与中英文术语。资料和模型处理均留在本机。"
+                    )
+                    .frame(minHeight: 280)
                 }
                 ForEach(scopedDocuments) { document in
                     VStack(alignment: .leading, spacing: 8) {
@@ -222,7 +226,9 @@ struct MaterialsView: View {
                             }
                         }
                         if document.outline.count > 80 { Text("其余页面可在提取文字中查看").font(.caption).foregroundStyle(.secondary) }
-                    }.padding(10).background(.quaternary.opacity(0.2), in: RoundedRectangle(cornerRadius: 7))
+                    }
+                    .padding(12)
+                    .background(LFChrome.cardBackground())
                 }
             }.padding(.vertical, 4)
         }

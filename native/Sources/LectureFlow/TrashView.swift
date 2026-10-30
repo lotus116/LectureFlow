@@ -47,7 +47,11 @@ struct TrashView: View {
                     Spacer()
                     Button("恢复") { Task { await restore(item) } }.disabled(working)
                 }.padding(.vertical, 4)
-            }.overlay { if items.isEmpty { ContentUnavailableView("废纸篓为空", systemImage: "trash") } }
+            }.overlay {
+                if items.isEmpty {
+                    EmptyPanel(title: "废纸篓为空", systemImage: "trash", description: "删除的课程、课堂和录音会出现在这里。")
+                }
+            }
             if working { ProgressView().controlSize(.small) }
         }.padding(22).frame(width: 680, height: 440).task { await reload() }
             .alert("永久清空废纸篓？", isPresented: Binding(get: { preview != nil }, set: { if !$0 { preview = nil } })) {

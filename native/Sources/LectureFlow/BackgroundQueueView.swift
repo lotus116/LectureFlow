@@ -72,7 +72,11 @@ struct BackgroundQueueView: View {
                         Task { await control(item, item.active ? "pause" : item.state == "failed" ? "retry" : "resume") }
                     }.disabled(working)
                 }.padding(.vertical, 5)
-            }.overlay { if workspace.backgroundItems.isEmpty { ContentUnavailableView("没有待处理任务", systemImage: "checkmark.circle") } }
+            }.overlay {
+                if workspace.backgroundItems.isEmpty {
+                    EmptyPanel(title: "没有待处理任务", systemImage: "checkmark.circle", description: "后台转写和词库补全会出现在这里。")
+                }
+            }
             if working { ProgressView().controlSize(.small) }
         }.padding(22).frame(width: 680, height: 440)
             .alert("操作未完成", isPresented: Binding(get: { error != nil }, set: { if !$0 { error = nil } })) {

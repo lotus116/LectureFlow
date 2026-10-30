@@ -59,7 +59,8 @@ struct SessionControlBar: View {
                         .disabled(workspace.lecture?.segments.isEmpty != false || workspace.busy || live.pendingSaves > 0)
                 }
             }
-        }.padding(14).background(.quaternary.opacity(0.22), in: RoundedRectangle(cornerRadius: 10))
+        }
+        .lfCardPadding()
     }
     private var status: String {
         switch workspace.session.state {

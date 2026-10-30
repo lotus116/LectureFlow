@@ -87,10 +87,14 @@ struct SummaryView: View {
                 ScrollView { Text(row.output.isEmpty ? "笔记完成后会显示在这里。" : row.output)
                     .frame(maxWidth: .infinity, alignment: .leading).textSelection(.enabled).lineSpacing(5) }
             } else {
-                ContentUnavailableView("把课堂整理为学习笔记", systemImage: "sparkles.rectangle.stack",
-                    description: Text("选择材料并预览，或直接复制 Prompt 到你常用的 AI 服务。"))
+                EmptyPanel(
+                    title: "把课堂整理为学习笔记",
+                    systemImage: "sparkles.rectangle.stack",
+                    description: "选择材料并预览，或直接复制 Prompt 到你常用的 AI 服务。"
+                )
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .task(id: lecture.id) {
             while !Task.isCancelled { await reload(); try? await Task.sleep(for: .seconds(3)) }
         }
