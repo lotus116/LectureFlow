@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import contextlib
 import fcntl
+import functools
 import json
 import os
 import shutil
@@ -14,6 +15,9 @@ from .runtime import sha256, write_json
 
 
 def migrate(db) -> None:
+    from .purging import migrate as migrate_purging
+
+    migrate_purging(db)
     db.execute("""CREATE TABLE IF NOT EXISTS entity_state (
         kind TEXT NOT NULL, id TEXT NOT NULL, archived_path TEXT, sort_order REAL,
         PRIMARY KEY(kind,id))""")
@@ -37,6 +41,28 @@ def hidden(library, kind: str, key: str) -> bool:
 def archived(library, kind: str, key: str) -> Path | None:
     value = state(library, kind, key).get("archived_path")
     return library.managed_path(library.root / value) if value else None
+
+
+def metadata_edit(function):
+    """Serialize courseware writes with folder moves; inference uses its existing snapshot."""
+
+    @functools.wraps(function)
+    def guarded(library, *args, **kwargs):
+        with (library.root / ".structure.lock").open("a+") as lock:
+            try:
+                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError:
+                raise ValueError("资料目录正在整理，请稍后重试") from None
+            if (
+                library.db.execute("SELECT 1 FROM file_operations WHERE completed=0").fetchone()
+                or library.db.execute(
+                    "SELECT 1 FROM purge_operations WHERE state IN ('prepared','committed')"
+                ).fetchone()
+            ):
+                raise ValueError("资料目录正在恢复，请稍后重试")
+            return function(library, *args, **kwargs)
+
+    return guarded
 
 
 @contextlib.contextmanager
@@ -63,6 +89,9 @@ def edit_lock(library, *, sealed_recording: Path | None = None, worker_lock_owne
                 raise ValueError("请先暂停录音，再整理资料") from None
         for operation in library.db.execute("SELECT * FROM file_operations WHERE completed=0"):
             _apply(library, dict(operation))
+        from .purging import finish_pending
+
+        finish_pending(library)
         yield
 
 
@@ -90,7 +119,12 @@ def _apply(library, operation: dict) -> None:
 
 
 def recover(library, *, worker_lock_owned=False) -> None:
-    if not library.db.execute("SELECT 1 FROM file_operations WHERE completed=0").fetchone():
+    if (
+        not library.db.execute("SELECT 1 FROM file_operations WHERE completed=0").fetchone()
+        and not library.db.execute(
+            "SELECT 1 FROM purge_operations WHERE state IN ('prepared','committed')"
+        ).fetchone()
+    ):
         return
     try:
         with edit_lock(library, worker_lock_owned=worker_lock_owned):
@@ -222,11 +256,12 @@ def archive(
         )
         record_path = destination / "segment.json" if is_manifest else destination
         updates = [
+            ("INSERT OR REPLACE INTO trash_metadata VALUES(?,?,?)", [kind, key, now()]),
             (
                 "INSERT INTO entity_state(kind,id,archived_path) VALUES(?,?,?) "
                 "ON CONFLICT(kind,id) DO UPDATE SET archived_path=excluded.archived_path",
                 [kind, key, str(record_path.relative_to(library.root))],
-            )
+            ),
         ]
         if kind == "course":
             lectures = [
@@ -238,6 +273,18 @@ def archive(
         else:
             lectures = [library.row("segments", key)["lecture_id"]]
             updates.append(("UPDATE lectures SET revision=revision+1 WHERE id=?", lectures))
+        if kind != "segment":
+            scopes = [("lecture", lecture) for lecture in lectures]
+            if kind == "course":
+                scopes.append(("course", key))
+            updates += [
+                (
+                    "UPDATE knowledge_jobs SET state='paused' WHERE kind=? AND owner_id=? "
+                    "AND state IN ('queued','running')",
+                    list(scope),
+                )
+                for scope in scopes
+            ]
         _move(library, move_source, destination, updates + _pause_tasks(lectures))
 
 
@@ -277,6 +324,13 @@ def trash(library) -> list[dict]:
                 "id": key,
                 "kind": kind,
                 "name": item.get("name", item.get("title", item.get("original_name"))),
+                "created_at": item.get("created_at", item.get("imported_at", "")),
+                "archived_at": (
+                    library.db.execute(
+                        "SELECT archived_at FROM trash_metadata WHERE kind=? AND id=?", (kind, key)
+                    ).fetchone()
+                    or [""]
+                )[0],
             }
         )
     return results

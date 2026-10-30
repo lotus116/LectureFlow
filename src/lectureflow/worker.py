@@ -19,7 +19,11 @@ from .runtime import configure, mlx_memory
 
 
 def process_task(
-    library: Library, task: dict, asr, translator=None, should_stop=lambda: False,
+    library: Library,
+    task: dict,
+    asr,
+    translator=None,
+    should_stop=lambda: False,
 ) -> None:
     version = library.row("versions", task["version_id"])
     config = json.loads(version["config"])
@@ -38,10 +42,20 @@ def process_task(
         with TemporaryDirectory(prefix="lf-unit-") as directory:
             audio = Path(directory) / "input.wav"
             duration = extract_source(
-                source, audio, item["source_start"], item["source_end"] - item["source_start"],
+                source,
+                audio,
+                item["source_start"],
+                item["source_end"] - item["source_start"],
             )
             started = time.perf_counter()
-            recognized = asr.transcribe(audio, config["context"])
+            previous = library.db.execute(
+                "SELECT english FROM units WHERE version_id=? AND sequence=?",
+                (task["version_id"], sequence - 1),
+            ).fetchone()
+            from .knowledge import hints
+
+            asr_context = hints(config, previous["english"] if previous else "")
+            recognized = asr.transcribe(audio, asr_context)
             if recognized.get("truncated"):
                 raise ValueError("识别结果达到长度上限，未提交本区间；请重试或调整模型")
             translated = {"text": "", "truncated": False}
@@ -59,16 +73,23 @@ def process_task(
                 if reference:
                     context += "\n课件参考（仅作术语消歧，不得补写未说出的内容）：\n" + reference
                 translated = translator.translate(
-                    recognized["text"], config["glossary"],
+                    recognized["text"],
+                    config["glossary"],
                     context=context,
                 )
                 if translated.get("truncated"):
                     raise ValueError("翻译结果达到长度上限，本区间未提交")
             unit = {
-                **item, "english": recognized["text"], "chinese": translated["text"],
+                **item,
+                "english": recognized["text"],
+                "chinese": translated["text"],
                 "metadata": {
-                    "asr": recognized, "translation": translated, "decoded_duration": duration,
-                    "elapsed_s": time.perf_counter() - started, "mlx_memory": mlx_memory(),
+                    "asr": recognized,
+                    "translation": translated,
+                    "decoded_duration": duration,
+                    "courseware_hints": asr_context,
+                    "elapsed_s": time.perf_counter() - started,
+                    "mlx_memory": mlx_memory(),
                 },
             }
             if should_stop() or not library.commit_unit(task["id"], sequence, unit):
@@ -80,9 +101,14 @@ def process_task(
         except OSError as error:
             # Transcription is safely committed. Export can be retried without
             # running either model again.
-            library.db.execute("UPDATE tasks SET error=?,updated_at=? WHERE id=?", (
-                f"转写已保存，但文件导出失败，可重新导出：{error}", now(), task["id"],
-            ))
+            library.db.execute(
+                "UPDATE tasks SET error=?,updated_at=? WHERE id=?",
+                (
+                    f"转写已保存，但文件导出失败，可重新导出：{error}",
+                    now(),
+                    task["id"],
+                ),
+            )
 
 
 def run_worker(root: Path, model_root: Path) -> dict:
@@ -113,6 +139,7 @@ def run_worker(root: Path, model_root: Path) -> dict:
         try:
             with Library(root, worker_lock_owned=True) as library:
                 library.recover_worker_tasks()
+                library.db.execute("UPDATE knowledge_jobs SET state='queued' WHERE state='running'")
                 while not stopped and not live_requested(root) and (task := library.claim()):
                     try:
                         config = json.loads(library.row("versions", task["version_id"])["config"])
@@ -125,12 +152,18 @@ def run_worker(root: Path, model_root: Path) -> dict:
                                 "模型版本已改变；请使用原模型配置恢复，或创建新转写版本",
                             )
                         asr_spec = resolve(config["asr"], model_root, "asr")
-                        mt_spec = (resolve("translate", model_root, "translation")
-                                   if config["translate"] else None)
+                        mt_spec = (
+                            resolve("translate", model_root, "translation")
+                            if config["translate"]
+                            else None
+                        )
                         engine = QwenASR(Path(asr_spec["path"]))
                         translator = HyMTTranslator(Path(mt_spec["path"])) if mt_spec else None
                         process_task(
-                            library, task, engine, translator,
+                            library,
+                            task,
+                            engine,
+                            translator,
                             lambda: stopped or live_requested(root),
                         )
                     except Exception as error:
@@ -146,9 +179,64 @@ def run_worker(root: Path, model_root: Path) -> dict:
                     if live_requested(root):
                         library.db.execute(
                             "UPDATE tasks SET state='queued',updated_at=? "
-                            "WHERE id=? AND state='running'", (now(), task["id"]),
+                            "WHERE id=? AND state='running'",
+                            (now(), task["id"]),
                         )
                         break
+                from .knowledge import process_job
+
+                def audio_waiting():
+                    return (
+                        library.db.execute(
+                            "SELECT 1 FROM tasks WHERE state='queued' LIMIT 1"
+                        ).fetchone()
+                        is not None
+                    )
+
+                while not stopped and not live_requested(root):
+                    if audio_waiting():
+                        break
+                    job = library.db.execute(
+                        "SELECT * FROM knowledge_jobs WHERE state='queued' "
+                        "ORDER BY updated_at LIMIT 1"
+                    ).fetchone()
+                    if not job:
+                        break
+                    try:
+                        spec = resolve("translate", model_root, "translation")
+                    except (ValueError, FileNotFoundError):
+                        break
+                    library.db.execute(
+                        "UPDATE knowledge_jobs SET state='running',error=NULL "
+                        "WHERE id=? AND state='queued'",
+                        (job["id"],),
+                    )
+                    translator = None
+                    try:
+                        translator = HyMTTranslator(Path(spec["path"]))
+                        process_job(
+                            library,
+                            dict(job),
+                            translator,
+                            lambda: stopped or live_requested(root) or audio_waiting(),
+                        )
+                    except Exception as error:
+                        library.db.execute(
+                            "UPDATE knowledge_jobs SET state='failed',error=?,updated_at=? "
+                            "WHERE id=? AND state='running'",
+                            (f"{type(error).__name__}: {error}", now(), job["id"]),
+                        )
+                    finally:
+                        translator = None
+                        library.db.execute(
+                            "UPDATE knowledge_jobs SET state='queued' "
+                            "WHERE id=? AND state='running'",
+                            (job["id"],),
+                        )
+                        import sys
+
+                        if mx := sys.modules.get("mlx.core"):
+                            mx.clear_cache()
             return {"status": "stopped" if stopped else "idle", "tasks": processed}
         finally:
             model_lock.close()

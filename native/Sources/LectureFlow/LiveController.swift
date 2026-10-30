@@ -317,7 +317,7 @@ final class LiveController: NSObject, ObservableObject {
     }
 
     func loadHistory(lecture: Lecture, backend: Backend) async {
-        guard !flags.needsMicrophone else { return }
+        guard !flags.needsMicrophone, lectureID == lecture.id else { return }
         historyGeneration += 1
         let request = historyGeneration
         if lectureID != lecture.id {
@@ -327,8 +327,16 @@ final class LiveController: NSObject, ObservableObject {
             let history = try JSONDecoder().decode(LiveHistory.self, from: await backend.call([
                 "live", "history", lecture.id
             ]))
-            if !flags.needsMicrophone && request == historyGeneration { captions = history.captions }
+            if !Task.isCancelled && !flags.needsMicrophone && request == historyGeneration
+                && lectureID == lecture.id { captions = Array(history.captions.suffix(5000)) }
         } catch { self.error = error.localizedDescription }
+    }
+
+    func prepareHistory(for id: String?) {
+        guard !flags.needsMicrophone else { return }
+        historyGeneration += 1
+        captions = []
+        if lectureID != id { sessionID = nil; captureStarted = false; lectureID = id }
     }
 
     @objc func shutdown() {

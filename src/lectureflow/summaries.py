@@ -63,7 +63,7 @@ def preview(
             materials += "\n".join(f"[p.{p['page']}] {p['text']}" for p in document["pages"])
     return {
         "lecture_id": lecture_id,
-        "revision": lecture["revision"],
+        "revision": library.row("lectures", lecture_id)["revision"],
         "source_version": version_id,
         "materials": materials,
         "characters": len(materials),

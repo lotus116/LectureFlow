@@ -59,6 +59,7 @@ class CaptionEngine:
         context="",
         glossary="",
         documents=None,
+        hint_terms=None,
     ):
         self.session, self.translator, self.publish = session, translator, publish
         self.english, self.translate = english, translate
@@ -70,6 +71,7 @@ class CaptionEngine:
         self.last_end = None
         self.pre_roll = None
         self.context, self.glossary, self.documents = context, glossary, documents or []
+        self.hint_terms = hint_terms or []
 
     def configure(self, english: bool, translate: bool) -> None:
         if (english, translate) != (self.english, self.translate):
@@ -109,6 +111,8 @@ class CaptionEngine:
         self.last_end = end
         voiced = float(np.sqrt(np.mean(pcm * pcm))) >= 0.008
         if self.state is None:
+            from .knowledge import hints
+
             if not voiced:
                 self.pre_roll = (pcm.copy(), start)
                 return
@@ -116,7 +120,10 @@ class CaptionEngine:
                 language="English",
                 chunk_size_sec=1.0,
                 max_context_sec=12,
-                context=self.context,
+                context=hints(
+                    {"context": self.context, "hint_terms": self.hint_terms},
+                    " ".join(entry["english"] for entry in self.recent),
+                ),
             )
             self.current = {
                 "id": identity(),

@@ -146,7 +146,7 @@ def test_schema_one_migrates_without_losing_courses_or_tasks(tmp_path):
         lib.db.execute("PRAGMA user_version=1")
     with Library(root) as lib:
         assert lib.row("courses", course["id"])["name"] == "Keep me"
-        assert lib.db.execute("PRAGMA user_version").fetchone()[0] == 3
+        assert lib.db.execute("PRAGMA user_version").fetchone()[0] == 4
 
 
 def recording_directory(lib, lecture):

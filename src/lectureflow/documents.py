@@ -7,15 +7,18 @@ import re
 import shutil
 import struct
 import zipfile
-from collections import Counter
 from pathlib import Path
 from xml.etree import ElementTree as ET
 
+from .files import metadata_edit
 from .library import identity, now
 from .runtime import sha256, write_json
 
 
 def migrate(db) -> None:
+    from .knowledge import migrate as migrate_knowledge
+
+    migrate_knowledge(db)
     db.execute("""CREATE TABLE IF NOT EXISTS documents (
         id TEXT PRIMARY KEY, kind TEXT NOT NULL, owner_id TEXT NOT NULL, filename TEXT NOT NULL,
         original_name TEXT NOT NULL, sha256 TEXT NOT NULL,
@@ -32,6 +35,8 @@ def owner_path(library, kind: str, key: str) -> Path:
 
     if kind not in {"course", "lecture"} or hidden(library, kind, key):
         raise ValueError("请选择尚未删除的课程或课堂")
+    if kind == "lecture" and hidden(library, "course", library.row("lectures", key)["course_id"]):
+        raise ValueError("所属课程在废纸篓中，请先恢复")
     return library.managed_path(path(library, kind, key) / "Documents")
 
 
@@ -64,8 +69,12 @@ def _pptx(source: Path) -> list[dict]:
             name = target.lstrip("/") if target.startswith("/") else "ppt/" + target
             body = _xml(archive, name)
             paragraphs = [
-                "".join(node.itertext()) for node in body.iter() if node.tag.endswith("}t")
+                "".join(node.itertext()) for node in body.iter() if node.tag.endswith("}p")
             ]
+            if not paragraphs:
+                paragraphs = [
+                    "".join(node.itertext()) for node in body.iter() if node.tag.endswith("}t")
+                ]
             pages.append({"page": index + 1, "text": "\n".join(paragraphs), "method": "text"})
         if len(slides) > 1000:
             raise ValueError("课件超过 1000 页，请拆分导入")
@@ -133,24 +142,12 @@ STOP = set(
 
 
 def candidates(pages: list[dict], document_id: str) -> list[dict]:
-    counts, sources = Counter(), {}
-    for page in pages:
-        text = page["text"]
-        words = re.findall(r"\b[A-Za-z][A-Za-z0-9_-]{2,35}\b", text)
-        phrases = re.findall(r"\b[A-Z][a-z]+(?: [A-Z][a-z]+){1,3}\b", text)
-        for term in words + phrases:
-            if term.lower() in STOP or term.isdigit():
-                continue
-            if not (len(term) >= 7 or term.isupper() or " " in term or "_" in term):
-                continue
-            counts[term] += 1
-            sources.setdefault(term, []).append({"document_id": document_id, "page": page["page"]})
-    return [
-        {"english": term, "chinese": "", "sources": sources[term][:8]}
-        for term, _ in counts.most_common(120)
-    ]
+    from .knowledge import analyze
+
+    return analyze(pages, document_id)["terms"]
 
 
+@metadata_edit
 def import_document(
     library, kind: str, owner_id: str, source: Path, *, extracted: dict | None = None
 ) -> dict:
@@ -219,10 +216,14 @@ def import_document(
                             kind,
                             owner_id,
                             term["english"],
-                            "",
+                            term["chinese"],
                             json.dumps(term["sources"]),
                         ),
                     )
+            from .knowledge import enqueue, index_document
+
+            index_document(library, key, pages)
+            enqueue(library, kind, owner_id)
             invalidate(library, kind, owner_id)
     except BaseException:
         shutil.rmtree(folder)
@@ -230,8 +231,11 @@ def import_document(
     return {"id": key, "pages": len(pages), "terms": len(terms)}
 
 
-def listing(library, kind: str, owner_id: str) -> dict:
+def listing(library, kind: str, owner_id: str, *, include_shared=False) -> dict:
+    from . import knowledge
+
     directory = owner_path(library, kind, owner_id)
+    knowledge.ensure_indexes(library, kind, owner_id)
     documents = []
     for row in library.db.execute(
         "SELECT * FROM documents WHERE kind=? AND owner_id=? AND removed=0 ORDER BY created_at",
@@ -242,18 +246,24 @@ def listing(library, kind: str, owner_id: str) -> dict:
         item["page_count"] = len(pages)
         item["path"] = str(library.managed_path(directory / item["filename"]))
         item["preview"] = "\n\n".join(f"[{p['page']}] {p['text']}" for p in pages)[:100_000]
+        index = library.db.execute(
+            "SELECT outline FROM knowledge_indexes WHERE document_id=?", (item["id"],)
+        ).fetchone()
+        item["outline"] = json.loads(index[0]) if index else []
         documents.append(item)
-    terms = [
-        dict(row)
-        for row in library.db.execute(
-            "SELECT * FROM terms WHERE kind=? AND owner_id=? "
-            "ORDER BY confirmed DESC,english COLLATE NOCASE",
-            (kind, owner_id),
-        )
-    ]
-    return {"documents": documents, "terms": terms}
+    result = {
+        "documents": documents,
+        "terms": knowledge.terms(library, kind, owner_id),
+        "jobs": knowledge.jobs(library, kind, owner_id),
+    }
+    if include_shared and kind == "lecture":
+        shared = listing(library, "course", library.row("lectures", owner_id)["course_id"])
+        for key in ("documents", "terms", "jobs"):
+            result[key] = shared[key] + result[key]
+    return result
 
 
+@metadata_edit
 def save_term(
     library,
     kind: str,
@@ -284,10 +294,19 @@ def save_term(
                 "DO UPDATE SET chinese=excluded.chinese,confirmed=excluded.confirmed",
                 (key, kind, owner_id, english, chinese, int(confirmed), "[]"),
             )
+        key = library.db.execute(
+            "SELECT id FROM terms WHERE kind=? AND owner_id=? AND english=?",
+            (kind, owner_id, english),
+        ).fetchone()[0]
+        library.db.execute("INSERT OR IGNORE INTO term_metadata(term_id) VALUES(?)", (key,))
+        library.db.execute(
+            "UPDATE term_metadata SET origin='manual',excluded=0 WHERE term_id=?", (key,)
+        )
         invalidate(library, kind, owner_id)
     return {"id": key}
 
 
+@metadata_edit
 def remove(library, document_id: str, *, confirmed: bool = False) -> None:
     if not confirmed:
         raise ValueError("移除课件需要明确确认")
@@ -314,14 +333,35 @@ def remove(library, document_id: str, *, confirmed: bool = False) -> None:
 
 
 def context(library, lecture_id: str) -> dict:
+    from . import knowledge
+
     lecture = library.row("lectures", lecture_id)
-    terms, documents = {}, []
+    terms, documents, hint_terms = {}, [], {}
     for kind, owner_id in (("course", lecture["course_id"]), ("lecture", lecture_id)):
-        for row in library.db.execute(
-            "SELECT * FROM terms WHERE kind=? AND owner_id=? AND confirmed=1 ORDER BY english",
-            (kind, owner_id),
-        ):
-            terms[row["english"]] = row["chinese"]
+        knowledge.ensure_indexes(library, kind, owner_id)
+        active = {
+            r[0]
+            for r in library.db.execute(
+                "SELECT id FROM documents WHERE kind=? AND owner_id=? AND removed=0",
+                (kind, owner_id),
+            )
+        }
+        for row in knowledge.terms(library, kind, owner_id):
+            valid_source = any(s["document_id"] in active for s in json.loads(row["sources"]))
+            key = row["english"].casefold()
+            if row["excluded"]:
+                hint_terms.pop(key, None)
+                terms.pop(key, None)
+                continue
+            if row["confirmed"] or (valid_source and row["score"] >= 4):
+                hint_terms[key] = {
+                    "english": row["english"],
+                    "score": row["score"],
+                    "confirmed": bool(row["confirmed"]),
+                    "sources": json.loads(row["sources"]),
+                }
+            if row["confirmed"] or (valid_source and row["origin"] == "courseware"):
+                terms[key] = (row["english"], row["chinese"])
         for row in library.db.execute(
             "SELECT id,original_name,pages FROM documents "
             "WHERE kind=? AND owner_id=? AND removed=0 ORDER BY created_at",
@@ -330,11 +370,13 @@ def context(library, lecture_id: str) -> dict:
             documents.append(
                 {"id": row["id"], "name": row["original_name"], "pages": json.loads(row["pages"])}
             )
-    return {
-        "context": ", ".join(terms)[:4000],
-        "glossary": "\n".join(f"{a}: {b}" for a, b in terms.items() if b)[:8000],
+    snapshot = {
+        "hint_terms": list(hint_terms.values())[:2000],
+        "glossary": "\n".join(f"{a}: {b}" for a, b in terms.values() if b)[:8000],
         "documents": documents,
     }
+    snapshot["context"] = knowledge.hints(snapshot)
+    return snapshot
 
 
 def related(documents: list[dict], text: str, limit: int = 1200) -> str:

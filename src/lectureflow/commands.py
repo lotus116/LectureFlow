@@ -20,6 +20,10 @@ def add(commands, actions) -> None:
         if name == "archive":
             action.add_argument("--confirmed", action="store_true")
     actions.add_parser("trash")
+    actions.add_parser("trash-preview")
+    emptied = actions.add_parser("empty-trash")
+    emptied.add_argument("--digest", required=True)
+    emptied.add_argument("--confirmed", action="store_true")
     move = actions.add_parser("move-lecture")
     move.add_argument("id")
     move.add_argument("course_id")
@@ -36,10 +40,16 @@ def add(commands, actions) -> None:
     reuse.add_argument("source_root", type=Path)
     materials = commands.add_parser("materials")
     methods = materials.add_subparsers(dest="materials_action", required=True)
+    methods.add_parser("terms-batch")
+    job_control = methods.add_parser("job-control")
+    job_control.add_argument("id")
+    job_control.add_argument("action", choices=["pause", "resume", "cancel", "retry"])
     for name in ("list", "import", "term-save"):
         method = methods.add_parser(name)
         method.add_argument("kind", choices=["course", "lecture"])
         method.add_argument("owner_id")
+        if name == "list":
+            method.add_argument("--include-shared", action="store_true")
         if name == "import":
             method.add_argument("source", type=Path)
             method.add_argument("--pages-file", type=Path)
@@ -78,6 +88,8 @@ def read_input() -> dict:
 
 
 FILE_ACTIONS = {
+    "trash-preview",
+    "empty-trash",
     "rename",
     "archive",
     "restore",
@@ -99,6 +111,14 @@ def library_action(library, args):
         files.restore(library, args.kind, args.id)
     elif args.action == "trash":
         return {"items": files.trash(library)}
+    elif args.action in {"trash-preview", "empty-trash"}:
+        from . import purging
+
+        return (
+            purging.preview(library)
+            if args.action == "trash-preview"
+            else purging.empty(library, args.digest, confirmed=args.confirmed)
+        )
     elif args.action == "move-lecture":
         files.move_lecture(library, args.id, args.course_id)
     elif args.action == "transfer":
@@ -120,8 +140,18 @@ def dispatch(args) -> dict:
         return {"models": status(args.model_root)}
     with Library(args.library_root) as library:
         if args.command == "materials":
+            if args.materials_action in {"terms-batch", "job-control"}:
+                from . import knowledge
+
+                return (
+                    knowledge.batch(library, read_input())
+                    if args.materials_action == "terms-batch"
+                    else knowledge.control(library, args.id, args.action)
+                )
             if args.materials_action == "list":
-                return documents.listing(library, args.kind, args.owner_id)
+                return documents.listing(
+                    library, args.kind, args.owner_id, include_shared=args.include_shared
+                )
             if args.materials_action == "import":
                 extracted = json.loads(args.pages_file.read_text()) if args.pages_file else None
                 return documents.import_document(

@@ -32,7 +32,7 @@ def migrate(db) -> None:
         except BaseException:
             db.execute("ROLLBACK")
             raise
-    elif version not in {2, 3}:
+    elif version not in {2, 3, 4}:
         raise ValueError("资料库版本不匹配")
 
 
