@@ -403,7 +403,13 @@ def decide_enhancement(
             return True
         parts = [_fold(part) for part in _term_parts(hint)]
         if len(parts) >= 2:
-            return all(any(part == _fold(token) or similar(part, token, 0.85) for token in enh_words) for part in parts)
+            return all(
+                any(
+                    part == _fold(token) or similar(part, token, 0.85)
+                    for token in enh_words
+                )
+                for part in parts
+            )
         return False
 
     unsupported_hints = [
