@@ -1,0 +1,30 @@
+[build-system]
+requires = ["hatchling>=1.26,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "lectureflow"
+version = "0.1.0"
+description = "Local-first macOS classroom assistant"
+requires-python = ">=3.11"
+dependencies = ["imageio-ffmpeg==0.6.0"]
+
+[project.optional-dependencies]
+models = ["mlx-qwen3-asr==0.4.4", "mlx-lm>=0.30,<0.32"]
+dev = ["pytest>=8,<9", "ruff>=0.14,<0.15"]
+
+[project.scripts]
+lectureflow = "lectureflow.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/lectureflow"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B"]

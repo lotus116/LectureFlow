@@ -1,0 +1,9 @@
+#!/bin/zsh
+set -eu
+cd "${0:A:h:h}"
+if [[ ! -x .venv/bin/python ]]; then
+    print "请先运行：zsh scripts/setup"
+    exit 1
+fi
+zsh scripts/build-app
+open "$PWD/dist/LectureFlow.app"

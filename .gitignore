@@ -1,0 +1,16 @@
+.DS_Store
+.venv/
+.tools/
+.cache/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+.build/
+dist/
+data/
+models/
+local/
+reports/private/
+.env

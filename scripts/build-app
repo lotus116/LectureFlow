@@ -1,0 +1,28 @@
+#!/bin/zsh
+set -eu
+cd "${0:A:h:h}"
+export CLANG_MODULE_CACHE_PATH="$PWD/.cache/clang"
+export SWIFTPM_MODULECACHE_OVERRIDE="$PWD/.cache/swift"
+swift build --disable-sandbox --package-path native --scratch-path .build/native --cache-path .cache/spm
+mkdir -p dist/LectureFlow.app/Contents/MacOS
+cp .build/native/debug/LectureFlow dist/LectureFlow.app/Contents/MacOS/LectureFlow
+.venv/bin/python - <<'PY'
+import plistlib
+from pathlib import Path
+info={
+    'CFBundleName':'LectureFlow',
+    'CFBundleDisplayName':'LectureFlow',
+    'CFBundleIdentifier':'local.lectureflow.app',
+    'CFBundleExecutable':'LectureFlow',
+    'CFBundlePackageType':'APPL',
+    'CFBundleShortVersionString':'0.1.0',
+    'CFBundleVersion':'1',
+    'LSMinimumSystemVersion':'26.0',
+    'NSHighResolutionCapable':True,
+    'LectureFlowProjectRoot':str(Path.cwd()),
+}
+with Path('dist/LectureFlow.app/Contents/Info.plist').open('wb') as f:
+    plistlib.dump(info,f)
+PY
+codesign --force --sign - dist/LectureFlow.app
+print "Built: $PWD/dist/LectureFlow.app"

@@ -1,0 +1,65 @@
+# 开发指南
+
+## 目录与职责
+
+| 目录 / 模块 | 职责 |
+|---|---|
+| `native/Sources/LectureFlow/` | SwiftUI 界面、资料库状态、Python 子进程通信 |
+| `src/lectureflow/library.py` | SQLite、受管录音副本、排序、版本与任务检查点 |
+| `src/lectureflow/worker.py` | 独占后台 worker、分段处理、恢复和取消检查 |
+| `src/lectureflow/adapters.py` | 本地 ASR 与翻译适配 |
+| `src/lectureflow/exporting.py` | 双语转写和总结 Prompt 导出 |
+| `src/lectureflow/benchmark.py` / `stream_probe.py` | 离线基准与真实节奏短测 |
+| `tests/` | 文件保护、任务状态、恢复、时间映射和导出测试 |
+| `docs/` | 产品基线、阶段验收、架构和实际状态 |
+
+生成的 `data/`、`models/`、`.venv/`、`.cache/`、`.tools/`、`.build/`、`dist/` 与 `reports/private/` 不进入仓库。不要将个人音频、课件、转写或路径放入测试夹具。
+
+## 常用操作
+
+```sh
+zsh scripts/dev          # 固定依赖、代码检查与 Python 行为测试
+zsh scripts/build-app    # 构建并本地签名 macOS 应用
+zsh scripts/run          # 构建并启动应用
+```
+
+无模型、无 GPU 的测试环境：
+
+```sh
+uv sync --frozen --extra dev
+uv run --frozen --extra dev ruff check src tests
+uv run --frozen --extra dev pytest -q
+```
+
+模型版本固定在 `models.py`，依赖固定在 `uv.lock`。更改候选模型必须同时记录评估证据，不能让旧任务在恢复时静默换用新权重。
+
+## 后台接口
+
+SwiftUI 使用本地 Python 子进程的 JSON 命令接口，未开放网络端口。
+
+```sh
+.venv/bin/lectureflow library status
+.venv/bin/lectureflow library create-course '课程名称'
+.venv/bin/lectureflow library create-lecture COURSE_ID '课堂名称'
+.venv/bin/lectureflow library import LECTURE_ID '/path/part1.m4a' '/path/part2.m4a'
+.venv/bin/lectureflow library enqueue LECTURE_ID
+.venv/bin/lectureflow worker
+```
+
+`library task TASK_ID pause/resume/cancel/retry` 控制任务；`library content VERSION_ID` 查看结果；`library export VERSION_ID` 重建导出，不重复推理。
+
+暂停/取消在当前约 30 秒处理区间完成后检查，未提交结果丢弃；已经提交的区间和检查点在同一 SQLite 事务中保存。单个 worker 由 OS 文件锁保护；窗口关闭不会终止 worker，进程中断后下次启动从已提交区间恢复。取消是终态，继续处理需创建新版本；失败可重试，暂停可恢复。
+
+## 数据与限制
+
+课堂是持久容器，不是一次任务。排序变化提升素材 revision，旧版本保留原顺序快照并标记过期。音频使用受管副本；导入失败不会提交半个批次。手动改变受管音频会触发哈希检查失败。
+
+JSON 保存原始识别、源片段与源时间、课堂逻辑时间、模型提交和运行元数据。当前 SRT 是约 30 秒处理窗口，尚未逐词对齐。跨文件的翻译会读取有界前文；完整字幕语义修订引擎尚未实现。
+
+开发版 `.app` 的 Info.plist 记录项目运行环境位置，不能单独复制给其他电脑使用。独立打包、模型下载 UI、Keychain 和可选总结 API 属于后续交付。
+
+原生界面可在较早 SDK 上编译，但固定的 MLX 0.32.4 发行包要求 macOS 26，因此完整应用按 macOS 26 以上声明支持。无模型的 CI 不受该推理依赖限制。
+
+## 提交与审查
+
+按小范围功能提交；同时更新实际状态。推送前检查已暂存文件，确认没有录音、模型、用户课件、转写、密钥或个人路径。代码和原生构建检查通过后再推送；模型准确率和长时实时可靠性需要独立实测，CI 通过不能代替产品验收。
