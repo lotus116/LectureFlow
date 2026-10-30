@@ -1,0 +1,6 @@
+#!/bin/zsh
+set -eu
+cd "${0:A:h:h}"
+export CLANG_MODULE_CACHE_PATH="$PWD/.cache/clang"
+export SWIFTPM_MODULECACHE_OVERRIDE="$PWD/.cache/swift"
+swift test --disable-sandbox --package-path native --scratch-path .build/native --cache-path .cache/spm

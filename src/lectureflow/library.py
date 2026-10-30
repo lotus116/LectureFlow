@@ -92,8 +92,11 @@ class Library:
             except BaseException:
                 self.db.execute("ROLLBACK")
                 raise
-        elif version != 1:
+        elif version not in {1, 2}:
             raise ValueError("资料库版本较新，请使用匹配的 LectureFlow 版本")
+        from .live_store import migrate
+
+        migrate(self.db)
 
     def close(self) -> None:
         self.db.close()

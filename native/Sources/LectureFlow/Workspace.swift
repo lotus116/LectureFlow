@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import SwiftUI
 
 @MainActor
@@ -12,7 +13,15 @@ final class Workspace: ObservableObject {
     @Published var model = "asr-small"
     @Published var translate = true
     let backend = Backend()
+    let live = LiveController()
+    private var subscriptions: Set<AnyCancellable> = []
     private var contentKey = ""
+
+    init() {
+        live.objectWillChange.sink { [weak self] _ in self?.objectWillChange.send() }
+            .store(in: &subscriptions)
+        live.onLibraryChange = { [weak self] in Task { await self?.refresh() } }
+    }
 
     var lecture: Lecture? {
         overview.courses.flatMap(\.lectures).first { $0.id == selectedLecture }
@@ -43,7 +52,7 @@ final class Workspace: ObservableObject {
             }
             let needsWorker = overview.courses.flatMap(\.lectures).flatMap(\.tasks)
                 .contains { ["queued", "running"].contains($0.state) }
-            if needsWorker { try await backend.startWorker() }
+            if needsWorker && !live.flags.needsASR { try await backend.startWorker() }
         } catch { self.error = error.localizedDescription }
     }
 

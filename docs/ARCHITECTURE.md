@@ -26,9 +26,15 @@ Task 保存 queued/running/paused/cancelled/failed/completed 和已提交检查�
 
 ## IPC 方向
 
-SwiftUI → 本地 Python 子进程，优先 Unix domain socket 或带随机令牌的 loopback 接口。禁止对外网绑定。消息包含 request_id、lecture_id、task_id、sequence、schema_version；UI 重连依据 sequence 同步，事件写入成功后才确认。
+开发版 SwiftUI 通过本地 Python 子进程执行 JSON 命令；实时 PCM 与字幕通过专属 stdin/stdout JSON 行传输，不开放网络端口。资料库与字幕先持久化，再发布界面事件。未来独立服务协议仍可调整，不与特定模型绑定。
 
-Phase 0 先用命令行复用 Adapter，尚不冻结传输协议。进入实时阶段前审查背压：录音独立持续写入；转写/翻译跟不上时显示状态并按有界策略降级，不允许无限缓存。
+采集队列最多保留 32 个 tap 副本，独立的字幕管道与 Python 队列各最多 8 个 250ms 音频包。字幕跟不上时显示中断状态，不阻塞录音；磁盘保存异常则停止采集并保留已有文件。
+
+录音为一个逻辑片段下的多个 CAF 块，封存后写入带哈希的 manifest，旧离线处理器可按源区间跨块解码。录音与字幕保存共享采集 ID 和相对起点。
+
+SQLite V2 新增实时会话、当前字幕及不可变修订历史。字幕输出开关在持久化边界执行，关闭英文后不将识别原文藏入元数据。默认维护最近三个语音片段的中文修订窗口，更旧内容锁定。
+
+OS 模型锁避免离线和实时模型重复常驻；实时优先请求让离线 worker 在区间边界保存检查点并让出模型。只录音不启动模型进程。
 
 ## 当前技术决定
 
