@@ -6,4 +6,4 @@ if [[ ! -x .venv/bin/python ]]; then
     exit 1
 fi
 zsh scripts/build-app
-open "$PWD/dist/LectureFlow.app"
+open "$PWD/dist/dev/LectureFlow.app"

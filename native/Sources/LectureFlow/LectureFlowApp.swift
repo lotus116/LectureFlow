@@ -5,13 +5,55 @@ import UniformTypeIdentifiers
 @main
 struct LectureFlowApp: App {
     @StateObject private var workspace = Workspace()
+    @NSApplicationDelegateAdaptor(LectureFlowDelegate.self) private var delegate
     var body: some Scene {
         WindowGroup {
             LibraryView(model: workspace)
                 .frame(minWidth: 950, minHeight: 650)
+                .onAppear { delegate.workspace = workspace }
         }
         .defaultSize(width: 1180, height: 790)
+        .commands {
+            CommandMenu("课堂") {
+                Button("显示悬浮字幕") { workspace.subtitles.show(live: workspace.live) }
+                    .keyboardShortcut("l", modifiers: [.command, .option])
+                Button("暂停全部采集") { workspace.live.shutdown() }
+                    .keyboardShortcut("p", modifiers: [.command, .shift])
+            }
+        }
+        Settings { SettingsView(workspace: workspace) }
     }
+}
+
+@MainActor
+final class LectureFlowDelegate: NSObject, NSApplicationDelegate {
+    weak var workspace: Workspace?
+    private var reopened: NSWindowController?
+    func applicationWillTerminate(_ notification: Notification) {
+        workspace?.backend.downloadLifetime.stop(shutdown: true)
+    }
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows: Bool) -> Bool {
+        if !hasVisibleWindows { showMainWindow() }
+        return true
+    }
+    private func showMainWindow() {
+        guard let workspace else { return }
+        if let window = reopened?.window { window.makeKeyAndOrderFront(nil); return }
+        let window = NSWindow(contentRect: NSRect(x: 150, y: 120, width: 1180, height: 790),
+                              styleMask: [.titled, .closable, .miniaturizable, .resizable],
+                              backing: .buffered, defer: false)
+        window.title = "LectureFlow"; window.isReleasedWhenClosed = false
+        window.contentMinSize = NSSize(width: 950, height: 650)
+        window.contentView = NSHostingView(rootView: LibraryView(model: workspace))
+        reopened = NSWindowController(window: window)
+        window.makeKeyAndOrderFront(nil)
+    }
+}
+
+private struct ArchiveTarget {
+    let kind: String
+    let id: String
+    let name: String
 }
 
 struct LibraryView: View {
@@ -23,6 +65,13 @@ struct LibraryView: View {
     @State private var tab = "audio"
     @State private var cancelling: WorkTask?
     @State private var search = ""
+    @State private var recordID = ""
+    @State private var archiving: ArchiveTarget?
+    @State private var showTrash = false
+    @State private var sharedCourse: Course?
+    @State private var textLanguage = "both"
+    @StateObject private var playback = AudioPlayback()
+    @Environment(\.openSettings) private var openSettings
 
     var body: some View {
         NavigationSplitView {
@@ -32,6 +81,24 @@ struct LibraryView: View {
                         ForEach(course.lectures) { lecture in
                             Label(lecture.title, systemImage: "waveform")
                                 .tag(lecture.id)
+                                .draggable("lectureflow-lecture:" + lecture.id)
+                                .dropDestination(for: String.self) { items, _ in
+                                    guard let item = items.first, item.hasPrefix("lectureflow-segment:") else { return false }
+                                    let id = String(item.dropFirst("lectureflow-segment:".count))
+                                    let copy = NSEvent.modifierFlags.contains(.option)
+                                    Task { await model.perform(["library", "transfer", id, lecture.id] + (copy ? ["--copy"] : [])) }
+                                    return true
+                                }
+                                .contextMenu {
+                                    Button("重命名") { recordID = lecture.id; newName = lecture.title; form = "rename-lecture" }
+                                    Menu("移动到课程") {
+                                        ForEach(model.overview.courses.filter { $0.id != course.id }) { target in
+                                            Button(target.name) { Task { await model.perform(["library", "move-lecture", lecture.id, target.id]) } }
+                                        }
+                                    }
+                                    Divider()
+                                    Button("移入废纸篓", role: .destructive) { archiving = ArchiveTarget(kind: "lecture", id: lecture.id, name: lecture.title) }
+                                }
                         }
                         Button {
                             courseID = course.id; newName = ""; form = "lecture"
@@ -39,44 +106,84 @@ struct LibraryView: View {
                         .buttonStyle(.plain).foregroundStyle(.secondary)
                     } header: {
                         Label(course.name, systemImage: "folder")
+                            .draggable("lectureflow-course:" + course.id)
+                            .dropDestination(for: String.self) { items, _ in
+                                guard let item = items.first else { return false }
+                                if item.hasPrefix("lectureflow-lecture:") {
+                                    let id = String(item.dropFirst("lectureflow-lecture:".count))
+                                    Task { await model.perform(["library", "move-lecture", id, course.id]) }; return true
+                                }
+                                guard item.hasPrefix("lectureflow-course:") else { return false }
+                                let id = String(item.dropFirst("lectureflow-course:".count))
+                                var order = model.overview.courses.map(\.id)
+                                guard id != course.id, let from = order.firstIndex(of: id) else { return false }
+                                order.remove(at: from)
+                                if let target = order.firstIndex(of: course.id) { order.insert(id, at: target) }
+                                Task { await model.perform(["library", "order-courses"] + order) }; return true
+                            }
+                            .contextMenu {
+                                Button("课程共享课件") { sharedCourse = course }
+                                Button("重命名") { recordID = course.id; newName = course.name; form = "rename-course" }
+                                Divider()
+                                Button("移入废纸篓", role: .destructive) { archiving = ArchiveTarget(kind: "course", id: course.id, name: course.name) }
+                            }
                     }
                 }
             }
             .navigationTitle("LectureFlow")
             .navigationSplitViewColumnWidth(min: 230, ideal: 260)
             .safeAreaInset(edge: .bottom) {
-                Button {
-                    newName = ""; form = "course"
-                } label: {
-                    Label("新建课程", systemImage: "folder.badge.plus")
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                HStack {
+                    Button { newName = ""; form = "course" } label: { Label("新建课程", systemImage: "folder.badge.plus") }
+                    Spacer()
+                    Button { showTrash = true } label: { Image(systemName: "trash") }.help("废纸篓")
+                    Button { openSettings() } label: { Image(systemName: "gearshape") }.help("模型、麦克风与总结设置")
                 }.buttonStyle(.plain).padding()
             }
         } detail: {
             if let lecture = model.lecture {
                 VStack(alignment: .leading, spacing: 18) {
                     header(lecture)
-                    LiveControlView(live: model.live, lecture: lecture, backend: model.backend, model: model.model)
+                    modelDownloadBanner
+                    LiveControlView(workspace: model, live: model.live, lecture: lecture)
                     HStack(spacing: 8) {
                         Image(systemName: "desktopcomputer")
-                        Text("本地处理 · 实时功能为实验版本，识别与翻译结果需要核对")
+                        Text("录音、识别与翻译均在本机处理 · 云端总结仅在确认后发送")
                     }.font(.callout).foregroundStyle(.secondary)
                     if let task = model.activeTask { taskView(task) }
                     Picker("内容", selection: $tab) {
                         Text("录音片段").tag("audio")
                         Text("双语转写").tag("transcript")
                         Text("实时字幕").tag("live")
-                    }.pickerStyle(.segmented).frame(width: 360)
+                        Text("课件与术语").tag("materials")
+                        Text("课堂笔记").tag("summary")
+                    }.pickerStyle(.segmented)
                     if tab == "audio" { audioList(lecture) }
                     else if tab == "live" {
                         LiveTranscriptView(live: model.live, lecture: lecture, backend: model.backend)
+                    } else if tab == "materials" {
+                        MaterialsView(workspace: model, kind: "lecture", ownerID: lecture.id)
+                    } else if tab == "summary" {
+                        SummaryView(workspace: model, lecture: lecture)
                     } else { transcriptView }
                 }.padding(26)
+                    .dropDestination(for: URL.self) { urls, _ in
+                        let audio = urls.filter { ["m4a", "mp3", "wav", "flac"].contains($0.pathExtension.lowercased()) }
+                        guard !audio.isEmpty, !model.busy else { return false }
+                        Task { await model.importAudio(audio) }; return true
+                    }
             } else {
-                ContentUnavailableView(
-                    "把每堂课放在一起", systemImage: "folder.badge.plus",
-                    description: Text("新建课程与课堂，再导入已有录音。")
-                )
+                VStack(spacing: 22) {
+                    Image(systemName: "waveform.circle").font(.system(size: 60)).foregroundStyle(.teal)
+                    Text("每一堂课，都有自己的空间").font(.largeTitle.bold())
+                    Text("1. 新建课程和课堂\n2. 导入录音，或开启课堂录音与字幕\n3. 加入课件，课后整理学习笔记")
+                        .lineSpacing(10).foregroundStyle(.secondary)
+                    HStack {
+                        Button("新建课程") { newName = ""; form = "course" }.buttonStyle(.borderedProminent)
+                        Button("模型与资料库设置") { openSettings() }
+                    }
+                    modelDownloadBanner.frame(maxWidth: 570)
+                }.frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .fileImporter(isPresented: $importing, allowedContentTypes: [.audio],
@@ -88,17 +195,30 @@ struct LibraryView: View {
         }
         .sheet(isPresented: Binding(get: { form != nil }, set: { if !$0 { form = nil } })) {
             VStack(alignment: .leading, spacing: 18) {
-                Text(form == "course" ? "新建课程" : "新建课堂").font(.title2.bold())
+                Text(form?.hasPrefix("rename") == true ? "重命名" : form == "course" ? "新建课程" : "新建课堂").font(.title2.bold())
                 TextField("名称", text: $newName).textFieldStyle(.roundedBorder)
                     .onSubmit { submitForm() }
                 HStack {
                     Spacer()
                     Button("取消") { form = nil }.keyboardShortcut(.cancelAction)
-                    Button("创建") { submitForm() }
+                    Button(form?.hasPrefix("rename") == true ? "保存" : "创建") { submitForm() }
                         .keyboardShortcut(.defaultAction)
                         .disabled(newName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }.padding(24).frame(width: 370)
+        }
+        .sheet(isPresented: $showTrash) { TrashView(workspace: model) }
+        .sheet(item: $sharedCourse) { course in
+            VStack {
+                HStack { Text(course.name).font(.headline); Spacer(); Button("完成") { sharedCourse = nil } }
+                MaterialsView(workspace: model, kind: "course", ownerID: course.id)
+            }.padding(24).frame(width: 820, height: 620)
+        }
+        .confirmationDialog("将“\(archiving?.name ?? "")”移入废纸篓？可在应用中恢复。", isPresented: Binding(get: { archiving != nil }, set: { if !$0 { archiving = nil } })) {
+            Button("移入废纸篓", role: .destructive) {
+                if let target = archiving { playback.stop(); Task { await model.perform(["library", "archive", target.kind, target.id, "--confirmed"]) } }
+                archiving = nil
+            }
         }
         .alert("操作未完成", isPresented: Binding(
             get: { model.error != nil }, set: { if !$0 { model.error = nil } }
@@ -116,6 +236,7 @@ struct LibraryView: View {
             }
         }
         .onChange(of: model.selectedLecture) { _, next in
+            playback.stop()
             if model.live.flags.needsMicrophone && next != model.live.lectureID {
                 model.selectedLecture = model.live.lectureID
                 model.error = "请先暂停当前课堂，再切换课堂。"
@@ -127,10 +248,16 @@ struct LibraryView: View {
             }
         }
         .onChange(of: model.live.flags.needsMicrophone) { _, active in if active { tab = "live" } }
+        .onChange(of: model.model) { _, _ in
+            if model.live.flags.needsASR, let lecture = model.lecture {
+                model.live.change(model.live.flags, lecture: lecture, backend: model.backend, model: model.model)
+            }
+        }
         .onChange(of: model.live.error) { _, error in
             if let error { model.error = error; model.live.error = nil }
         }
         .task {
+            await model.refreshModels()
             while !Task.isCancelled {
                 await model.refresh()
                 try? await Task.sleep(for: .seconds(2))
@@ -145,7 +272,34 @@ struct LibraryView: View {
         form = nil
         Task {
             if kind == "course" { await model.createCourse(name) }
-            else { await model.createLecture(courseID, title: name) }
+            else if kind == "lecture" { await model.createLecture(courseID, title: name) }
+            else { await model.perform(["library", "rename", kind == "rename-course" ? "course" : "lecture", recordID, name]) }
+        }
+    }
+
+    @ViewBuilder private var modelDownloadBanner: some View {
+        if model.installedModels.isEmpty && !model.downloading {
+            HStack { ProgressView().controlSize(.small); Text("正在检查本地模型…").font(.callout) }
+        } else if model.downloading {
+            VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                    ProgressView().controlSize(.small)
+                    Text(model.downloadMessage).font(.callout)
+                    Spacer()
+                    Button("暂停下载") { model.cancelModelDownload() }
+                }
+                if let fraction = model.downloadFraction { ProgressView(value: fraction) }
+                Text("可先新建课程、导入资料或保存录音；模型就绪后即可识别与翻译。")
+                    .font(.caption).foregroundStyle(.secondary)
+            }.padding(12).background(.blue.opacity(0.07), in: RoundedRectangle(cornerRadius: 10))
+        } else if !model.hasModel("asr-small") || !model.hasModel("translate") {
+            HStack {
+                Text("本地模型尚未就绪").font(.callout).foregroundStyle(.secondary)
+                Spacer()
+                Button("继续下载") {
+                    Task { await model.installModels(["asr-small", "translate"].filter { !model.hasModel($0) }) }
+                }
+            }
         }
     }
 
@@ -157,6 +311,7 @@ struct LibraryView: View {
                     .foregroundStyle(.secondary)
             }
             Spacer()
+            Button { model.subtitles.show(live: model.live) } label: { Image(systemName: "pip") }.help("悬浮置顶字幕")
             Button { NSWorkspace.shared.open(URL(fileURLWithPath: lecture.path)) } label: {
                 Image(systemName: "folder")
             }.help("在 Finder 中打开课堂")
@@ -219,7 +374,7 @@ struct LibraryView: View {
                 Picker("识别", selection: $model.model) {
                     Text("轻快").tag("asr-small")
                     Text("高精度").tag("asr-large")
-                }.frame(width: 160).disabled(model.live.flags.needsMicrophone)
+                }.frame(width: 160)
                 Toggle("中文翻译", isOn: $model.translate).toggleStyle(.checkbox)
                 Button("转写整堂课") {
                     tab = "transcript"
@@ -233,7 +388,10 @@ struct LibraryView: View {
                         HStack(spacing: 14) {
                             Image(systemName: "line.3.horizontal").foregroundStyle(.tertiary)
                             Text(String(format: "%02d", index + 1)).monospacedDigit().foregroundStyle(.secondary)
-                            Image(systemName: "waveform").font(.title2).foregroundStyle(.teal)
+                            Button { playback.play(segment) } label: {
+                                Image(systemName: playback.segmentID == segment.id ? "stop.circle.fill" : "play.circle")
+                                    .font(.title2).foregroundStyle(.teal)
+                            }.buttonStyle(.plain).help("播放／停止录音")
                             VStack(alignment: .leading, spacing: 5) {
                                 Text(segment.original_name).fontWeight(.medium)
                                 Text(duration(segment.duration)).font(.caption).foregroundStyle(.secondary)
@@ -247,6 +405,15 @@ struct LibraryView: View {
                                     ] + (model.translate ? [] : ["--no-translation"]))
                                 }
                             }.disabled(model.busy)
+                            Menu {
+                                Menu("移动到课堂") { transferTargets(segment, copy: false) }
+                                Menu("复制到课堂") { transferTargets(segment, copy: true) }
+                                Button("导出录音") {
+                                    Task { do { try await playback.export(segment) } catch { model.error = error.localizedDescription } }
+                                }
+                                Divider()
+                                Button("移入废纸篓", role: .destructive) { archiving = ArchiveTarget(kind: "segment", id: segment.id, name: segment.original_name) }
+                            } label: { Image(systemName: "ellipsis") }.menuStyle(.borderlessButton).frame(width: 25)
                         }.padding(16)
                             .background(.quaternary.opacity(0.3), in: RoundedRectangle(cornerRadius: 10))
                             .draggable("lectureflow-segment:" + segment.id)
@@ -268,6 +435,16 @@ struct LibraryView: View {
             HStack {
                 Text("时间戳以约 30 秒处理区间显示").font(.caption).foregroundStyle(.secondary)
                 Spacer()
+                Picker("显示", selection: $textLanguage) {
+                    Text("双语").tag("both"); Text("中文").tag("zh"); Text("英文").tag("en")
+                }.frame(width: 110)
+                Button("复制全文") {
+                    let text = model.transcript?.units.map { unit in
+                        [clock(unit.logical_start), textLanguage == "en" ? "" : unit.chinese,
+                         textLanguage == "zh" ? "" : unit.english].filter { !$0.isEmpty }.joined(separator: "\n")
+                    }.joined(separator: "\n\n") ?? ""
+                    NSPasteboard.general.clearContents(); NSPasteboard.general.setString(text, forType: .string)
+                }
                 TextField("搜索转写", text: $search).textFieldStyle(.roundedBorder).frame(width: 220)
             }
             if let transcript = model.transcript, !transcript.units.isEmpty {
@@ -279,8 +456,8 @@ struct LibraryView: View {
                         }) { unit in
                             VStack(alignment: .leading, spacing: 8) {
                                 Text(clock(unit.logical_start)).font(.caption.monospaced()).foregroundStyle(.teal)
-                                if !unit.chinese.isEmpty { Text(unit.chinese).font(.title3).lineSpacing(5) }
-                                Text(unit.english).foregroundStyle(.secondary).lineSpacing(4)
+                                if textLanguage != "en" && !unit.chinese.isEmpty { Text(unit.chinese).font(.title3).lineSpacing(5) }
+                                if textLanguage != "zh" { Text(unit.english).foregroundStyle(.secondary).lineSpacing(4) }
                             }.frame(maxWidth: .infinity, alignment: .leading).textSelection(.enabled)
                             Divider()
                         }
@@ -289,6 +466,19 @@ struct LibraryView: View {
             } else {
                 ContentUnavailableView("还没有转写内容", systemImage: "text.bubble",
                                        description: Text("开始处理后，完成的内容会陆续出现在这里。"))
+            }
+        }
+    }
+
+    private func transferTargets(_ segment: AudioSegment, copy: Bool) -> some View {
+        ForEach(model.overview.courses) { course in
+            Menu(course.name) {
+                ForEach(course.lectures.filter { $0.id != model.selectedLecture }) { target in
+                    Button(target.title) {
+                        playback.stop()
+                        Task { await model.perform(["library", "transfer", segment.id, target.id] + (copy ? ["--copy"] : [])) }
+                    }
+                }
             }
         }
     }

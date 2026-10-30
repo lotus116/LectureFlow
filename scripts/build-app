@@ -3,10 +3,13 @@ set -eu
 cd "${0:A:h:h}"
 export CLANG_MODULE_CACHE_PATH="$PWD/.cache/clang"
 export SWIFTPM_MODULECACHE_OVERRIDE="$PWD/.cache/swift"
-swift build --disable-sandbox --package-path native --scratch-path .build/native --cache-path .cache/spm
-mkdir -p dist/LectureFlow.app/Contents/MacOS
-cp .build/native/debug/LectureFlow dist/LectureFlow.app/Contents/MacOS/LectureFlow
+lectureflow_configuration="${LECTUREFLOW_BUILD_CONFIGURATION:-debug}"
+export LECTUREFLOW_APP_OUTPUT="${LECTUREFLOW_APP_OUTPUT:-dist/dev/LectureFlow.app}"
+swift build -c "$lectureflow_configuration" --disable-sandbox --package-path native --scratch-path .build/native --cache-path .cache/spm
+mkdir -p "$LECTUREFLOW_APP_OUTPUT/Contents/MacOS"
+cp ".build/native/$lectureflow_configuration/LectureFlow" "$LECTUREFLOW_APP_OUTPUT/Contents/MacOS/LectureFlow"
 .venv/bin/python - <<'PY'
+import os
 import plistlib
 from pathlib import Path
 info={
@@ -15,15 +18,15 @@ info={
     'CFBundleIdentifier':'local.lectureflow.app',
     'CFBundleExecutable':'LectureFlow',
     'CFBundlePackageType':'APPL',
-    'CFBundleShortVersionString':'0.1.0',
-    'CFBundleVersion':'1',
+    'CFBundleShortVersionString':Path('VERSION').read_text().strip(),
+    'CFBundleVersion':'2',
     'LSMinimumSystemVersion':'26.0',
     'NSHighResolutionCapable':True,
     'NSMicrophoneUsageDescription':'在你开启课堂录音或实时字幕时采集麦克风音频；仅在本机处理。',
     'LectureFlowProjectRoot':str(Path.cwd()),
 }
-with Path('dist/LectureFlow.app/Contents/Info.plist').open('wb') as f:
+with (Path(os.environ['LECTUREFLOW_APP_OUTPUT'])/'Contents/Info.plist').open('wb') as f:
     plistlib.dump(info,f)
 PY
-codesign --force --sign - dist/LectureFlow.app
-print "Built: $PWD/dist/LectureFlow.app"
+codesign --force --sign - "$LECTUREFLOW_APP_OUTPUT"
+print "Built: $LECTUREFLOW_APP_OUTPUT"

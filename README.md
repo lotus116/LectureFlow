@@ -1,40 +1,38 @@
-# LectureFlow
+<p align="center">
+  <img src="docs/assets/hero.png" alt="LectureFlow · 把每一堂课，留在本地。" width="100%">
+</p>
 
-面向英语课堂的本地 AI 助手，让录音、双语转写和课程资料放在一起。
+<p align="center"><b>录下课堂，听懂英文，留下自己的学习笔记。</b></p>
 
-**当前可用：** macOS 原生界面、课程与课堂创建、多段录音导入及拖动排序、本地英文识别与中文翻译、后台暂停/继续/取消、转写版本与搜索、Markdown/TXT/SRT/JSON 导出。
+<p align="center">
+  <a href="https://github.com/lotus116/LectureFlow/releases/tag/v0.2.0"><img src="https://img.shields.io/badge/下载_macOS_体验版-18479B?style=for-the-badge&logo=apple&logoColor=white" alt="下载 macOS 体验版"></a>
+  <a href="docs/USER_GUIDE.md"><img src="https://img.shields.io/badge/使用指南-E7F2FF?style=for-the-badge&labelColor=E7F2FF&color=E7F2FF" alt="使用指南"></a>
+</p>
 
-**实验功能：** 麦克风录音、英文转写、中文翻译可独立控制，支持有限修订和录音恢复。实时流程已通过文件回放验证，麦克风设备与三小时连续使用仍待验收。
+<p align="center">Apple Silicon · macOS 26+ · 建议 16 GB 内存</p>
 
-**开发中：** 课件增强、悬浮字幕、完整文件管理、AI 总结。离线字幕时间戳约每 30 秒一段，识别与翻译仍需核对。
+| 听课 | 整理 | 复习 |
+| :--- | :--- | :--- |
+| 录音、英文转写、中文翻译独立开关，悬浮字幕随时看。 | 一课一文件夹，多段录音拖动排序，课件与术语放在一起。 | 后台转写、搜索与导出，可复制总结 Prompt 或自行配置 AI 服务。 |
 
-## 开始使用
+### 打开就用
 
-需要 Apple Silicon Mac、macOS 26 以上及已安装的 Xcode。建议至少 16GB 内存；当前固定版本的本地推理依赖要求 macOS 26。
+1. 从发布页下载压缩包，解压后将 **LectureFlow.app** 拖到“应用程序”。
+2. 新建课程和课堂，**导入已有录音**；模型就绪后也可点击 **全部开启**。
+3. 按需加入课件；课后在 **课堂笔记** 中整理和导出。
 
-```sh
-git clone https://github.com/lotus116/LectureFlow.git
-cd LectureFlow
-zsh scripts/setup
-zsh scripts/run
-```
+发布包自带运行环境，无需 Python 或 Xcode；首次打开自动后台下载约 1.86 GB 默认模型，可暂停、继续，之后离线使用。录音、识别、翻译和课件解析均在本机完成；云端总结只在你预览并确认后发送文字。
 
-首次安装需联网下载运行环境和约 2GB 模型；之后录音转写与翻译在本地执行。使用高精度模型时，先运行 `.venv/bin/lectureflow fetch asr-large`。
+<sub>当前为体验版，效果与长时间使用表现等待实际反馈。离线字幕目前按约 30 秒区间标注时间。[安装说明与已知限制 →](docs/USER_GUIDE.md)</sub>
 
-打开应用后：**新建课程 → 新建课堂 → 导入录音 → 调整顺序 → 转写整堂课**。关闭窗口后后台任务继续；“导出”会打开结果文件夹，其中也包含可复制到 AI 工具的总结 Prompt。
+---
 
-实时模式可点“全部开启”，或分别控制三个开关；首次使用需要允许麦克风。关闭“保存录音”后只处理字幕，不保存原始音频。
+<p align="center">
+  <a href="docs/USER_GUIDE.md">使用指南</a> ·
+  <a href="docs/DEVELOPMENT.md">开发与构建</a> ·
+  <a href="docs/STATUS.md">项目进度</a> ·
+  <a href="docs/PRD-v1.4.md">产品需求</a> ·
+  <a href="https://github.com/lotus116/LectureFlow/issues">反馈问题</a>
+</p>
 
-## 项目结构
-
-```text
-native/           macOS 原生界面
-src/lectureflow/  本地处理、资料库与任务
-tests/            行为与恢复测试
-scripts/          安装、启动、构建与检查
-docs/             PRD、计划、架构与开发进度
-```
-
-录音副本保存在 `data/library/`，模型保存在 `models/`。资料、模型、密钥和私有报告均不提交到仓库。当前为开发版本，应用依赖本项目目录中的运行环境。
-
-[需求文档](docs/PRD-v1.4.md) · [实施计划](docs/IMPLEMENTATION_PLAN.md) · [当前进度](docs/STATUS.md) · [开发指南](docs/DEVELOPMENT.md)
+<p align="center"><sub>琪露诺主题为非官方同人视觉 · Logo 与横幅使用 AI 辅助创作</sub></p>

@@ -12,10 +12,18 @@ final class Workspace: ObservableObject {
     @Published var busy = false
     @Published var model = "asr-small"
     @Published var translate = true
+    @Published var installedModels: [InstalledModel] = []
+    @Published var downloading = false
+    @Published var downloadMessage = ""
+    @Published var downloadFraction: Double?
+    @Published var downloadPaused = UserDefaults.standard.bool(forKey: "modelDownloadPaused")
     let backend = Backend()
     let live = LiveController()
+    let subtitles = SubtitleWindow()
     private var subscriptions: Set<AnyCancellable> = []
     private var contentKey = ""
+    private var recovered = false
+    private var preparedModels = false
 
     init() {
         live.objectWillChange.sink { [weak self] _ in self?.objectWillChange.send() }
@@ -35,8 +43,19 @@ final class Workspace: ObservableObject {
             overview = try JSONDecoder().decode(Overview.self, from: await backend.call([
                 "library", "status"
             ]))
+            if !recovered {
+                recovered = true
+                for lecture in overview.courses.flatMap(\.lectures) {
+                    _ = try await backend.call(["library", "recover-recordings", lecture.id])
+                }
+                overview = try JSONDecoder().decode(Overview.self, from: await backend.call(["library", "status"]))
+            }
             if selectedLecture == nil {
                 selectedLecture = overview.courses.first?.lectures.first?.id
+            }
+            if let id = selectedLecture, !overview.courses.flatMap(\.lectures).contains(where: { $0.id == id }) {
+                selectedLecture = overview.courses.first?.lectures.first?.id
+                selectedVersion = nil
             }
             if let task = activeTask {
                 let key = "\(task.version_id):\(task.next_unit):\(task.state):\(task.stale)"
@@ -52,15 +71,74 @@ final class Workspace: ObservableObject {
             }
             let needsWorker = overview.courses.flatMap(\.lectures).flatMap(\.tasks)
                 .contains { ["queued", "running"].contains($0.state) }
-            if needsWorker && !live.flags.needsASR { try await backend.startWorker() }
+            if needsWorker && !live.flags.needsASR && !busy { try await backend.startWorker() }
         } catch { self.error = error.localizedDescription }
     }
+
+    func refreshModels() async {
+        let first = !preparedModels
+        preparedModels = true
+        do {
+            if first, let previous = backend.paths.previousModels {
+                downloadMessage = "正在复用本机已下载的模型…"
+                _ = try await backend.call(["models", "import-cache", previous.path])
+            }
+            installedModels = try JSONDecoder().decode(ModelList.self, from: await backend.call(["models", "status"])).models
+            if first && !downloadPaused {
+                let missing = ["asr-small", "translate"].filter { !hasModel($0) }
+                if !missing.isEmpty { Task { await self.installModels(missing) } }
+            }
+        }
+        catch { self.error = error.localizedDescription }
+    }
+
+    func installModels(_ aliases: [String]) async {
+        guard !downloading else { return }
+        downloading = true; downloadPaused = false; downloadFraction = nil
+        UserDefaults.standard.set(false, forKey: "modelDownloadPaused")
+        downloadMessage = "正在后台准备本地模型（默认模型约 1.86 GB）…"
+        let observer = Task { [weak self] in
+            while !Task.isCancelled {
+                guard let self else { return }
+                let file = self.backend.paths.storage.appendingPathComponent("model-download.json")
+                if let data = try? Data(contentsOf: file),
+                   let p = try? JSONDecoder().decode(ModelDownloadProgress.self, from: data) {
+                    let name = p.model == "translate" ? "中文翻译" : p.model == "asr-large" ? "高精度识别" : "轻快识别"
+                    self.downloadMessage = "正在下载\(name) · \(p.completed_models + 1)/\(p.total_models)"
+                    if p.bytes_total > 0 {
+                        self.downloadFraction = min(1, Double(p.bytes_completed) / Double(p.bytes_total))
+                        self.downloadMessage += String(format: " · %.2f / %.2f GB", Double(p.bytes_completed) / 1e9, Double(p.bytes_total) / 1e9)
+                    } else { self.downloadFraction = nil }
+                }
+                try? await Task.sleep(for: .milliseconds(500))
+            }
+        }
+        defer { observer.cancel(); downloading = false }
+        do { try await backend.downloadModels(aliases); await refreshModels() }
+        catch {
+            if !downloadPaused { self.error = error.localizedDescription }
+            await refreshModels()
+        }
+    }
+
+    func cancelModelDownload() {
+        downloadPaused = true
+        UserDefaults.standard.set(true, forKey: "modelDownloadPaused")
+        Task { await backend.cancelDownload() }
+    }
+
+    func hasModel(_ id: String) -> Bool { installedModels.contains { $0.id == id && $0.installed } }
 
     func perform(_ arguments: [String]) async {
         busy = true
         defer { busy = false }
         do {
-            _ = try await backend.call(arguments)
+            let data = try await backend.call(arguments)
+            if arguments.prefix(2) == ["library", "recover-recordings"],
+               let report = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let errors = report["errors"] as? [[String: String]], !errors.isEmpty {
+                self.error = errors.prefix(3).map { ($0["directory"] ?? "") + "：" + ($0["message"] ?? "恢复未完成") }.joined(separator: "\n")
+            }
             await refresh()
         } catch { self.error = error.localizedDescription }
     }

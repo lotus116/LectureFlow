@@ -1,4 +1,5 @@
 """Bounded PCM input, local streaming inference and a three-utterance revision window."""
+
 from __future__ import annotations
 
 import base64
@@ -47,7 +48,18 @@ class InputBuffer:
 
 
 class CaptionEngine:
-    def __init__(self, session, translator, publish, *, english=True, translate=True):
+    def __init__(
+        self,
+        session,
+        translator,
+        publish,
+        *,
+        english=True,
+        translate=True,
+        context="",
+        glossary="",
+        documents=None,
+    ):
         self.session, self.translator, self.publish = session, translator, publish
         self.english, self.translate = english, translate
         self.current = None
@@ -57,6 +69,7 @@ class CaptionEngine:
         self.silence = 0.0
         self.last_end = None
         self.pre_roll = None
+        self.context, self.glossary, self.documents = context, glossary, documents or []
 
     def configure(self, english: bool, translate: bool) -> None:
         if (english, translate) != (self.english, self.translate):
@@ -73,8 +86,16 @@ class CaptionEngine:
     def translated(self, text: str, *, following: str = "") -> str:
         if not self.translate or not text:
             return ""
-        result = self.translator.translate(text, context=" ".join(
-            entry["english"] for entry in self.recent)[-1000:], following=following)
+        from .documents import related
+
+        context = " ".join(entry["english"] for entry in self.recent)[-1000:]
+        reference = related(self.documents, text)
+        if reference:
+            context += "\n课件参考（仅作术语消歧，不得补写）：\n" + reference
+        options = {"context": context, "following": following}
+        if self.glossary:
+            options["glossary"] = self.glossary
+        result = self.translator.translate(text, **options)
         if result.get("truncated"):
             raise ValueError("译文达到长度限制，已保留录音与此前字幕")
         return result["text"]
@@ -92,10 +113,19 @@ class CaptionEngine:
                 self.pre_roll = (pcm.copy(), start)
                 return
             self.state = self.session.init_streaming(
-                language="English", chunk_size_sec=1.0, max_context_sec=12,
+                language="English",
+                chunk_size_sec=1.0,
+                max_context_sec=12,
+                context=self.context,
             )
-            self.current = {"id": identity(), "start": start, "end": end,
-                            "english": "", "chinese": "", "revision": 0}
+            self.current = {
+                "id": identity(),
+                "start": start,
+                "end": end,
+                "english": "",
+                "chinese": "",
+                "revision": 0,
+            }
             if self.pre_roll is not None:
                 previous, previous_start = self.pre_roll
                 if abs(start - previous_start - len(previous) / 16000) < 0.1:
@@ -200,9 +230,15 @@ def run_live(root: Path, model_root: Path, lecture_id: str, session_id: str, asr
                 clean = save(library, session_id, event, english=english, translate=translate)
                 output({"type": "caption", "session_id": session_id, **clean})
 
-            captions = CaptionEngine(engine.session, None, publish, english=False, translate=False)
+            from .documents import context
+
+            materials = context(library, lecture_id)
+            captions = CaptionEngine(
+                engine.session, None, publish, english=False, translate=False, **materials
+            )
             output({"type": "ready"})
             dropped = 0
+            requested_model = asr
             try:
                 while item := buffer.get():
                     if item["type"] == "stop":
@@ -213,10 +249,26 @@ def run_live(root: Path, model_root: Path, lecture_id: str, session_id: str, asr
                     if not isinstance(english, bool) or not isinstance(translate, bool):
                         raise ValueError("字幕开关格式错误")
                     if translate and translator is None:
-                        translator = HyMTTranslator(Path(resolve(
-                            "translate", model_root, "translation")["path"]))
+                        translator = HyMTTranslator(
+                            Path(resolve("translate", model_root, "translation")["path"])
+                        )
                         captions.translator = translator
                     captions.configure(english, translate)
+                    requested_model = item.get("asr", requested_model)
+                    if requested_model not in {"asr-small", "asr-large"}:
+                        raise ValueError("无效的识别模型")
+                    if requested_model != asr and captions.state is None:
+                        import gc
+
+                        output({"type": "loading", "message": "正在切换识别模型，录音继续保存"})
+                        record = resolve(requested_model, model_root, "asr")
+                        captions.session = engine = None
+                        gc.collect()
+                        sys.modules["mlx.core"].clear_cache()
+                        engine = QwenASR(Path(record["path"]))
+                        captions.session = engine.session
+                        asr = requested_model
+                        output({"type": "model_changed", "model": asr})
                     if not translate and translator is not None:
                         translator = captions.translator = None
                         sys.modules["mlx.core"].clear_cache()
@@ -237,5 +289,6 @@ def run_live(root: Path, model_root: Path, lecture_id: str, session_id: str, asr
             finally:
                 captions.finish()
                 captions.lock_all()
-            output({"type": "stopped", "dropped_packets": buffer.dropped,
-                    "mlx_memory": mlx_memory()})
+            output(
+                {"type": "stopped", "dropped_packets": buffer.dropped, "mlx_memory": mlx_memory()}
+            )

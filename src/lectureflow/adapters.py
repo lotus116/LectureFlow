@@ -42,7 +42,7 @@ class HyMTTranslator:
             (f"后续讲话（仅作消歧参考，不要翻译或补写）：\n{following[-1000:]}\n"
              if following else "")
             +
-            (f"前文（仅供理解，不要翻译或重复前文）：\n{context[-1000:]}\n" if context else "")
+            (f"上下文（仅作消歧，勿翻译或补写）：\n{context[-2400:]}\n" if context else "")
             +
             (f"参考术语（仅在原文涉及这些词时使用）：\n{glossary}\n" if glossary else "")
             + "将以下文本翻译为简体中文，注意只需要输出翻译后的结果，不要额外解释：\n"
