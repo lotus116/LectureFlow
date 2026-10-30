@@ -16,7 +16,7 @@ struct LibrarySplitLayout<Sidebar: View, Detail: View>: View {
                 sidebar.frame(width: 225)
                 Divider()
             }
-            detail.frame(maxWidth: .infinity, maxHeight: .infinity)
+            detail.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
     }
 }
