@@ -92,9 +92,9 @@ class Library:
             except BaseException:
                 self.db.execute("ROLLBACK")
                 raise
-        elif version not in {1, 2, 3}:
+        elif version not in {1, 2, 3, 4}:
             raise ValueError("资料库版本较新，请使用匹配的 LectureFlow 版本")
-        if version in {1, 2}:
+        if version in {1, 2, 3}:
             backups = self.managed_path(self.root / ".Backups")
             backups.mkdir(exist_ok=True)
             with sqlite3.connect(backups / f"Library-v{version}-{identity()}.sqlite3") as backup:
@@ -107,7 +107,7 @@ class Library:
         files.migrate(self.db)
         documents.migrate(self.db)
         summaries.migrate(self.db)
-        self.db.execute("PRAGMA user_version=3")
+        self.db.execute("PRAGMA user_version=4")
         files.recover(self, worker_lock_owned=worker_lock_owned)
 
     def close(self) -> None:
@@ -121,6 +121,17 @@ class Library:
 
     @contextlib.contextmanager
     def transaction(self, *, write: bool = True):
+        if self.db.in_transaction:
+            savepoint = "nested_" + identity()
+            self.db.execute(f"SAVEPOINT {savepoint}")
+            try:
+                yield
+                self.db.execute(f"RELEASE {savepoint}")
+            except BaseException:
+                self.db.execute(f"ROLLBACK TO {savepoint}")
+                self.db.execute(f"RELEASE {savepoint}")
+                raise
+            return
         self.db.execute("BEGIN IMMEDIATE" if write else "BEGIN")
         try:
             yield
@@ -290,9 +301,11 @@ class Library:
             from .documents import context as document_context
 
             materials = document_context(self, lecture_id)
+            lecture = self.row("lectures", lecture_id)
             config["context"] = context or materials["context"]
             config["glossary"] = glossary or materials["glossary"]
             config["documents"] = materials["documents"]
+            config["hint_terms"] = materials["hint_terms"] if not context else []
             config["models"] = {
                 "asr": CATALOG[asr], "translation": CATALOG["translate"] if translate else None,
             }
@@ -394,6 +407,9 @@ class Library:
             "config": json.loads(version["config"]), "snapshot": json.loads(version["snapshot"]),
             "timestamp_granularity": "processing_window_approximately_30_seconds",
             "units": units,
+            "source_missing": any(self.db.execute(
+                "SELECT 1 FROM purged_segments WHERE id=?", (s["segment_id"],)
+            ).fetchone() for s in json.loads(version["snapshot"])),
         }
 
     def overview(self) -> dict:
@@ -429,4 +445,13 @@ class Library:
                     )
                     task["segment_count"] = len(ids)
                     task["asr"] = config["asr"]
-        return {"schema_version": 1, "root": str(self.root), "courses": courses}
+                    task["material_count"] = len(config.get("documents", []))
+        from .knowledge import jobs
+
+        active_courses = {c["id"] for c in courses}
+        active_lectures = {lec["id"] for c in courses for lec in c["lectures"]}
+        knowledge_jobs = [job for job in jobs(self) if job["owner_id"] in (
+            active_courses if job["kind"] == "course" else active_lectures
+        )]
+        return {"schema_version": 1, "root": str(self.root), "courses": courses,
+                "knowledge_jobs": knowledge_jobs}

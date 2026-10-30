@@ -2,6 +2,7 @@ import Foundation
 
 struct Overview: Decodable, Sendable {
     var courses: [Course] = []
+    var knowledge_jobs: [KnowledgeJob]?
 }
 struct Course: Decodable, Identifiable, Sendable {
     let id: String
@@ -32,6 +33,7 @@ struct WorkTask: Decodable, Identifiable, Sendable {
     let scope: String
     let segment_count: Int
     let asr: String
+    let material_count: Int?
     var scopeLabel: String { scope == "lecture" ? "整堂课" : "\(segment_count) 段录音" }
     var modelLabel: String { asr == "asr-large" ? "高精度" : "轻快" }
     var fraction: Double { Double(next_unit) / Double(max(1, total_units)) }
@@ -48,9 +50,11 @@ struct WorkTask: Decodable, Identifiable, Sendable {
     }
 }
 struct Transcript: Decodable, Sendable {
+    let lecture_id: String
     let version_id: String
     let stale: Bool
     let units: [TranscriptUnit]
+    let source_missing: Bool?
 }
 struct TranscriptUnit: Decodable, Identifiable, Sendable {
     let sequence: Int

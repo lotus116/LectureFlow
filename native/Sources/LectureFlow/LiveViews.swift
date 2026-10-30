@@ -8,40 +8,38 @@ struct LiveControlView: View {
     let lecture: Lecture
     @State private var cancelling = false
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Label("课堂实时模式", systemImage: live.flags.needsMicrophone ? "mic.fill" : "mic")
-                    .fontWeight(.medium).foregroundStyle(live.flags.needsMicrophone ? .teal : .primary)
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 14) {
+                Image(systemName: live.flags.needsMicrophone ? "waveform" : "mic")
+                    .foregroundStyle(live.flags.needsMicrophone ? .teal : .secondary)
+                Toggle("录音", isOn: binding(\.recording))
+                Toggle("英文", isOn: binding(\.english))
+                Toggle("翻译", isOn: binding(\.translate))
                 Spacer()
-                Picker("识别模型", selection: $workspace.model) {
-                    Text("轻快").tag("asr-small").disabled(!workspace.hasModel("asr-small"))
-                    Text("高精度").tag("asr-large").disabled(!workspace.hasModel("asr-large"))
-                }.frame(width: 170)
-                Button(live.flags.needsMicrophone ? "全部暂停" : "全部开启") {
+                Button(live.flags.needsMicrophone ? "暂停课堂" : "开始课堂", systemImage: live.flags.needsMicrophone ? "pause.fill" : "play.fill") {
                     change(live.flags.needsMicrophone ? .paused : .all)
                 }.buttonStyle(.borderedProminent)
-            }
-            HStack(spacing: 24) {
-                Toggle("保存录音", isOn: binding(\.recording))
-                Toggle("英文转写", isOn: binding(\.english))
-                Toggle("中文翻译", isOn: binding(\.translate))
+                Menu {
+                    Picker("识别模型", selection: $workspace.model) {
+                        Text("轻快").tag("asr-small").disabled(!workspace.hasModel("asr-small"))
+                        Text("高精度").tag("asr-large").disabled(!workspace.hasModel("asr-large"))
+                    }
+                    Button("取消本段录音", role: .destructive) { cancelling = true }.disabled(!live.flags.recording)
+                } label: { Image(systemName: "chevron.down") }.menuStyle(.borderlessButton).frame(width: 18)
+            }.toggleStyle(.switch).controlSize(.mini)
+            HStack {
+                Text(live.flags.needsMicrophone ? live.message : "录音、英文和翻译可独立开关")
                 Spacer()
-                Button("取消本段录音") { cancelling = true }.disabled(!live.flags.recording)
-            }.toggleStyle(.switch).controlSize(.small)
-            Text(live.message).font(.caption).foregroundStyle(.secondary)
-            if !live.flags.recording && live.flags.needsASR {
-                Text("仅处理字幕，不保存原始音频").font(.caption).foregroundStyle(.teal)
-            }
-        }.padding(16).background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 12))
+                Text("全程本机处理")
+            }.font(.caption2).foregroundStyle(.secondary)
+        }.padding(10).background(.quaternary.opacity(0.25), in: RoundedRectangle(cornerRadius: 7))
+            .disabled(workspace.busy)
             .confirmationDialog("取消当前录音段？字幕按现有开关继续；录音会移入可恢复的废纸篓。", isPresented: $cancelling) {
                 Button("取消本段录音", role: .destructive) { live.cancelCurrentRecording() }
             }
     }
     private func change(_ flags: CaptureFlags) {
-        if flags.needsASR && !workspace.hasModel(workspace.model) || flags.translate && !workspace.hasModel("translate") {
-            workspace.error = "请先打开设置，下载识别和翻译所需的本地模型。"; return
-        }
-        live.change(flags, lecture: lecture, backend: workspace.backend, model: workspace.model)
+        workspace.changeCapture(flags)
     }
     private func binding(_ key: WritableKeyPath<CaptureFlags, Bool>) -> Binding<Bool> {
         Binding(get: { live.flags[keyPath: key] }, set: { value in

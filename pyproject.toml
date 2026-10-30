@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "lectureflow"
-version = "0.2.0"
+version = "0.3.0"
 description = "Local-first macOS classroom assistant"
 requires-python = ">=3.11"
 dependencies = ["imageio-ffmpeg==0.6.0", "pypdf>=6,<7", "olefile>=0.47,<0.48"]

@@ -6,7 +6,7 @@ import zipfile
 
 import pytest
 
-from lectureflow import documents, files, summaries
+from lectureflow import documents, files, purging, summaries
 from lectureflow.library import Library
 from lectureflow.runtime import sha256
 
@@ -150,11 +150,11 @@ def test_pptx_uses_deck_order_and_context_is_versioned(library, tmp_path):
     imported = documents.import_document(lib, "course", course, source)
     listing = documents.listing(lib, "course", course)
     assert listing["documents"][0]["preview"].startswith("[1] Kernel memory ABI")
-    assert not documents.context(lib, lecture)["context"]
+    assert "ABI" in documents.context(lib, lecture)["context"]
     documents.save_term(lib, "course", course, "Kernel", "内核", True)
     version = completed(lib, lecture)
     config = lib.version_content(version)["config"]
-    assert config["context"] == "Kernel"
+    assert "Kernel" in config["context"] and "ABI" in config["context"]
     assert config["glossary"] == "Kernel: 内核"
     assert config["documents"][0]["pages"][0]["text"] == "Kernel memory ABI"
     documents.save_term(lib, "course", course, "Kernel", "内核态", True)
@@ -268,3 +268,93 @@ def test_new_summary_from_old_transcript_is_stale_and_auth_cannot_be_persisted(l
     assert summaries.listing(lib, lecture)[0]["stale"]
     summaries.run(lib, key, "private-auth-sentinel", client=lambda _: "private-auth-sentinel")
     assert summaries.listing(lib, lecture)[0]["output"] == "[redacted]"
+
+
+def test_empty_trash_cannot_merge_or_delete_same_named_new_course(library):
+    lib, old_course, old_lecture, old_segment, original = library
+    completed(lib, old_lecture)
+    files.archive(lib, "segment", old_segment, confirmed=True)
+    files.archive(lib, "course", old_course, confirmed=True)
+    new_course = lib.create_course("Course")["id"]
+    new_lecture = lib.create_lecture(new_course, "Lecture")["id"]
+    new_segment = lib.import_audio(new_lecture, [original])[0]["id"]
+    version = completed(lib, new_lecture)
+    lib.db.execute("UPDATE units SET english='NEW CLASS ONLY' WHERE version_id=?", (version,))
+    preview = purging.preview(lib)
+    purging.empty(lib, preview["digest"], confirmed=True)
+    assert lib.overview()["courses"][0]["id"] == new_course
+    assert lib.version_content(version)["units"][0]["english"] == "NEW CLASS ONLY"
+    assert sha256(lib.segment_path(new_segment)) == sha256(original)
+    assert files.trash(lib) == []
+    assert lib.db.execute("PRAGMA foreign_key_check").fetchall() == []
+
+
+def test_trash_preview_is_bound_to_exact_scope_and_requires_confirmation(library):
+    lib, course, lecture, segment, _ = library
+    files.archive(lib, "segment", segment, confirmed=True)
+    before = purging.preview(lib)
+    with pytest.raises(ValueError, match="确认"):
+        purging.empty(lib, before["digest"])
+    files.archive(lib, "course", course, confirmed=True)
+    with pytest.raises(ValueError, match="变化"):
+        purging.empty(lib, before["digest"], confirmed=True)
+    assert lib.row("lectures", lecture)
+    assert lib.segment_path(segment).exists()
+
+
+def test_purging_parent_keeps_recording_moved_to_active_course(library):
+    lib, old_course, old_lecture, segment, original = library
+    target = lib.create_course("Course")["id"]
+    lecture = lib.create_lecture(target, "Lecture")["id"]
+    files.transfer(lib, segment, lecture)
+    files.archive(lib, "course", old_course, confirmed=True)
+    purging.empty(lib, purging.preview(lib)["digest"], confirmed=True)
+    assert lib.row("segments", segment)["lecture_id"] == lecture
+    assert sha256(lib.segment_path(segment)) == sha256(original)
+
+
+def test_purge_recovers_after_database_commit_before_file_cleanup(library, monkeypatch):
+    lib, course, lecture, segment, original = library
+    files.archive(lib, "course", course, confirmed=True)
+
+    def interrupted(*args, **kwargs):
+        raise OSError("simulated power loss during file cleanup")
+
+    with monkeypatch.context() as patch:
+        patch.setattr(purging.shutil, "rmtree", interrupted)
+        with pytest.raises(OSError):
+            purging.empty(lib, purging.preview(lib)["digest"], confirmed=True)
+    with Library(lib.root) as restarted:
+        assert restarted.overview()["courses"] == []
+        assert files.trash(restarted) == []
+        assert not restarted.db.execute(
+            "SELECT 1 FROM purge_operations WHERE state='committed'"
+        ).fetchone()
+        assert restarted.db.execute("PRAGMA foreign_key_check").fetchall() == []
+    assert original.exists()
+
+
+def test_purging_only_audio_preserves_completed_text_and_marks_missing_source(library):
+    lib, _, lecture, segment, source = library
+    version = completed(lib, lecture)
+    before = lib.version_content(version)["units"]
+    files.archive(lib, "segment", segment, confirmed=True)
+    purging.empty(lib, purging.preview(lib)["digest"], confirmed=True)
+    after = lib.version_content(version)
+    assert after["units"] == before and after["source_missing"]
+    assert after["task"]["state"] == "completed"
+    assert source.exists() and lib.row("lectures", lecture)
+
+
+def test_trash_cleanup_does_not_follow_external_symlink(library, tmp_path):
+    lib, course, _, _, source = library
+    files.archive(lib, "course", course, confirmed=True)
+    target = files.archived(lib, "course", course)
+    link = target / "external-link"
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    sentinel = outside / "keep.txt"
+    sentinel.write_text("untouched")
+    link.symlink_to(outside, target_is_directory=True)
+    purging.empty(lib, purging.preview(lib)["digest"], confirmed=True)
+    assert sentinel.read_text() == "untouched" and source.exists()

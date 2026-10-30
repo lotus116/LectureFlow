@@ -1,12 +1,32 @@
 import AppKit
 import Combine
+import LectureFlowCore
 import SwiftUI
 
 @MainActor
 final class Workspace: ObservableObject {
     @Published var overview = Overview()
-    @Published var selectedLecture: String?
-    @Published var selectedVersion: String?
+    @Published private(set) var selectedLecture: String? {
+        didSet {
+            guard oldValue != selectedLecture else { return }
+            refreshToken = UUID()
+            resultFence.invalidate(); transcript = nil; contentKey = ""
+            selectedVersion = nil
+            live.prepareHistory(for: selectedLecture)
+            if let id = selectedLecture {
+                Task { [weak self] in
+                    guard let self, self.selectedLecture == id, let lecture = self.lecture else { return }
+                    await self.live.loadHistory(lecture: lecture, backend: self.backend)
+                }
+            }
+        }
+    }
+    @Published var selectedVersion: String? {
+        didSet {
+            guard oldValue != selectedVersion else { return }
+            resultFence.invalidate(); transcript = nil; contentKey = ""
+        }
+    }
     @Published var transcript: Transcript?
     @Published var error: String?
     @Published var busy = false
@@ -24,11 +44,52 @@ final class Workspace: ObservableObject {
     private var contentKey = ""
     private var recovered = false
     private var preparedModels = false
+    private var resultFence = ResultFence()
+    private var refreshToken = UUID()
+    private var monitoring: Task<Void, Never>?
+    var revealMain: (() -> Void)?
+    func showMainWindow() { revealMain?() }
 
     init() {
         live.objectWillChange.sink { [weak self] _ in self?.objectWillChange.send() }
             .store(in: &subscriptions)
         live.onLibraryChange = { [weak self] in Task { await self?.refresh() } }
+        live.$flags.map(\.needsASR).removeDuplicates().dropFirst().sink { [weak self] enabled in
+            guard enabled, let self else { return }
+            if UserDefaults.standard.object(forKey: "autoFloatingSubtitles") == nil
+                || UserDefaults.standard.bool(forKey: "autoFloatingSubtitles") {
+                self.openSubtitles()
+            }
+        }.store(in: &subscriptions)
+    }
+
+    func startMonitoring() {
+        guard monitoring == nil else { return }
+        monitoring = Task { [weak self] in
+            await self?.refreshModels()
+            while !Task.isCancelled {
+                guard let self else { return }
+                await self.refresh()
+                try? await Task.sleep(for: .seconds(2))
+            }
+        }
+    }
+
+    func openSubtitles(hideMain: Bool = false) {
+        subtitles.show(workspace: self)
+        if hideMain {
+            for window in NSApp.windows where window.identifier?.rawValue == "LectureFlowMain" {
+                window.orderOut(nil)
+            }
+        }
+    }
+
+    func changeCapture(_ flags: CaptureFlags) {
+        guard !busy, let lecture else { return }
+        if flags.needsASR && !hasModel(model) || flags.translate && !hasModel("translate") {
+            error = "本地模型尚未就绪，请在设置中继续下载。"; return
+        }
+        live.change(flags, lecture: lecture, backend: backend, model: model)
     }
 
     var lecture: Lecture? {
@@ -39,16 +100,21 @@ final class Workspace: ObservableObject {
     }
 
     func refresh() async {
+        let request = UUID(); refreshToken = request
         do {
-            overview = try JSONDecoder().decode(Overview.self, from: await backend.call([
+            let latest = try JSONDecoder().decode(Overview.self, from: await backend.call([
                 "library", "status"
             ]))
+            guard refreshToken == request else { return }
+            overview = latest
             if !recovered {
                 recovered = true
                 for lecture in overview.courses.flatMap(\.lectures) {
                     _ = try await backend.call(["library", "recover-recordings", lecture.id])
                 }
-                overview = try JSONDecoder().decode(Overview.self, from: await backend.call(["library", "status"]))
+                let recoveredState = try JSONDecoder().decode(Overview.self, from: await backend.call(["library", "status"]))
+                guard refreshToken == request else { return }
+                overview = recoveredState
             }
             if selectedLecture == nil {
                 selectedLecture = overview.courses.first?.lectures.first?.id
@@ -60,9 +126,16 @@ final class Workspace: ObservableObject {
             if let task = activeTask {
                 let key = "\(task.version_id):\(task.next_unit):\(task.state):\(task.stale)"
                 if key != contentKey {
-                    transcript = try JSONDecoder().decode(Transcript.self, from: await backend.call([
+                    guard let owner = selectedLecture else { return }
+                    let ticket = resultFence.ticket(owner: owner, version: task.version_id)
+                    let contentRequest = refreshToken
+                    let loaded = try JSONDecoder().decode(Transcript.self, from: await backend.call([
                         "library", "content", task.version_id
                     ]))
+                    guard refreshToken == contentRequest,
+                          resultFence.accepts(ticket, owner: selectedLecture, version: activeTask?.version_id),
+                          loaded.lecture_id == owner else { return }
+                    transcript = loaded
                     contentKey = key
                 }
             } else {
@@ -71,8 +144,16 @@ final class Workspace: ObservableObject {
             }
             let needsWorker = overview.courses.flatMap(\.lectures).flatMap(\.tasks)
                 .contains { ["queued", "running"].contains($0.state) }
-            if needsWorker && !live.flags.needsASR && !busy { try await backend.startWorker() }
-        } catch { self.error = error.localizedDescription }
+            let needsKnowledge = hasModel("translate") && (overview.knowledge_jobs ?? []).contains { ["queued", "running"].contains($0.state) }
+            if (needsWorker || needsKnowledge) && !live.flags.needsASR && !busy { try await backend.startWorker() }
+        } catch { if refreshToken == request { self.error = error.localizedDescription } }
+    }
+
+    func selectLecture(_ id: String?) {
+        if live.flags.needsMicrophone && id != live.lectureID {
+            error = "请先暂停当前课堂，再切换课堂。"; return
+        }
+        selectedLecture = id
     }
 
     func refreshModels() async {
@@ -152,8 +233,10 @@ final class Workspace: ObservableObject {
             let created = try JSONDecoder().decode(Created.self, from: await backend.call([
                 "library", "create-lecture", course, title
             ]))
-            selectedLecture = created.id
-            selectedVersion = nil
+            if !live.flags.needsMicrophone {
+                selectedLecture = created.id
+                selectedVersion = nil
+            }
             await refresh()
         } catch { self.error = error.localizedDescription }
     }
