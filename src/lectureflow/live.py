@@ -13,7 +13,7 @@ from collections import deque
 from pathlib import Path
 
 from .adapters import HyMTTranslator, QwenASR
-from .inference_policy import matching_glossary
+from .inference_policy import decide_enhancement, matching_glossary, select_asr_hints
 from .library import Library, identity
 from .live_store import save, validate_session
 from .models import resolve
@@ -73,10 +73,14 @@ class CaptionEngine:
         self.pre_roll = None
         self.context, self.glossary, self.documents = context, glossary, documents or []
         self.hint_terms = hint_terms or []
+        self.utterance_pcm = None
+        # At most one pending polish; newer finishes replace older to avoid backlog.
+        self.pending_enhance = None
 
     def configure(self, english: bool, translate: bool) -> None:
         if (english, translate) != (self.english, self.translate):
             self.finish()
+            self.polish()
             self.lock_all()
             self.english, self.translate = english, translate
             self.pre_roll = None
@@ -125,14 +129,18 @@ class CaptionEngine:
                 "chinese": "",
                 "revision": 0,
             }
+            self.utterance_pcm = []
             if self.pre_roll is not None:
                 previous, previous_start = self.pre_roll
                 if abs(start - previous_start - len(previous) / 16000) < 0.1:
                     self.current["start"] = previous_start
                     self.state = self.session.feed_audio(previous, self.state)
+                    self.utterance_pcm.append(previous.copy())
                 self.pre_roll = None
         self.silence = 0 if voiced else self.silence + len(pcm) / 16000
         self.state = self.session.feed_audio(pcm, self.state)
+        if self.utterance_pcm is not None:
+            self.utterance_pcm.append(pcm.copy())
         self.current["end"] = end
         text = self.state.text.strip()
         if text and text != self.current["english"]:
@@ -147,17 +155,24 @@ class CaptionEngine:
     def finish(self) -> None:
         if self.state is None:
             return
+        import numpy as np
+
         self.state = self.session.finish_streaming(self.state)
         entry = self.current
         text = self.state.text.strip()
-        self.state, self.current, self.silence = None, None, 0
+        pcm_parts = self.utterance_pcm or []
+        self.state, self.current, self.silence, self.utterance_pcm = None, None, 0, None
         if not text:
             return
         entry["english"] = text
         entry["chinese"] = self.translated(text)
         self.emit(entry, "stable")
+        if pcm_parts and (self.hint_terms or self.documents):
+            pcm = np.concatenate(pcm_parts)
+            # Keep only the latest pending polish so live never queues a backlog.
+            self.pending_enhance = (entry, pcm)
         # Only the preceding two utterances can be revised by this later context.
-        # English source stays unchanged; each translation revision is append-only.
+        # English source stays unchanged unless a guided polish later accepts a fix.
         if self.translate:
             for previous in list(self.recent)[-2:]:
                 revised = self.translated(previous["english"], following=text)
@@ -168,7 +183,34 @@ class CaptionEngine:
         while len(self.recent) > 3:
             self.emit(self.recent.popleft(), "locked")
 
+    def polish(self) -> None:
+        """Run at most one deferred courseware re-recognition between utterances."""
+        job = self.pending_enhance
+        self.pending_enhance = None
+        if job is None or self.state is not None or self.session is None:
+            return
+        entry, pcm = job
+        if pcm is None or len(pcm) < 1600 or len(pcm) > 16000 * 12:
+            return
+        selection = select_asr_hints(self.hint_terms, self.documents, entry["english"])
+        if not selection.context:
+            return
+        try:
+            result = self.session.transcribe(
+                pcm, context=selection.context, language="English", return_chunks=False
+            )
+            enhanced = (result.text or "").strip()
+        except Exception:
+            return
+        decision = decide_enhancement(entry["english"], enhanced, selection.terms)
+        if not decision.accepted or decision.text == entry["english"]:
+            return
+        entry["english"] = decision.text
+        entry["chinese"] = self.translated(decision.text)
+        self.emit(entry, "revised")
+
     def lock_all(self) -> None:
+        self.pending_enhance = None
         while self.recent:
             self.emit(self.recent.popleft(), "locked")
 
@@ -262,9 +304,11 @@ def run_live(root: Path, model_root: Path, lecture_id: str, session_id: str, asr
                     if requested_model != asr and captions.state is None:
                         import gc
 
+                        captions.polish()
                         output({"type": "loading", "message": "正在切换识别模型，录音继续保存"})
                         record = resolve(requested_model, model_root, "asr")
                         captions.session = engine = None
+                        captions.pending_enhance = None
                         gc.collect()
                         sys.modules["mlx.core"].clear_cache()
                         engine = QwenASR(Path(record["path"]))
@@ -275,6 +319,8 @@ def run_live(root: Path, model_root: Path, lecture_id: str, session_id: str, asr
                         translator = captions.translator = None
                         sys.modules["mlx.core"].clear_cache()
                     if item["type"] == "configure" or not (english or translate):
+                        if captions.state is None:
+                            captions.polish()
                         continue
                     raw = base64.b64decode(item["pcm"], validate=True)
                     start = float(item["start"])
@@ -286,10 +332,15 @@ def run_live(root: Path, model_root: Path, lecture_id: str, session_id: str, asr
                     if dropped != buffer.dropped:
                         dropped = buffer.dropped
                         captions.finish()
+                        captions.pending_enhance = None
                         output({"type": "warning", "message": "字幕有短暂中断，可继续听课。"})
+                    # Polish only between utterances so it never races streaming or stacks up.
+                    if captions.state is None:
+                        captions.polish()
                     captions.feed(pcm, start)
             finally:
                 captions.finish()
+                captions.polish()
                 captions.lock_all()
             output(
                 {"type": "stopped", "dropped_packets": buffer.dropped, "mlx_memory": mlx_memory()}

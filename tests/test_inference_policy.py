@@ -4,10 +4,15 @@ from types import SimpleNamespace
 
 import numpy as np
 
-from lectureflow.inference_policy import ASR_INPUT_POLICY, matching_glossary
+from lectureflow.inference_policy import (
+    ASR_INPUT_POLICY,
+    decide_enhancement,
+    matching_glossary,
+    select_asr_hints,
+)
 from lectureflow.library import Library
 from lectureflow.live import CaptionEngine
-from lectureflow.worker import process_task
+from lectureflow.worker import process_task, recognize_unit
 
 
 def test_translator_only_receives_terms_actually_in_the_current_speech():
@@ -16,6 +21,56 @@ def test_translator_only_receives_terms_actually_in_the_current_speech():
     assert matching_glossary(glossary, "DLLs and MyKernel are identifiers") == ""
     assert matching_glossary(glossary, "") == ""
     assert matching_glossary(glossary, "The kernel is here") == "Kernel: 内核"
+
+
+def test_selector_finds_terms_from_misheard_draft_and_stays_bounded():
+    terms = [
+        {"english": "VirtualMemory", "score": 8, "confirmed": True},
+        {"english": "CreateFile", "score": 9, "confirmed": True},
+        {"english": "UnrelatedAstronomy", "score": 9, "confirmed": True},
+    ]
+    documents = [
+        {
+            "name": "slides.pdf",
+            "pages": [
+                {
+                    "page": 1,
+                    "text": "VirtualMemory and CreateFile are Windows kernel concepts",
+                }
+            ],
+        }
+    ]
+    # Draft misspells the terms; retrieval must still surface the course spellings.
+    selected = select_asr_hints(
+        terms, documents, "We use virtural memry and create file in the kernel"
+    )
+    assert selected.context
+    assert "VirtualMemory" in selected.terms
+    assert "CreateFile" in selected.terms
+    assert "UnrelatedAstronomy" not in selected.terms
+    assert len(selected.context) <= 280
+    assert select_asr_hints(terms, documents, "").context == ""
+    assert select_asr_hints(terms, documents, "silence only aaa").context == ""
+
+
+def test_enhancement_rejects_numbers_negation_injection_but_allows_hint_repair():
+    hints = ["VirtualMemory", "CreateFile", "DLL"]
+    assert decide_enhancement(
+        "Load the virtural memry", "Load the VirtualMemory", hints
+    ).accepted
+    assert decide_enhancement(
+        "There are 16 threads", "There are 32 threads", hints
+    ).reason == "number_change"
+    assert decide_enhancement(
+        "This is not kernel mode", "This is kernel mode", hints
+    ).reason == "negation_change"
+    dumped = decide_enhancement(
+        "We load the library",
+        "We load the library DLL VirtualMemory CreateFile",
+        hints,
+    )
+    assert not dumped.accepted
+    assert dumped.text == "We load the library"
 
 
 def test_matching_terms_are_bounded_even_for_a_long_utterance():
@@ -62,6 +117,9 @@ def test_live_old_vocabulary_cannot_become_a_transcript_or_translation_prefix():
     engine.feed(np.full(4000, 0.1, dtype=np.float32), 0)
     engine.finish()
     assert session.contexts == [""]
+    # Deferred polish must not run until an idle slot; pending work is droppable.
+    assert engine.pending_enhance is not None
+    engine.pending_enhance = None
     assert all(event["english"] == "We load the DLL." for event in events)
     assert all(call["glossary"] == "DLL: 动态链接库" for call in glossary_inputs)
     assert all(not call.get("context") for call in glossary_inputs)
@@ -120,11 +178,51 @@ def test_old_queued_snapshot_uses_audio_only_and_keeps_existing_history(tmp_path
         assert seen == [""]
         assert content["units"][0]["english"] == "We load the DLL."
         assert content["units"][0]["metadata"]["asr_input_policy"] == ASR_INPUT_POLICY
+        assert content["units"][0]["metadata"]["raw_english"] == "We load the DLL."
         assert not content["possible_context_bias"]
         assert (
             lib.version_content(old["version_id"])["units"][0]["english"] == old_config["context"]
         )
         assert lib.row("versions", new["version_id"])["config"] == encoded
+
+
+def test_recognize_unit_keeps_raw_when_second_pass_dumps_hints(tmp_path):
+    audio = tmp_path / "clip.wav"
+    audio.write_bytes(b"x")
+    calls = []
+
+    class ASR:
+        def transcribe(self, path, context):
+            calls.append(context)
+            if context:
+                return {
+                    "text": "We load the DLL. VirtualMemory CreateFile KernelMode UserMode",
+                    "truncated": False,
+                }
+            return {"text": "We load the DLL.", "truncated": False}
+
+    config = {
+        "hint_terms": [
+            {"english": "DLL", "score": 9, "confirmed": True},
+            {"english": "VirtualMemory", "score": 9, "confirmed": True},
+            {"english": "CreateFile", "score": 9, "confirmed": True},
+            {"english": "KernelMode", "score": 9, "confirmed": True},
+            {"english": "UserMode", "score": 9, "confirmed": True},
+        ],
+        "documents": [
+            {
+                "name": "os.pdf",
+                "pages": [{"page": 1, "text": "DLL VirtualMemory CreateFile KernelMode UserMode"}],
+            }
+        ],
+    }
+    text, meta = recognize_unit(ASR(), audio, config)
+    assert calls[0] == ""
+    assert text == "We load the DLL."
+    assert meta["raw_english"] == "We load the DLL."
+    assert meta["enhancement"]["attempted"]
+    assert not meta["enhancement"]["accepted"]
+    assert meta["asr_input_policy"] == ASR_INPUT_POLICY
 
 
 def test_live_model_switch_waits_for_boundary_and_acknowledges_actual_model(tmp_path, monkeypatch):

@@ -155,7 +155,7 @@ def test_pptx_uses_deck_order_and_context_is_versioned(library, tmp_path):
     version = completed(lib, lecture)
     config = lib.version_content(version)["config"]
     assert not config["context"]
-    assert config["asr_input_policy"] == "audio_only_v1"
+    assert config["asr_input_policy"] == "guided_rerecognize_v1"
     assert config["glossary"] == "Kernel: 内核"
     assert config["documents"][0]["pages"][0]["text"] == "Kernel memory ABI"
     documents.save_term(lib, "course", course, "Kernel", "内核态", True)
@@ -189,6 +189,18 @@ def test_ocr_extraction_cannot_be_attached_to_changed_source(library, tmp_path):
             },
         )
     assert documents.listing(lib, "lecture", lecture)["documents"] == []
+
+
+def test_summary_preview_uses_related_courseware_not_full_dump(library, tmp_path):
+    lib, course, lecture, _, _ = library
+    documents.import_document(lib, "course", course, deck(tmp_path / "slides.pptx"))
+    version = completed(lib, lecture)
+    preview = summaries.preview(lib, lecture, version, include_documents=True)
+    assert "## 课堂转写" in preview["materials"]
+    assert "参考课件（补充，非课堂原话）" in preview["materials"]
+    assert "Kernel memory" in preview["materials"]
+    assert preview["documents"]
+    assert "secret" not in preview["materials"].lower()
 
 
 def test_summary_only_sends_preview_and_resumes_completed_chunks(library, monkeypatch):

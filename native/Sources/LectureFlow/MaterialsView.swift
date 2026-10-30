@@ -128,7 +128,7 @@ struct MaterialsView: View {
                 } label: { Image(systemName: "ellipsis") }.menuStyle(.borderlessButton).frame(width: 24)
                 Button(includeShared ? "导入本堂课" : "导入课件", systemImage: "plus") { importing = true }.disabled(working)
             }
-            Text("英文转写只依据录音。已采用的中英文术语仅在讲话涉及该词时辅助翻译；课件也可用于课后整理。")
+            Text("上传后自动用于辅助识别、翻译和课后整理：先按录音识别，再在相关时用课件做有限纠正；原始识别会保留。翻译仍只匹配讲话中出现的术语。")
                 .font(.caption).foregroundStyle(.secondary)
             if working { HStack { ProgressView().controlSize(.mini); Text(progress) }.font(.caption) }
             HSplitView {

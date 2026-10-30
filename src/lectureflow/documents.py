@@ -375,19 +375,14 @@ def context(library, lecture_id: str) -> dict:
         "glossary": "\n".join(f"{a}: {b}" for a, b in terms.values() if b)[:8000],
         "documents": documents,
     }
-    # Index and vocabulary remain inspectable. Recognition itself is audio-only.
+    # Materials stay available for guided re-recognition and summaries.
+    # Production ASR still starts from an empty system prompt (audio-first).
     snapshot["context"] = ""
     return snapshot
 
 
 def related(documents: list[dict], text: str, limit: int = 1200) -> str:
-    query = set(re.findall(r"[a-z][a-z0-9_-]{2,}", text.lower())) - STOP
-    ranked = []
-    for document in documents:
-        for page in document["pages"]:
-            tokens = set(re.findall(r"[a-z][a-z0-9_-]{2,}", page["text"].lower())) - STOP
-            score = len(query & tokens)
-            if score >= 2:
-                ranked.append((score, f"{document['name']} p.{page['page']}: {page['text']}"))
-    ranked.sort(key=lambda item: item[0], reverse=True)
-    return "\n".join(item[1] for item in ranked[:2])[:limit]
+    from .inference_policy import related_materials
+
+    pages = related_materials(documents, text, page_limit=2, char_limit=limit)
+    return "\n".join(f"{page['name']} p.{page['page']}: {page['text']}" for page in pages)[:limit]

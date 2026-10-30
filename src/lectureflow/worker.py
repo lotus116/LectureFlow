@@ -11,12 +11,64 @@ from tempfile import TemporaryDirectory
 
 from .adapters import HyMTTranslator, QwenASR
 from .exporting import export_version
-from .inference_policy import ASR_INPUT_POLICY, matching_glossary
+from .inference_policy import (
+    ASR_INPUT_POLICY,
+    GUIDED_POLICY,
+    decide_enhancement,
+    matching_glossary,
+    select_asr_hints,
+)
 from .library import Library, now
 from .model_lease import live_requested
 from .models import CATALOG, resolve
 from .recordings import extract_source, verify_source
 from .runtime import configure, mlx_memory
+
+
+def recognize_unit(asr, audio: Path, config: dict) -> tuple[str, dict]:
+    """Audio-first recognition; optional bounded courseware re-recognition with a gate."""
+    raw = asr.transcribe(audio, "")
+    if raw.get("truncated"):
+        raise ValueError("识别结果达到长度上限，未提交本区间；请重试或调整模型")
+    raw_text = (raw.get("text") or "").strip()
+    selection = select_asr_hints(
+        config.get("hint_terms") or [],
+        config.get("documents") or [],
+        raw_text,
+    )
+    metadata = {
+        "asr": raw,
+        "raw_english": raw_text,
+        "courseware_hints": selection.context,
+        "hint_terms_used": list(selection.terms),
+        "asr_input_policy": ASR_INPUT_POLICY,
+        "enhancement": {"attempted": False, "accepted": False, "reason": selection.reason},
+    }
+    final = raw_text
+    if not selection.context:
+        return final, metadata
+    enhanced = asr.transcribe(audio, selection.context)
+    enhanced_text = (enhanced.get("text") or "").strip()
+    if enhanced.get("truncated"):
+        metadata["enhancement"] = {
+            "attempted": True,
+            "accepted": False,
+            "reason": "enhanced_truncated",
+            "enhanced_english": enhanced_text,
+        }
+        return final, metadata
+    decision = decide_enhancement(raw_text, enhanced_text, selection.terms)
+    metadata["asr_enhanced"] = enhanced
+    metadata["enhancement"] = {
+        "attempted": True,
+        "accepted": decision.accepted,
+        "reason": decision.reason,
+        "enhanced_english": enhanced_text,
+    }
+    if decision.accepted:
+        final = decision.text
+        metadata["asr_input_policy"] = GUIDED_POLICY
+    return final, metadata
 
 
 def process_task(
@@ -49,31 +101,27 @@ def process_task(
                 item["source_end"] - item["source_start"],
             )
             started = time.perf_counter()
-            # Applies to old queued/resumed snapshots too. Never feed a vocabulary list,
-            # previous transcript or slide text into recognition as a language prefix.
-            recognized = asr.transcribe(audio, "")
-            if recognized.get("truncated"):
-                raise ValueError("识别结果达到长度上限，未提交本区间；请重试或调整模型")
+            # Old config.context dumps are ignored. Pass 1 is always audio-only;
+            # pass 2 uses only select_asr_hints output, then a conservative gate.
+            english, asr_meta = recognize_unit(asr, audio, config)
             translated = {"text": "", "truncated": False}
             if config["translate"]:
                 if translator is None:
                     raise ValueError("翻译模型未加载")
                 translated = translator.translate(
-                    recognized["text"],
-                    matching_glossary(config.get("glossary", ""), recognized["text"]),
+                    english,
+                    matching_glossary(config.get("glossary", ""), english),
                 )
                 if translated.get("truncated"):
                     raise ValueError("翻译结果达到长度上限，本区间未提交")
             unit = {
                 **item,
-                "english": recognized["text"],
+                "english": english,
                 "chinese": translated["text"],
                 "metadata": {
-                    "asr": recognized,
+                    **asr_meta,
                     "translation": translated,
                     "decoded_duration": duration,
-                    "courseware_hints": "",
-                    "asr_input_policy": ASR_INPUT_POLICY,
                     "elapsed_s": time.perf_counter() - started,
                     "mlx_memory": mlx_memory(),
                 },

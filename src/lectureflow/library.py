@@ -302,11 +302,13 @@ class Library:
 
             materials = document_context(self, lecture_id)
             lecture = self.row("lectures", lecture_id)
+            # Never persist a caller-supplied vocabulary dump as ASR input.
+            # Guided re-recognition selects a tiny prompt later from the draft.
             config["context"] = ""
-            config["asr_input_policy"] = "audio_only_v1"
+            config["asr_input_policy"] = "guided_rerecognize_v1"
             config["glossary"] = glossary or materials["glossary"]
             config["documents"] = materials["documents"]
-            config["hint_terms"] = materials["hint_terms"] if not context else []
+            config["hint_terms"] = materials["hint_terms"]
             config["models"] = {
                 "asr": CATALOG[asr], "translation": CATALOG["translate"] if translate else None,
             }
@@ -402,8 +404,11 @@ class Library:
         for unit in units:
             unit["metadata"] = json.loads(unit["metadata"])
         config = json.loads(version["config"])
+        from .inference_policy import SAFE_ASR_POLICIES
+
+        # Flag only legacy unguarded context paths; guided re-recognition is labeled separately.
         possible_bias = bool(config.get("context") or config.get("hint_terms")) and any(
-            u["metadata"].get("asr_input_policy") != "audio_only_v1" for u in units
+            u["metadata"].get("asr_input_policy", "legacy") not in SAFE_ASR_POLICIES for u in units
         )
         return {
             "schema_version": 1, "version_id": version_id, "lecture_id": lecture["id"],
