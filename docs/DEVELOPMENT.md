@@ -78,4 +78,4 @@ JSON 保存原始识别、源片段与源时间、课堂逻辑时间、模型提
 
 源码职责：`native/` 原生界面与采集；`src/lectureflow/` 本地模型、资料库、课件和任务；`tests/` 存储/恢复等行为检查；`scripts/` 环境、构建和检查；`docs/` 产品、使用与实现说明。生成内容放 `.build/`、`dist/` 等忽略目录。
 
-`VERSION` 与 pyproject 版本保持一致。main 的版本/发布流程变更触发一次构建：先运行功能检查，再打包并创建 GitHub Release，上传 ZIP 和 SHA256SUMS 后公开。既有公开版本不自动覆盖。没有创建定时 Codex 任务。
+`VERSION` 与 pyproject 版本保持一致。日常修复只提交、推送与检查，预览包保存在本机；更新版本号不会自动发布。集中验证后，用户要求正式交付时再手动运行 GitHub Actions 的 Release macOS app：先运行功能检查，再打包，上传 ZIP 和 SHA256SUMS 后公开。既有公开版本不自动覆盖。没有创建定时 Codex 任务。
