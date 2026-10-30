@@ -40,7 +40,7 @@ struct GlossaryTerm: Decodable, Identifiable {
         if excluded == 1 { return "已忽略" }
         if confirmed == 1 { return "已采用" }
         if origin == "local-model" { return "中文待校对" }
-        return score >= 4 ? "自动拼写提示" : "候选"
+        return score >= 4 ? "术语候选" : "候选"
     }
 }
 struct KnowledgeJob: Decodable, Identifiable, Sendable {
@@ -128,7 +128,7 @@ struct MaterialsView: View {
                 } label: { Image(systemName: "ellipsis") }.menuStyle(.borderlessButton).frame(width: 24)
                 Button(includeShared ? "导入本堂课" : "导入课件", systemImage: "plus") { importing = true }.disabled(working)
             }
-            Text("课件拼写自动用于新转写；中文建议校对并采用后用于翻译。实时字幕重新开启后更新资料。")
+            Text("英文转写只依据录音。已采用的中英文术语仅在讲话涉及该词时辅助翻译；课件也可用于课后整理。")
                 .font(.caption).foregroundStyle(.secondary)
             if working { HStack { ProgressView().controlSize(.mini); Text(progress) }.font(.caption) }
             HSplitView {

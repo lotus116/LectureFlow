@@ -153,6 +153,12 @@ final class LiveController: NSObject, ObservableObject {
     @Published private(set) var captions: [LiveCaption] = []
     @Published private(set) var message = "随时开始，随时暂停"
     @Published private(set) var lectureID: String?
+    @Published private(set) var isCapturing = false
+    @Published private(set) var level: Float = 0
+    @Published private(set) var modelSelection = RecognitionSelection()
+    var activeModel: String? { modelSelection.active }
+    var pendingModel: String? { modelSelection.pending }
+    @Published private(set) var pendingSaves = 0
     @Published var error: String?
     @Published var inputDevice: UInt32 = UInt32(UserDefaults.standard.integer(forKey: "inputDevice"))
     private var engine: AVAudioEngine?
@@ -194,6 +200,7 @@ final class LiveController: NSObject, ObservableObject {
         if flags.needsMicrophone && lectureID != lecture.id {
             error = "请先暂停当前课堂，再切换课堂。"; return
         }
+        if desired.needsASR && !pipes.present { modelSelection.request(model) }
         flags = desired; generation += 1
         let revision = generation
         Task { [self] in
@@ -206,7 +213,8 @@ final class LiveController: NSObject, ObservableObject {
             }
             guard revision == generation else { return }
             guard granted else {
-                flags = .paused; message = "请在系统设置中允许 LectureFlow 使用麦克风。"; return
+                flags = .paused; message = "请在系统设置中允许 LectureFlow 使用麦克风。"
+                error = message; return
             }
             do {
                 if lectureID != lecture.id {
@@ -214,6 +222,7 @@ final class LiveController: NSObject, ObservableObject {
                     captureStarted = false
                 }
                 if !captureStarted {
+                    captions = []
                     referenceTime = ProcessInfo.processInfo.systemUptime; captureStarted = true
                     captureID = UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
                     sessionID = nil
@@ -223,9 +232,12 @@ final class LiveController: NSObject, ObservableObject {
                                           referenceTime: referenceTime, captureID: captureID)
                     let box = pipes
                     new.onPCM = { data, start, flags in box.audio(data, start: start, flags: flags) }
+                    new.onLevel = { [weak self] value in Task { @MainActor in self?.level = value } }
                     new.onMode = { flags in box.mode(flags) }
                     new.onRecording = { [weak self] directory in
                         Task { @MainActor in
+                            self?.pendingSaves += 1
+                            defer { self?.pendingSaves -= 1 }
                             do {
                                 _ = try await backend.call(["library", "register-recording", lecture.id, directory.path])
                                 self?.onLibraryChange?()
@@ -263,24 +275,29 @@ final class LiveController: NSObject, ObservableObject {
                     }
                     hasTap = true; engine.prepare(); try engine.start()
                 }
+                isCapturing = true
                 if !desired.needsASR {
+                    modelSelection.reset()
                     pipeToken = nil; pipes.replace(nil); message = "正在保存录音"; return
                 }
                 if !pipes.present {
                     message = "正在准备本地字幕，录音开关独立生效"
                     if sessionID == nil {
-                        sessionID = try JSONDecoder().decode(Created.self, from: await backend.call([
+                        let created = try JSONDecoder().decode(Created.self, from: await backend.call([
                             "live", "create", lecture.id, "--id", captureID
                         ])).id
+                        guard revision == generation else { return }
+                        sessionID = created
                     }
                     guard revision == generation else { return }
                     let token = UUID(); pipeToken = token
-                    let pipe = try LivePipe(paths: backend.paths, lectureID: lecture.id, sessionID: sessionID!, model: model) {
+                    let selectedModel = modelSelection.requested ?? model
+                    let pipe = try LivePipe(paths: backend.paths, lectureID: lecture.id, sessionID: sessionID!, model: selectedModel) {
                         [weak self] event in
                         Task { @MainActor in self?.receive(event, token: token, sourceLecture: lecture.id) }
                     }
                     pipes.replace(pipe); pipes.mode(desired)
-                } else { pipes.selectModel(model) }
+                } else { selectRecognitionModel(model) }
             } catch {
                 if engine?.isRunning == true && flags.recording {
                     flags.english = false; flags.translate = false
@@ -295,15 +312,23 @@ final class LiveController: NSObject, ObservableObject {
         guard sourceLecture == lectureID else { return }
         if event["type"] as? String != "caption" && token != pipeToken { return }
         switch event["type"] as? String {
-        case "ready": message = "实时字幕已就绪"
+        case "ready":
+            if let model = event["model"] as? String { modelSelection.acknowledge(model) }
+            message = "实时字幕已就绪"
         case "loading": message = event["message"] as? String ?? "正在准备模型"
-        case "model_changed": message = "识别模型已切换，录音连续保存"
+        case "model_pending":
+            message = "将在当前语音片段结束后切换模型，录音继续保存"
+        case "model_changed":
+            if let model = event["model"] as? String { modelSelection.acknowledge(model) }
+            message = "识别模型已切换，录音连续保存"
         case "warning": message = event["message"] as? String ?? "字幕有短暂中断"
         case "error":
+            modelSelection.reset()
             pipeToken = nil; pipes.replace(nil); flags.english = false; flags.translate = false
             if flags.needsMicrophone { pump?.update(flags) } else { shutdown() }
             message = event["message"] as? String ?? "字幕处理已停止"
         case "caption":
+            guard event["session_id"] as? String == sessionID else { return }
             guard let data = try? JSONSerialization.data(withJSONObject: event),
                   let caption = try? JSONDecoder().decode(LiveCaption.self, from: data) else { return }
             if let index = captions.firstIndex(where: { $0.id == caption.id }) {
@@ -345,7 +370,19 @@ final class LiveController: NSObject, ObservableObject {
         if hasTap { engine?.inputNode.removeTap(onBus: 0); hasTap = false }
         pump?.finish(); pump = nil
         pipeToken = nil; pipes.replace(nil); flags = .paused
+        isCapturing = false; level = 0; modelSelection.reset()
         message = "已暂停，已保存的录音和字幕保留在课堂中"
+    }
+    func endSession() {
+        shutdown()
+        captureStarted = false; sessionID = nil
+        message = "本次课堂已结束，录音与字幕已保留"
+    }
+    func selectRecognitionModel(_ model: String) {
+        guard flags.needsASR, modelSelection.requested != model else { return }
+        modelSelection.request(model)
+        message = activeModel == model ? "保持当前识别模型" : "正在请求切换识别模型，录音继续保存"
+        if pipes.present { pipes.selectModel(model) }
     }
     func cancelCurrentRecording() {
         guard flags.recording else { return }

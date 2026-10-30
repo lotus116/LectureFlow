@@ -42,8 +42,8 @@ def test_courseware_indexes_sources_bilingual_pairs_and_auto_hints(courseware):
     assert kernel["chinese"] == "内核" and kernel["confirmed"] == 0
     assert json.loads(kernel["sources"])[0] == {"document_id": document["id"], "page": 1}
     context = documents.context(lib, lecture)
-    assert "DLL" in context["context"] and "Kernel: 内核" in context["glossary"]
-    assert "VirtualMemory" in context["context"]
+    assert not context["context"] and "Kernel: 内核" in context["glossary"]
+    assert any(t["english"] == "VirtualMemory" for t in context["hint_terms"])
     assert listing["jobs"][0]["state"] == "queued"
     assert source.read_bytes().startswith(b"synthetic source")
 
@@ -70,8 +70,8 @@ def test_batch_scope_rejection_is_atomic_and_excluded_terms_do_not_feed_asr(cour
     payload["term_ids"] = [term["id"]]
     payload["operation"] = "exclude"
     knowledge.batch(lib, payload)
-    assert "DLL" not in documents.context(lib, lecture)["context"].split(", ")
-    assert "PrivateTerm" in documents.context(lib, lecture)["context"]
+    assert all(t["english"] != "DLL" for t in documents.context(lib, lecture)["hint_terms"])
+    assert "PrivateTerm: 独立" in documents.context(lib, lecture)["glossary"]
 
 
 def test_term_completion_resumes_checkpoint_and_does_not_overwrite_user_edit(courseware):
@@ -133,7 +133,7 @@ def test_edit_during_model_call_wins_and_local_suggestion_needs_review(coursewar
     assert suggestions and all(t["confirmed"] == 0 for t in suggestions)
 
 
-def test_offline_asr_receives_automatic_spelling_context_and_immutable_snapshot(
+def test_offline_asr_never_receives_courseware_and_keeps_snapshot(
     courseware, tmp_path
 ):
     lib, _, lecture, document, _ = courseware
@@ -153,7 +153,7 @@ def test_offline_asr_receives_automatic_spelling_context_and_immutable_snapshot(
 
     documents.remove(lib, document["id"], confirmed=True)
     process_task(lib, task, ASR())
-    assert "DLL" in received[0] and "Kernel" in received[0]
+    assert received == [""]
     content = lib.version_content(task["version_id"])
     assert content["units"][0]["english"] == "Raw recognition unchanged"
     assert content["units"][0]["metadata"]["courseware_hints"] == received[0]
@@ -161,7 +161,7 @@ def test_offline_asr_receives_automatic_spelling_context_and_immutable_snapshot(
     assert not documents.context(lib, lecture)["context"]
 
 
-def test_live_asr_receives_same_bounded_courseware_context(courseware):
+def test_live_asr_never_receives_courseware_context(courseware):
     from types import SimpleNamespace
 
     lib, _, lecture, _, _ = courseware
@@ -188,7 +188,7 @@ def test_live_asr_receives_same_bounded_courseware_context(courseware):
     )
     engine.feed(np.full(4000, 0.1, dtype=np.float32), 0)
     engine.finish()
-    assert "DLL" in received[0] and len(received[0]) <= 3500
+    assert received == [""]
     assert events[-1]["english"] == "original speech"
 
 
@@ -243,7 +243,8 @@ def test_old_materials_upgrade_inside_enqueue_without_nested_transaction_failure
     lib.import_audio(lecture, [source])
     task = lib.enqueue(lecture, translate=False)
     content = lib.version_content(task["version_id"])
-    assert "DLL" in content["config"]["context"]
+    assert not content["config"]["context"]
+    assert any(t["english"] == "DLL" for t in content["config"]["hint_terms"])
     assert not content["stale"]
 
 

@@ -7,11 +7,13 @@ import SwiftUI
 final class Workspace: ObservableObject {
     @Published var overview = Overview()
     @Published private(set) var selectedLecture: String? {
+        willSet { if newValue != selectedLecture { persistSession() } }
         didSet {
             guard oldValue != selectedLecture else { return }
             refreshToken = UUID()
             resultFence.invalidate(); transcript = nil; contentKey = ""
             selectedVersion = nil
+            restoreSession()
             live.prepareHistory(for: selectedLecture)
             if let id = selectedLecture {
                 Task { [weak self] in
@@ -29,6 +31,12 @@ final class Workspace: ObservableObject {
     }
     @Published var transcript: Transcript?
     @Published var error: String?
+    @Published private(set) var session = ClassroomSession() {
+        didSet { persistSession() }
+    }
+    @Published var notice: String?
+    @Published private(set) var refreshError: String?
+    @Published var requestedTab: String?
     @Published var busy = false
     @Published var model = "asr-small"
     @Published var translate = true
@@ -51,9 +59,23 @@ final class Workspace: ObservableObject {
     func showMainWindow() { revealMain?() }
 
     init() {
-        live.objectWillChange.sink { [weak self] _ in self?.objectWillChange.send() }
-            .store(in: &subscriptions)
+        // Meter updates redraw the recorder itself, not the entire library and task list.
+        Publishers.MergeMany(
+            live.$flags.dropFirst().map { _ in () }.eraseToAnyPublisher(),
+            live.$error.dropFirst().map { _ in () }.eraseToAnyPublisher(),
+            live.$isCapturing.dropFirst().map { _ in () }.eraseToAnyPublisher()
+        ).sink { [weak self] _ in self?.objectWillChange.send() }.store(in: &subscriptions)
         live.onLibraryChange = { [weak self] in Task { await self?.refresh() } }
+        live.$isCapturing.dropFirst().sink { [weak self] active in
+            guard let self else { return }
+            if active { self.session.started(at: ProcessInfo.processInfo.systemUptime) }
+            else { self.session.pause(at: ProcessInfo.processInfo.systemUptime) }
+        }.store(in: &subscriptions)
+        live.$flags.dropFirst().sink { [weak self] flags in
+            guard let self, !flags.needsMicrophone else { return }
+            self.session.pause(at: ProcessInfo.processInfo.systemUptime)
+            self.notice = nil
+        }.store(in: &subscriptions)
         live.$flags.map(\.needsASR).removeDuplicates().dropFirst().sink { [weak self] enabled in
             guard enabled, let self else { return }
             if UserDefaults.standard.object(forKey: "autoFloatingSubtitles") == nil
@@ -84,12 +106,73 @@ final class Workspace: ObservableObject {
         }
     }
 
-    func changeCapture(_ flags: CaptureFlags) {
-        guard !busy, let lecture else { return }
-        if flags.needsASR && !hasModel(model) || flags.translate && !hasModel("translate") {
-            error = "本地模型尚未就绪，请在设置中继续下载。"; return
+    private func persistSession() {
+        guard let id = selectedLecture,
+              let data = try? JSONEncoder().encode(session.checkpoint(at: ProcessInfo.processInfo.systemUptime)) else { return }
+        UserDefaults.standard.set(data, forKey: "classroomSession." + id)
+    }
+    private func restoreSession() {
+        if let id = selectedLecture, let data = UserDefaults.standard.data(forKey: "classroomSession." + id),
+           let saved = try? JSONDecoder().decode(ClassroomSession.self, from: data) {
+            session = saved.restored()
+        } else {
+            var fresh = ClassroomSession()
+            if let data = UserDefaults.standard.data(forKey: "capturePreferences"),
+               let flags = try? JSONDecoder().decode(CaptureFlags.self, from: data) { _ = fresh.configure(flags) }
+            session = fresh
         }
+        notice = nil
+    }
+    func configureSession(_ flags: CaptureFlags) {
+        guard session.configure(flags) else { notice = "请先暂停；至少选择一种记录方式。"; return }
+        if let data = try? JSONEncoder().encode(flags) { UserDefaults.standard.set(data, forKey: "capturePreferences") }
+        notice = nil
+    }
+    var effectiveCapture: CaptureFlags {
+        session.desired.available(asr: hasModel(model), translation: hasModel("translate"))
+    }
+    var captionsWaiting: Bool { session.desired.needsASR && effectiveCapture != session.desired }
+    func primarySessionAction(subtitlesIfIdle: Bool = false) {
+        if session.state == .running || session.state == .preparing { pauseSession(); return }
+        guard !busy, let lecture else { return }
+        if subtitlesIfIdle && !session.hasSession { _ = session.configure(CapturePreset.subtitles.flags) }
+        let flags = effectiveCapture
+        guard flags.needsMicrophone else {
+            notice = "字幕模型尚未就绪。请继续下载，或选择“仅录音”先保存课堂。"; return
+        }
+        guard session.begin() else { return }
+        notice = captionsWaiting ? "录音先开始，模型就绪后自动开启字幕；这期间的录音可课后转写。" : nil
         live.change(flags, lecture: lecture, backend: backend, model: model)
+        requestedTab = session.desired.needsASR ? "live" : "audio"
+    }
+    func pauseSession() {
+        session.pause(at: ProcessInfo.processInfo.systemUptime)
+        live.shutdown(); notice = "已暂停；继续后仍保存在本堂课，使用原来的记录方式。"
+    }
+    func endSession() {
+        session.end(at: ProcessInfo.processInfo.systemUptime)
+        live.endSession(); notice = nil
+        Task { await refresh() }
+    }
+    func reconnectCaptions() {
+        guard session.state == .running, let lecture, effectiveCapture.needsASR else { return }
+        live.change(effectiveCapture, lecture: lecture, backend: backend, model: model)
+    }
+    private func reconcileCapture() {
+        guard session.state == .running, live.flags.needsMicrophone,
+              let lecture, effectiveCapture != live.flags, effectiveCapture.needsMicrophone else { return }
+        live.change(effectiveCapture, lecture: lecture, backend: backend, model: model)
+        if !captionsWaiting { notice = "本地模型已就绪，字幕已开启；此前录音仍保留。" }
+    }
+    func selectRecognitionModel(_ id: String) {
+        guard hasModel(id) else { notice = "该模型尚未下载，可在模型面板中下载后切换。"; return }
+        model = id
+        live.selectRecognitionModel(id)
+    }
+    func downloadAndSelectModel(_ id: String) async {
+        guard !downloading else { notice = "其他模型正在下载，完成后可下载此模型。"; return }
+        await installModels([id])
+        if hasModel(id) { selectRecognitionModel(id) }
     }
 
     var lecture: Lecture? {
@@ -107,6 +190,7 @@ final class Workspace: ObservableObject {
             ]))
             guard refreshToken == request else { return }
             overview = latest
+            refreshError = nil
             if !recovered {
                 recovered = true
                 for lecture in overview.courses.flatMap(\.lectures) {
@@ -146,7 +230,8 @@ final class Workspace: ObservableObject {
                 .contains { ["queued", "running"].contains($0.state) }
             let needsKnowledge = hasModel("translate") && (overview.knowledge_jobs ?? []).contains { ["queued", "running"].contains($0.state) }
             if (needsWorker || needsKnowledge) && !live.flags.needsASR && !busy { try await backend.startWorker() }
-        } catch { if refreshToken == request { self.error = error.localizedDescription } }
+            persistSession()
+        } catch { if refreshToken == request { refreshError = error.localizedDescription } }
     }
 
     func selectLecture(_ id: String?) {
@@ -165,6 +250,7 @@ final class Workspace: ObservableObject {
                 _ = try await backend.call(["models", "import-cache", previous.path])
             }
             installedModels = try JSONDecoder().decode(ModelList.self, from: await backend.call(["models", "status"])).models
+            reconcileCapture()
             if first && !downloadPaused {
                 let missing = ["asr-small", "translate"].filter { !hasModel($0) }
                 if !missing.isEmpty { Task { await self.installModels(missing) } }
@@ -251,6 +337,7 @@ final class Workspace: ObservableObject {
             $0.lastPathComponent.localizedStandardCompare($1.lastPathComponent) == .orderedAscending
         }
         await perform(["library", "import", lecture.id] + ordered.map(\.path))
+        if selectedLecture == lecture.id { requestedTab = "audio" }
     }
 
     func enqueue() async {
@@ -259,6 +346,7 @@ final class Workspace: ObservableObject {
         if !translate { arguments.append("--no-translation") }
         selectedVersion = nil
         await perform(arguments)
+        if selectedLecture == lecture.id { requestedTab = "transcript" }
     }
 
     func move(_ dragged: String, before destination: String) async {

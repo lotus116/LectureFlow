@@ -13,6 +13,7 @@ from collections import deque
 from pathlib import Path
 
 from .adapters import HyMTTranslator, QwenASR
+from .inference_policy import matching_glossary
 from .library import Library, identity
 from .live_store import save, validate_session
 from .models import resolve
@@ -88,15 +89,11 @@ class CaptionEngine:
     def translated(self, text: str, *, following: str = "") -> str:
         if not self.translate or not text:
             return ""
-        from .documents import related
-
-        context = " ".join(entry["english"] for entry in self.recent)[-1000:]
-        reference = related(self.documents, text)
-        if reference:
-            context += "\n课件参考（仅作术语消歧，不得补写）：\n" + reference
-        options = {"context": context, "following": following}
+        # Neighbouring actual speech can disambiguate a revision; courseware cannot
+        # supply words absent from the recognized utterance.
+        options = {"following": following[-300:]}
         if self.glossary:
-            options["glossary"] = self.glossary
+            options["glossary"] = matching_glossary(self.glossary, text)
         result = self.translator.translate(text, **options)
         if result.get("truncated"):
             raise ValueError("译文达到长度限制，已保留录音与此前字幕")
@@ -111,8 +108,6 @@ class CaptionEngine:
         self.last_end = end
         voiced = float(np.sqrt(np.mean(pcm * pcm))) >= 0.008
         if self.state is None:
-            from .knowledge import hints
-
             if not voiced:
                 self.pre_roll = (pcm.copy(), start)
                 return
@@ -120,10 +115,7 @@ class CaptionEngine:
                 language="English",
                 chunk_size_sec=1.0,
                 max_context_sec=12,
-                context=hints(
-                    {"context": self.context, "hint_terms": self.hint_terms},
-                    " ".join(entry["english"] for entry in self.recent),
-                ),
+                context="",
             )
             self.current = {
                 "id": identity(),
@@ -243,7 +235,7 @@ def run_live(root: Path, model_root: Path, lecture_id: str, session_id: str, asr
             captions = CaptionEngine(
                 engine.session, None, publish, english=False, translate=False, **materials
             )
-            output({"type": "ready"})
+            output({"type": "ready", "model": asr})
             dropped = 0
             requested_model = asr
             try:
@@ -261,7 +253,10 @@ def run_live(root: Path, model_root: Path, lecture_id: str, session_id: str, asr
                         )
                         captions.translator = translator
                     captions.configure(english, translate)
-                    requested_model = item.get("asr", requested_model)
+                    next_model = item.get("asr", requested_model)
+                    if next_model != requested_model and next_model != asr:
+                        output({"type": "model_pending", "model": next_model})
+                    requested_model = next_model
                     if requested_model not in {"asr-small", "asr-large"}:
                         raise ValueError("无效的识别模型")
                     if requested_model != asr and captions.state is None:

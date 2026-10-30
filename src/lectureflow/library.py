@@ -302,7 +302,8 @@ class Library:
 
             materials = document_context(self, lecture_id)
             lecture = self.row("lectures", lecture_id)
-            config["context"] = context or materials["context"]
+            config["context"] = ""
+            config["asr_input_policy"] = "audio_only_v1"
             config["glossary"] = glossary or materials["glossary"]
             config["documents"] = materials["documents"]
             config["hint_terms"] = materials["hint_terms"] if not context else []
@@ -400,11 +401,16 @@ class Library:
         )]
         for unit in units:
             unit["metadata"] = json.loads(unit["metadata"])
+        config = json.loads(version["config"])
+        possible_bias = bool(config.get("context") or config.get("hint_terms")) and any(
+            u["metadata"].get("asr_input_policy") != "audio_only_v1" for u in units
+        )
         return {
             "schema_version": 1, "version_id": version_id, "lecture_id": lecture["id"],
             "title": lecture["title"], "revision": version["revision"],
             "stale": version["revision"] != lecture["revision"], "task": task,
-            "config": json.loads(version["config"]), "snapshot": json.loads(version["snapshot"]),
+            "config": config, "snapshot": json.loads(version["snapshot"]),
+            "possible_context_bias": possible_bias,
             "timestamp_granularity": "processing_window_approximately_30_seconds",
             "units": units,
             "source_missing": any(self.db.execute(
