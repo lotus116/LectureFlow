@@ -148,6 +148,11 @@ class Library:
             raise ValueError("找不到对应的课程、课堂、录音或任务")
         return dict(result)
 
+    def course_path(self, course_id: str) -> Path:
+        from .files import path
+
+        return path(self, "course", course_id)
+
     def lecture_path(self, lecture_id: str) -> Path:
         from .files import path
 

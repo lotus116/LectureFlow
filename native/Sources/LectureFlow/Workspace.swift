@@ -6,6 +6,7 @@ import SwiftUI
 @MainActor
 final class Workspace: ObservableObject {
     @Published var overview = Overview()
+    @Published private(set) var selectedCourse: String?
     @Published private(set) var selectedLecture: String? {
         willSet { if newValue != selectedLecture { persistSession() } }
         didSet {
@@ -13,6 +14,10 @@ final class Workspace: ObservableObject {
             refreshToken = UUID()
             resultFence.invalidate(); transcript = nil; contentKey = ""
             selectedVersion = nil
+            if let id = selectedLecture,
+               let course = overview.courses.first(where: { $0.lectures.contains { $0.id == id } }) {
+                selectedCourse = course.id
+            }
             restoreSession()
             live.prepareHistory(for: selectedLecture)
             if let id = selectedLecture {
@@ -143,7 +148,7 @@ final class Workspace: ObservableObject {
         guard session.begin() else { return }
         notice = captionsWaiting ? "录音先开始，模型就绪后自动开启字幕；这期间的录音可课后转写。" : nil
         live.change(flags, lecture: lecture, backend: backend, model: model)
-        requestedTab = session.desired.needsASR ? "live" : "audio"
+        requestedTab = session.desired.needsASR ? "transcript" : "audio"
     }
     func pauseSession() {
         session.pause(at: ProcessInfo.processInfo.systemUptime)
@@ -200,11 +205,14 @@ final class Workspace: ObservableObject {
                 guard refreshToken == request else { return }
                 overview = recoveredState
             }
-            if selectedLecture == nil {
-                selectedLecture = overview.courses.first?.lectures.first?.id
+            if let courseID = selectedCourse, !overview.courses.contains(where: { $0.id == courseID }) {
+                selectedCourse = overview.courses.first?.id
+            }
+            if selectedCourse == nil {
+                selectedCourse = overview.courses.first?.id
             }
             if let id = selectedLecture, !overview.courses.flatMap(\.lectures).contains(where: { $0.id == id }) {
-                selectedLecture = overview.courses.first?.lectures.first?.id
+                selectedLecture = nil
                 selectedVersion = nil
             }
             if let task = activeTask {
@@ -234,11 +242,28 @@ final class Workspace: ObservableObject {
         } catch { if refreshToken == request { refreshError = error.localizedDescription } }
     }
 
+    func selectCourse(_ id: String?) {
+        selectedCourse = id
+        if let id, let lecture = selectedLecture,
+           overview.courses.first(where: { $0.id == id })?.lectures.contains(where: { $0.id == lecture }) != true {
+            selectLecture(nil)
+        }
+    }
+
     func selectLecture(_ id: String?) {
         if live.flags.needsMicrophone && id != live.lectureID {
-            error = "请先暂停当前课堂，再切换课堂。"; return
+            error = "请先暂停当前 Lecture，再切换。"; return
         }
         selectedLecture = id
+    }
+
+    func nextLectureTitle(for courseID: String) -> String {
+        let count = overview.courses.first { $0.id == courseID }?.lectures.count ?? 0
+        return String(format: "Lecture %02d", count + 1)
+    }
+
+    var course: Course? {
+        overview.courses.first { $0.id == selectedCourse }
     }
 
     func refreshModels() async {
@@ -314,21 +339,39 @@ final class Workspace: ObservableObject {
         await perform(["library", "create-course", name])
     }
 
-    func createLecture(_ course: String, title: String) async {
+    func createLecture(_ course: String, title: String? = nil, select: Bool = true) async -> String? {
+        let name = (title?.trimmingCharacters(in: .whitespacesAndNewlines)).flatMap { $0.isEmpty ? nil : $0 }
+            ?? nextLectureTitle(for: course)
         do {
             let created = try JSONDecoder().decode(Created.self, from: await backend.call([
-                "library", "create-lecture", course, title
+                "library", "create-lecture", course, name
             ]))
-            if !live.flags.needsMicrophone {
+            selectedCourse = course
+            if select && !live.flags.needsMicrophone {
                 selectedLecture = created.id
                 selectedVersion = nil
             }
             await refresh()
-        } catch { self.error = error.localizedDescription }
+            return created.id
+        } catch {
+            self.error = error.localizedDescription
+            return nil
+        }
     }
 
-    func importAudio(_ urls: [URL]) async {
-        guard let lecture else { return }
+    func startNewLecture(in courseID: String) async {
+        guard !live.flags.needsMicrophone else {
+            error = "请先暂停当前采集，再开始新 Lecture。"
+            return
+        }
+        guard let id = await createLecture(courseID) else { return }
+        selectedLecture = id
+        primarySessionAction()
+    }
+
+    func importAudio(_ urls: [URL], intoLecture lectureID: String? = nil) async {
+        let targetID = lectureID ?? selectedLecture
+        guard let targetID else { return }
         let accessed = urls.filter { $0.startAccessingSecurityScopedResource() }
         defer { accessed.forEach { $0.stopAccessingSecurityScopedResource() } }
         // File picker order is not promised. Start with a natural filename order;
@@ -336,8 +379,17 @@ final class Workspace: ObservableObject {
         let ordered = urls.sorted {
             $0.lastPathComponent.localizedStandardCompare($1.lastPathComponent) == .orderedAscending
         }
-        await perform(["library", "import", lecture.id] + ordered.map(\.path))
-        if selectedLecture == lecture.id { requestedTab = "audio" }
+        await perform(["library", "import", targetID] + ordered.map(\.path))
+        if selectedLecture == targetID { requestedTab = "audio" }
+    }
+
+    /// Creates a Lecture only after the user confirms file selection (cancel leaves no empty record).
+    func importAudioCreatingLecture(courseID: String, urls: [URL]) async {
+        guard !urls.isEmpty else { return }
+        guard let id = await createLecture(courseID) else { return }
+        await importAudio(urls, intoLecture: id)
+        selectedLecture = id
+        requestedTab = "audio"
     }
 
     func enqueue() async {

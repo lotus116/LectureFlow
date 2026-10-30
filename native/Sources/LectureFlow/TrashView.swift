@@ -6,7 +6,7 @@ struct TrashItem: Decodable, Identifiable {
     let name: String
     let created_at: String?
     let archived_at: String?
-    var label: String { kind == "course" ? "课程" : kind == "lecture" ? "课堂" : "录音" }
+    var label: String { kind == "course" ? "课程" : kind == "lecture" ? "Lecture" : "录音" }
 }
 struct TrashList: Decodable { let items: [TrashItem] }
 private struct TrashPreview: Decodable {
@@ -49,7 +49,7 @@ struct TrashView: View {
                 }.padding(.vertical, 4)
             }.overlay {
                 if items.isEmpty {
-                    EmptyPanel(title: "废纸篓为空", systemImage: "trash", description: "删除的课程、课堂和录音会出现在这里。")
+                    EmptyPanel(title: "废纸篓为空", systemImage: "trash", description: "删除的课程、Lecture 和录音会出现在这里。")
                 }
             }
             if working { ProgressView().controlSize(.small) }
@@ -61,7 +61,7 @@ struct TrashView: View {
                 }
             } message: {
                 if let proposal = preview {
-                    Text("包括 \(proposal.courses) 门课程、\(proposal.lectures) 堂课、\(proposal.segments) 段录音及 \(proposal.documents) 份课件，共 \(ByteCountFormatter.string(fromByteCount: proposal.bytes, countStyle: .file))。关联转写和笔记也将删除，无法从废纸篓恢复。")
+                    Text("包括 \(proposal.courses) 门课程、\(proposal.lectures) 个 Lecture、\(proposal.segments) 段录音及 \(proposal.documents) 份课件，共 \(ByteCountFormatter.string(fromByteCount: proposal.bytes, countStyle: .file))。关联转写也将删除，无法从废纸篓恢复。")
                 }
             }
             .alert("未完成", isPresented: Binding(get: { error != nil }, set: { if !$0 { error = nil } })) {

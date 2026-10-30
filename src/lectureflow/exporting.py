@@ -39,12 +39,6 @@ def export_version(library: Library, version_id: str) -> dict:
                 f"{cue}\n{timestamp(unit['logical_start'], srt=True)} --> "
                 f"{timestamp(unit['logical_end'], srt=True)}\n{chinese}\n{english}\n",
             )
-    prompt = (
-        "请根据以下课堂转写生成摘要、核心知识点、专业术语、待核实内容与复习问题。"
-        "材料可能存在识别或翻译错误；不要将不确定内容编造为事实。"
-        "引用课堂时间戳；明确区分课堂原话和你的解释。\n\n"
-        + header + "\n".join(markdown)
-    )
     files = {
         "transcript.json": (
             json.dumps(content, ensure_ascii=False, indent=2, allow_nan=False) + "\n"
@@ -52,7 +46,6 @@ def export_version(library: Library, version_id: str) -> dict:
         "transcript.md": header + "\n".join(markdown),
         "transcript.txt": "\n".join(plain),
         "transcript.srt": "\n".join(srt),
-        "summary-prompt.md": prompt,
     }
     # Prepare all files before replacing public outputs; JSON is installed last as
     # the canonical manifest. SQLite remains the authoritative resumable record.

@@ -204,7 +204,7 @@ def main() -> int:
 
                     result = recover_all(library, args.lecture_id)
                 print(json.dumps(result, ensure_ascii=False))
-        elif args.command in {"materials", "summary", "models"}:
+        elif args.command in {"materials", "models"}:
             from .commands import dispatch
 
             print(json.dumps(dispatch(args), ensure_ascii=False))

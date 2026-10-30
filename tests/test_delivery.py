@@ -7,6 +7,7 @@ import zipfile
 import pytest
 
 from lectureflow import documents, files, purging, summaries
+from lectureflow.exporting import export_version
 from lectureflow.library import Library
 from lectureflow.runtime import sha256
 
@@ -191,96 +192,47 @@ def test_ocr_extraction_cannot_be_attached_to_changed_source(library, tmp_path):
     assert documents.listing(lib, "lecture", lecture)["documents"] == []
 
 
-def test_summary_preview_uses_related_courseware_not_full_dump(library, tmp_path):
+def test_summary_apis_are_removed_and_export_keeps_transcript_formats(library, tmp_path):
     lib, course, lecture, _, _ = library
     documents.import_document(lib, "course", course, deck(tmp_path / "slides.pptx"))
     version = completed(lib, lecture)
-    preview = summaries.preview(lib, lecture, version, include_documents=True)
-    assert "## 课堂转写" in preview["materials"]
-    assert "参考课件（补充，非课堂原话）" in preview["materials"]
-    assert "Kernel memory" in preview["materials"]
-    assert preview["documents"]
-    assert "secret" not in preview["materials"].lower()
+    for call in (
+        lambda: summaries.preview(lib, lecture, version),
+        lambda: summaries.export_prompt(lib, lecture, version),
+        lambda: summaries.listing(lib, lecture),
+        lambda: summaries.create(lib, {}),
+    ):
+        with pytest.raises(ValueError, match="移出产品范围"):
+            call()
+    exported = export_version(lib, version)
+    names = set(exported["files"])
+    assert names == {"transcript.json", "transcript.md", "transcript.txt", "transcript.srt"}
+    assert "summary-prompt.md" not in names
 
 
-def test_summary_only_sends_preview_and_resumes_completed_chunks(library, monkeypatch):
-    lib, _, lecture, _, _ = library
-    version = completed(lib, lecture)
-    preview = summaries.preview(lib, lecture, version)
-    payload = {
-        "lecture_id": lecture,
-        "version_id": version,
-        "digest": preview["digest"],
-        "endpoint": "https://example.test/v1",
-        "model": "test",
-    }
-    with pytest.raises(ValueError, match="变化"):
-        summaries.create(lib, {**payload, "digest": "unreviewed"})
-    key = summaries.create(lib, payload)["id"]
-    long_materials = "Kernel memory protection.\n" * 1200
-    lib.db.execute("UPDATE summaries SET materials=? WHERE id=?", (long_materials, key))
-    calls = []
-
-    def interrupted(text):
-        calls.append(text)
-        if len(calls) == 2:
-            raise RuntimeError("network stopped secret-test-key")
-        return "Verified note"
-
-    with pytest.raises(ValueError, match="redacted"):
-        summaries.run(lib, key, "secret-test-key", client=interrupted)
-    assert len(calls) == 2
-    assert (
-        "secret-test-key"
-        not in lib.db.execute("SELECT error FROM summaries WHERE id=?", (key,)).fetchone()[0]
-    )
-    recovered = []
-    summaries.run(
-        lib, key, "secret-test-key", client=lambda text: recovered.append(text) or "Final note"
-    )
-    assert calls[0] not in recovered  # Already paid/committed chunk is reused.
-    row = summaries.listing(lib, lecture)[0]
-    assert row["state"] == "completed"
-    assert row["output"] == "Final note"
-    assert all("original.wav" not in request for request in calls + recovered)
-    files.archive(lib, "segment", lib.segments(lecture)[0]["id"], confirmed=True)
-    assert summaries.listing(lib, lecture)[0]["stale"]
+def test_lecture_material_import_belongs_to_course_and_skips_duplicates(library, tmp_path):
+    lib, course, lecture, _, _ = library
+    source = deck(tmp_path / "slides.pptx")
+    first = documents.import_document(lib, "lecture", lecture, source)
+    second = documents.import_document(lib, "course", course, source)
+    assert first["id"] == second["id"] and second.get("duplicate")
+    listing = documents.listing(lib, "lecture", lecture)
+    assert listing["scope"] == "course" and listing["course_id"] == course
+    assert len(listing["documents"]) == 1
+    assert all(term["confirmed"] == 1 for term in listing["terms"] if term["english"] == "Kernel")
 
 
-def test_summary_export_and_document_import_reject_external_symlinks(library, tmp_path):
-    lib, _, lecture, _, _ = library
-    version = completed(lib, lecture)
+def test_document_import_rejects_external_symlinks(library, tmp_path):
+    lib, course, _, _, _ = library
     external = tmp_path / "external"
     external.mkdir()
-    for name in ("Documents", "Summaries"):
-        directory = lib.lecture_path(lecture) / name
+    directory = lib.course_path(course) / "Documents"
+    if directory.exists():
         directory.rmdir()
-        directory.symlink_to(external, target_is_directory=True)
+    directory.symlink_to(external, target_is_directory=True)
     with pytest.raises(ValueError, match="范围"):
-        documents.import_document(lib, "lecture", lecture, deck(tmp_path / "test.pptx"))
-    with pytest.raises(ValueError, match="范围"):
-        summaries.export_prompt(lib, lecture, version)
+        documents.import_document(lib, "course", course, deck(tmp_path / "test.pptx"))
     assert list(external.iterdir()) == []
-
-
-def test_new_summary_from_old_transcript_is_stale_and_auth_cannot_be_persisted(library):
-    lib, _, lecture, segment, _ = library
-    version = completed(lib, lecture)
-    files.archive(lib, "segment", segment, confirmed=True)
-    preview = summaries.preview(lib, lecture, version)
-    key = summaries.create(
-        lib,
-        {
-            "lecture_id": lecture,
-            "version_id": version,
-            "digest": preview["digest"],
-            "endpoint": "https://example.test/v1",
-            "model": "test",
-        },
-    )["id"]
-    assert summaries.listing(lib, lecture)[0]["stale"]
-    summaries.run(lib, key, "private-auth-sentinel", client=lambda _: "private-auth-sentinel")
-    assert summaries.listing(lib, lecture)[0]["output"] == "[redacted]"
 
 
 def test_empty_trash_cannot_merge_or_delete_same_named_new_course(library):

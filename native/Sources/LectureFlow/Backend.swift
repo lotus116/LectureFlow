@@ -94,7 +94,6 @@ actor Backend {
     let paths = RuntimePaths()
     nonisolated let downloadLifetime = DownloadLifetime()
     private var worker: Process?
-    private var summaries: [String: Process] = [:]
     private var download: Process?
     private var lastWorkerAttempt = Date.distantPast
 
@@ -139,23 +138,6 @@ actor Backend {
         try child.run()
         worker = child
         // The worker is a separate process. Window closure never cancels its task.
-    }
-
-    func startSummary(_ id: String, apiKey: String, digest: String) throws {
-        if summaries[id]?.isRunning == true { return }
-        let child = try paths.process(["summary", "run", id])
-        let input = Pipe()
-        let log = try paths.log("summary")
-        defer { try? log.close() }
-        child.standardInput = input
-        child.standardOutput = log
-        child.standardError = log
-        try child.run()
-        let data = try JSONSerialization.data(withJSONObject: ["api_key": apiKey, "digest": digest])
-        try input.fileHandleForWriting.write(contentsOf: data)
-        try input.fileHandleForWriting.close()
-        summaries = summaries.filter { $0.value.isRunning }
-        summaries[id] = child
     }
 
     func downloadModels(_ aliases: [String]) async throws {

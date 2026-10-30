@@ -61,20 +61,6 @@ def add(commands, actions) -> None:
     removed = methods.add_parser("remove")
     removed.add_argument("id")
     removed.add_argument("--confirmed", action="store_true")
-    summary = commands.add_parser("summary")
-    methods = summary.add_subparsers(dest="summary_action", required=True)
-    for name in ("preview", "prompt", "list"):
-        method = methods.add_parser(name)
-        method.add_argument("lecture_id")
-        if name != "list":
-            method.add_argument("--version", dest="version_id")
-        if name in {"preview", "prompt"}:
-            method.add_argument("--without-documents", action="store_true")
-    methods.add_parser("create")
-    run = methods.add_parser("run")
-    run.add_argument("id")
-    review = methods.add_parser("review")
-    review.add_argument("id")
 
 
 def read_input() -> dict:
@@ -129,7 +115,7 @@ def library_action(library, args):
 
 
 def dispatch(args) -> dict:
-    from . import documents, summaries
+    from . import documents
     from .library import Library
 
     if args.command == "models":
@@ -138,54 +124,35 @@ def dispatch(args) -> dict:
         if args.models_action == "import-cache":
             return import_cache(args.source_root, args.model_root)
         return {"models": status(args.model_root)}
+    if args.command != "materials":
+        raise ValueError("未知操作")
     with Library(args.library_root) as library:
-        if args.command == "materials":
-            if args.materials_action in {"terms-batch", "job-control"}:
-                from . import knowledge
+        if args.materials_action in {"terms-batch", "job-control"}:
+            from . import knowledge
 
-                return (
-                    knowledge.batch(library, read_input())
-                    if args.materials_action == "terms-batch"
-                    else knowledge.control(library, args.id, args.action)
-                )
-            if args.materials_action == "list":
-                return documents.listing(
-                    library, args.kind, args.owner_id, include_shared=args.include_shared
-                )
-            if args.materials_action == "import":
-                extracted = json.loads(args.pages_file.read_text()) if args.pages_file else None
-                return documents.import_document(
-                    library, args.kind, args.owner_id, args.source, extracted=extracted
-                )
-            if args.materials_action == "term-save":
-                return documents.save_term(
-                    library,
-                    args.kind,
-                    args.owner_id,
-                    args.english,
-                    args.chinese,
-                    args.confirmed,
-                    args.id,
-                )
-            documents.remove(library, args.id, confirmed=args.confirmed)
-            return {"ok": True}
-        if args.summary_action == "preview":
-            return summaries.preview(
-                library, args.lecture_id, args.version_id, not args.without_documents
+            return (
+                knowledge.batch(library, read_input())
+                if args.materials_action == "terms-batch"
+                else knowledge.control(library, args.id, args.action)
             )
-        if args.summary_action == "prompt":
-            return summaries.export_prompt(
-                library, args.lecture_id, args.version_id, not args.without_documents
+        if args.materials_action == "list":
+            return documents.listing(
+                library, args.kind, args.owner_id, include_shared=args.include_shared
             )
-        if args.summary_action == "list":
-            return {"summaries": summaries.listing(library, args.lecture_id)}
-        if args.summary_action == "create":
-            return summaries.create(library, read_input())
-        if args.summary_action == "review":
-            return summaries.review(library, args.id)
-        if args.summary_action == "run":
-            payload = read_input()
-            return summaries.run(
-                library, args.id, payload.get("api_key", ""), expected_digest=payload["digest"]
+        if args.materials_action == "import":
+            extracted = json.loads(args.pages_file.read_text()) if args.pages_file else None
+            return documents.import_document(
+                library, args.kind, args.owner_id, args.source, extracted=extracted
             )
-    raise ValueError("未知操作")
+        if args.materials_action == "term-save":
+            return documents.save_term(
+                library,
+                args.kind,
+                args.owner_id,
+                args.english,
+                args.chinese,
+                args.confirmed,
+                args.id,
+            )
+        documents.remove(library, args.id, confirmed=args.confirmed)
+        return {"ok": True}

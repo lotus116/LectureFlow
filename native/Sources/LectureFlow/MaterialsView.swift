@@ -7,6 +7,7 @@ struct MaterialList: Decodable {
     var documents: [CourseDocument] = []
     var terms: [GlossaryTerm] = []
     var jobs: [KnowledgeJob] = []
+    var scope: String?
 }
 struct OutlineEntry: Decodable, Identifiable {
     let page: Int
@@ -37,10 +38,10 @@ struct GlossaryTerm: Decodable, Identifiable {
     let excluded: Int
     var references: [TermSource] { (try? JSONDecoder().decode([TermSource].self, from: Data(sources.utf8))) ?? [] }
     var status: String {
-        if excluded == 1 { return "已忽略" }
-        if confirmed == 1 { return "已采用" }
-        if origin == "local-model" { return "中文待校对" }
-        return score >= 4 ? "术语候选" : "候选"
+        if excluded == 1 { return "已停用" }
+        if chinese.isEmpty { return "待补全中文" }
+        if origin == "manual" { return "人工" }
+        return "已启用"
     }
 }
 struct KnowledgeJob: Decodable, Identifiable, Sendable {
@@ -56,40 +57,17 @@ struct KnowledgeJob: Decodable, Identifiable, Sendable {
         case "running": return "正在本机补全中文"
         case "queued": return "等待本地中文补全"
         case "paused": return "中文补全已暂停"
-        case "completed": return "中文补全完成 · 请校对后采用"
+        case "completed": return "中文补全完成"
         case "cancelled": return "中文补全已取消"
         default: return "中文补全未完成"
         }
     }
 }
 
-struct KnowledgeCenterView: View {
-    @ObservedObject var workspace: Workspace
-    let lecture: Lecture
-    @State private var scope = "all"
-    private var course: Course? { workspace.overview.courses.first { $0.lectures.contains { $0.id == lecture.id } } }
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Picker("资料范围", selection: $scope) {
-                    Text("全部资料").tag("all")
-                    Text("本堂课").tag("lecture"); Text("课程共享").tag("course")
-                }.pickerStyle(.segmented).labelsHidden().frame(width: 270)
-                Text(scope == "course" ? "该课程所有课堂共用" : "同时应用所属课程的共享资料")
-                    .font(.caption).foregroundStyle(.secondary)
-                Spacer()
-            }
-            MaterialsView(workspace: workspace, kind: scope == "course" ? "course" : "lecture", ownerID: scope == "course" ? (course?.id ?? "") : lecture.id, includeShared: scope == "all")
-                .id(scope + ":" + (course?.id ?? lecture.id) + ":" + lecture.id)
-        }
-    }
-}
-
 struct MaterialsView: View {
     @ObservedObject var workspace: Workspace
-    let kind: String
-    let ownerID: String
-    var includeShared = false
+    let courseID: String
+    var showTermsInitially = false
     @State private var materials = MaterialList()
     @State private var importing = false
     @State private var working = false
@@ -115,20 +93,23 @@ struct MaterialsView: View {
         }
     }
     private var job: KnowledgeJob? { materials.jobs.first { !["completed", "cancelled"].contains($0.state) } ?? materials.jobs.first }
+    private var activeTerms: Int { materials.terms.filter { $0.excluded == 0 }.count }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Text("\(materials.documents.count) 份课件 · \(materials.documents.reduce(0) { $0 + $1.page_count }) 页 · \(materials.terms.filter { $0.confirmed == 1 }.count) 个已采用术语")
+                Text("\(materials.documents.count) 份课程资料 · \(materials.documents.reduce(0) { $0 + $1.page_count }) 页 · \(activeTerms) 个辅助术语")
                     .font(.caption).foregroundStyle(.secondary)
                 Spacer()
                 Menu {
                     Toggle("PDF 强制 OCR", isOn: $forceOCR)
-                    Button("补全全部缺失中文") { Task { await batch("translate", ids: materials.terms.filter { $0.chinese.isEmpty && $0.excluded == 0 }.map(\.id)) } }
+                    Button("补全全部缺失中文") {
+                        Task { await batch("translate", ids: materials.terms.filter { $0.chinese.isEmpty && $0.excluded == 0 }.map(\.id)) }
+                    }
                 } label: { Image(systemName: "ellipsis") }.menuStyle(.borderlessButton).frame(width: 24)
-                Button(includeShared ? "导入本堂课" : "导入课件", systemImage: "plus") { importing = true }.disabled(working)
+                Button("导入课件", systemImage: "plus") { importing = true }.disabled(working)
             }
-            Text("上传后自动用于辅助识别、翻译和课后整理：先按录音识别，再在相关时用课件做有限纠正；原始识别会保留。翻译仍只匹配讲话中出现的术语。")
+            Text("资料归属本课程，所有 Lecture 共享。自动提取并启用轻量术语，只在相关时辅助识别与翻译；人工修改优先。")
                 .font(.caption).foregroundStyle(.secondary)
             if working { HStack { ProgressView().controlSize(.mini); Text(progress) }.font(.caption) }
             HSplitView {
@@ -138,7 +119,7 @@ struct MaterialsView: View {
                         ForEach(materials.documents) { document in
                             VStack(alignment: .leading, spacing: 3) {
                                 Text(document.original_name).lineLimit(2)
-                                Text("\(document.page_count) 页 · \(document.kind == "course" ? "课程共享" : "本堂课")").font(.caption2).foregroundStyle(.secondary)
+                                Text("\(document.page_count) 页").font(.caption2).foregroundStyle(.secondary)
                             }.padding(.vertical, 4).tag(Optional(document.id))
                                 .contextMenu {
                                     Button("查看文字") { previewing = document }
@@ -153,15 +134,16 @@ struct MaterialsView: View {
                 }.frame(minWidth: 140, idealWidth: 175, maxWidth: 210)
                 VStack(alignment: .leading, spacing: 10) {
                     Picker("查看", selection: $section) {
-                        Text("内容概览").tag("overview"); Text("术语管理").tag("terms")
-                    }.pickerStyle(.segmented).labelsHidden().frame(maxWidth: 280)
+                        Text("文件与大纲").tag("overview"); Text("查看辅助术语").tag("terms")
+                    }.pickerStyle(.segmented).labelsHidden().frame(maxWidth: 320)
                     if section == "terms" { termsView }
                     else { overviewView }
                 }.padding(.leading, 10).frame(minWidth: 350, maxWidth: .infinity, maxHeight: .infinity)
             }.background(.background, in: RoundedRectangle(cornerRadius: 8))
             if let job { jobView(job) }
         }
-        .task(id: kind + ownerID) {
+        .onAppear { if showTermsInitially { section = "terms" } }
+        .task(id: courseID) {
             await reload()
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(2))
@@ -190,7 +172,7 @@ struct MaterialsView: View {
                 ScrollView { Text(document.preview).frame(maxWidth: .infinity, alignment: .leading).textSelection(.enabled) }
             }.padding(22).frame(width: 720, height: 540)
         }
-        .confirmationDialog("移除“\(removing?.original_name ?? "")”？历史文件保留，后续处理将不再使用。", isPresented: Binding(get: { removing != nil }, set: { if !$0 { removing = nil } })) {
+        .confirmationDialog("移除“\(removing?.original_name ?? "")”？只删除受管副本；仅由该文件支持的自动术语会停用。", isPresented: Binding(get: { removing != nil }, set: { if !$0 { removing = nil } })) {
             Button("移除课件", role: .destructive) {
                 if let item = removing { Task { await remove(item) } }; removing = nil
             }
@@ -205,9 +187,9 @@ struct MaterialsView: View {
             LazyVStack(alignment: .leading, spacing: 14) {
                 if scopedDocuments.isEmpty {
                     EmptyPanel(
-                        title: "让课件参与课堂理解",
+                        title: "可选：导入课程资料",
                         systemImage: "doc.text.magnifyingglass",
-                        description: "导入后建立内容大纲、概念与中英文术语。资料和模型处理均留在本机。"
+                        description: "不导入也能录音与转写。导入后自动维护轻量术语，辅助本课程识别与翻译。"
                     )
                     .frame(minHeight: 280)
                 }
@@ -248,12 +230,10 @@ struct MaterialsView: View {
                 }
                 Text("\(selectedTerms.count) 项").font(.caption).foregroundStyle(.secondary)
                 Spacer(minLength: 0)
-                Button("采用") { Task { await batch("confirm") } }.disabled(selectedTerms.isEmpty || working)
                 Button("补全中文") { Task { await batch("translate") } }.disabled(selectedTerms.isEmpty || working)
                 Menu {
-                    Button("取消采用") { Task { await batch("unconfirm") } }
-                    Button("忽略，不用于识别") { Task { await batch("exclude") } }
-                    Button("恢复自动提示") { Task { await batch("include") } }
+                    Button("停用") { Task { await batch("exclude") } }
+                    Button("恢复启用") { Task { await batch("include") } }
                 } label: { Image(systemName: "ellipsis") }.menuStyle(.borderlessButton).frame(width: 22)
                     .disabled(selectedTerms.isEmpty || working)
             }.controlSize(.small)
@@ -262,20 +242,22 @@ struct MaterialsView: View {
                     Text(term.english).help(term.definition).onTapGesture(count: 2) { edit(term) }
                 }.width(min: 110, ideal: 160)
                 TableColumn("中文") { term in
-                    Text(term.chinese.isEmpty ? "待补全" : term.chinese).foregroundStyle(term.chinese.isEmpty ? .tertiary : .primary)
+                    Text(term.chinese.isEmpty ? "可留空" : term.chinese).foregroundStyle(term.chinese.isEmpty ? .tertiary : .primary)
                         .onTapGesture(count: 2) { edit(term) }
                 }.width(min: 90, ideal: 150)
-                TableColumn("状态") { term in Text(term.status).font(.caption).foregroundStyle(term.confirmed == 1 ? .teal : .secondary) }.width(90)
+                TableColumn("状态") { term in
+                    Text(term.status).font(.caption).foregroundStyle(term.excluded == 1 ? Color.secondary : Color.teal)
+                }.width(90)
                 TableColumn("出处") { term in Text(source(term)).font(.caption).foregroundStyle(.secondary).help(source(term)) }.width(min: 70, ideal: 120)
             }
-            Text("⌘ / ⇧ 多选；双击编辑中文。自动补全为待校对建议，人工修改不会被后台任务覆盖。")
+            Text("术语默认自动启用。双击编辑；人工修改不会被重新解析覆盖。停用后不再参与识别与翻译。")
                 .font(.caption2).foregroundStyle(.secondary)
         }
     }
 
     private var termEditor: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("编辑并采用术语").font(.title2.bold())
+            Text("编辑辅助术语").font(.title2.bold())
             TextField("英文术语或缩写", text: $english).textFieldStyle(.roundedBorder)
             TextField("中文对照（可留空）", text: $chinese).textFieldStyle(.roundedBorder)
             if let term = materials.terms.first(where: { $0.id == editID }) {
@@ -283,7 +265,7 @@ struct MaterialsView: View {
                 if !term.definition.isEmpty { Text(term.definition).font(.callout).foregroundStyle(.secondary).textSelection(.enabled) }
             }
             HStack { Spacer(); Button("取消") { editing = false }
-                Button("保存并采用") {
+                Button("保存") {
                     let key = editID, en = english, zh = chinese
                     editing = false
                     Task { await saveTerm(key, english: en, chinese: zh) }
@@ -316,7 +298,7 @@ struct MaterialsView: View {
     private func reload() async {
         let request = UUID(); reloadID = request
         do {
-            let loaded = try JSONDecoder().decode(MaterialList.self, from: await workspace.backend.call(["materials", "list", kind, ownerID] + (includeShared ? ["--include-shared"] : [])))
+            let loaded = try JSONDecoder().decode(MaterialList.self, from: await workspace.backend.call(["materials", "list", "course", courseID]))
             guard !Task.isCancelled, reloadID == request else { return }
             materials = loaded
             selectedTerms.formIntersection(Set(visibleTerms.map(\.id)))
@@ -331,7 +313,7 @@ struct MaterialsView: View {
             defer { if accessed { url.stopAccessingSecurityScopedResource() } }
             progress = "正在导入 \(index + 1)/\(urls.count)：\(url.lastPathComponent)"
             do {
-                var arguments = ["materials", "import", kind, ownerID, url.path]
+                var arguments = ["materials", "import", "course", courseID, url.path]
                 let temporary = FileManager.default.temporaryDirectory.appendingPathComponent("lectureflow-pages-\(UUID().uuidString).json")
                 defer { try? FileManager.default.removeItem(at: temporary) }
                 if url.pathExtension.lowercased() == "pdf" {
@@ -350,7 +332,7 @@ struct MaterialsView: View {
         guard !keys.isEmpty, !working else { return }
         working = true; progress = "正在更新术语…"; defer { working = false }
         do {
-            let payload: [String: Any] = ["kind": kind, "owner_id": ownerID, "term_ids": keys, "operation": operation, "include_shared": includeShared]
+            let payload: [String: Any] = ["kind": "course", "owner_id": courseID, "term_ids": keys, "operation": operation]
             _ = try await workspace.backend.call(["materials", "terms-batch"], input: JSONSerialization.data(withJSONObject: payload))
             await reload(); await workspace.refresh()
         } catch { self.error = error.localizedDescription }
@@ -364,8 +346,7 @@ struct MaterialsView: View {
         catch { self.error = error.localizedDescription }
     }
     private func saveTerm(_ id: String?, english: String, chinese: String) async {
-        let existing = materials.terms.first { $0.id == id }
-        var arguments = ["materials", "term-save", existing?.kind ?? kind, existing?.owner_id ?? ownerID, english, "--chinese", chinese, "--confirmed"]
+        var arguments = ["materials", "term-save", "course", courseID, english, "--chinese", chinese, "--confirmed"]
         if let id { arguments += ["--id", id] }
         do { _ = try await workspace.backend.call(arguments); await reload(); await workspace.refresh() }
         catch { self.error = error.localizedDescription }

@@ -17,13 +17,13 @@ struct LectureFlowApp: App {
         }
         .defaultSize(width: 1120, height: 740)
         .commands {
-            CommandMenu("课堂") {
+            CommandMenu("Lecture") {
                 Button("显示悬浮字幕") { workspace.openSubtitles() }
                     .keyboardShortcut("l", modifiers: [.command, .option])
                 Button("仅显示悬浮字幕") { workspace.openSubtitles(hideMain: true) }
-                Button("开始／暂停课堂") { workspace.primarySessionAction() }
+                Button("开始／暂停") { workspace.primarySessionAction() }
                     .keyboardShortcut("r", modifiers: [.command, .shift])
-                Button("保存并结束课堂") { workspace.endSession() }.disabled(!workspace.session.hasSession)
+                Button("结束 Lecture") { workspace.endSession() }.disabled(!workspace.session.hasSession)
                 Button("暂停全部采集") { workspace.pauseSession() }
                     .keyboardShortcut("p", modifiers: [.command, .shift])
             }
@@ -36,7 +36,7 @@ struct LectureFlowApp: App {
             Button("仅显示悬浮字幕") { workspace.openSubtitles(hideMain: true) }
             Divider()
             Button(workspace.session.primaryTitle) { workspace.primarySessionAction() }.disabled(workspace.lecture == nil)
-            Button("保存并结束课堂") { workspace.endSession() }.disabled(!workspace.session.hasSession)
+            Button("结束 Lecture") { workspace.endSession() }.disabled(!workspace.session.hasSession)
             Button("退出 LectureFlow") { NSApp.terminate(nil) }
         }
     }
@@ -93,15 +93,20 @@ struct LibraryView: View {
     @State private var archiving: ArchiveTarget?
     @State private var showTrash = false
     @State private var showQueue = false
-    @State private var sharedCourse: Course?
+    @State private var materialsCourse: Course?
     @State private var textLanguage = "both"
+    @State private var transcriptSource = "offline"
     @State private var dropCourseID: String?
+    @State private var importingForCourse: String?
     @StateObject private var playback = AudioPlayback()
     @Environment(\.openSettings) private var openSettings
 
     var body: some View {
         LibrarySplitLayout(sidebarVisible: $sidebarVisible) {
-            List(selection: Binding(get: { model.selectedLecture }, set: { model.selectLecture($0) })) {
+            List(selection: Binding(
+                get: { model.selectedLecture },
+                set: { model.selectLecture($0) }
+            )) {
                 ForEach(model.overview.courses) { course in
                     Section {
                         ForEach(course.lectures) { lecture in
@@ -126,8 +131,9 @@ struct LibraryView: View {
                                 }
                         }
                         Button {
-                            courseID = course.id; newName = ""; form = "lecture"
-                        } label: { Label("新建课堂", systemImage: "plus") }
+                            courseID = course.id
+                            Task { await model.createLecture(course.id) }
+                        } label: { Label("新建 Lecture", systemImage: "plus") }
                         .buttonStyle(.plain).foregroundStyle(.secondary)
                         .listRowBackground(courseDropBackground(course.id))
                         .dropDestination(for: String.self) { items, _ in
@@ -151,7 +157,7 @@ struct LibraryView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("LectureFlow")
                             .font(.system(.headline, design: .rounded, weight: .semibold))
-                        Text("你的本地课堂空间")
+                        Text("本地课程与 Lecture")
                             .font(.caption2)
                             .foregroundStyle(.secondary)
                     }
@@ -170,7 +176,7 @@ struct LibraryView: View {
                     Button { showTrash = true } label: { Image(systemName: "trash") }
                         .help("废纸篓")
                     Button { openSettings() } label: { Image(systemName: "gearshape") }
-                        .help("模型、麦克风与总结设置")
+                        .help("模型、麦克风与显示设置")
                 }
                 .buttonStyle(.borderless)
                 .padding(.horizontal, 12)
@@ -185,23 +191,14 @@ struct LibraryView: View {
                     Picker("内容", selection: $tab) {
                         Text("录音").tag("audio")
                         Text("转写").tag("transcript")
-                        Text("实时").tag("live")
-                        Text("知识库").tag("materials")
-                        Text("笔记").tag("summary")
                     }
                     .pickerStyle(.segmented)
                     .labelsHidden()
                     .controlSize(.regular)
-                    if ["audio", "transcript", "summary"].contains(tab), let task = model.activeTask { taskView(task) }
+                    if tab == "audio" || tab == "transcript", let task = model.activeTask { taskView(task) }
                     Group {
                         if tab == "audio" { audioList(lecture) }
-                        else if tab == "live" {
-                            LiveTranscriptView(live: model.live, lecture: lecture, backend: model.backend)
-                        } else if tab == "materials" {
-                            KnowledgeCenterView(workspace: model, lecture: lecture)
-                        } else if tab == "summary" {
-                            SummaryView(workspace: model, lecture: lecture).id(lecture.id)
-                        } else { transcriptView }
+                        else { unifiedTranscript(lecture) }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 }
@@ -213,15 +210,27 @@ struct LibraryView: View {
                     guard !audio.isEmpty, !model.busy else { return false }
                     Task { await model.importAudio(audio) }; return true
                 }
+            } else if let course = model.course {
+                VStack(alignment: .leading, spacing: 12) {
+                    modelDownloadBanner
+                    CourseHomeView(
+                        workspace: model,
+                        course: course,
+                        onOpenMaterials: { materialsCourse = course },
+                        onStartNew: { Task { await model.startNewLecture(in: course.id) } },
+                        onCreateLecture: { Task { await model.createLecture(course.id) } },
+                        onImportAudio: { importingForCourse = course.id; importing = true }
+                    )
+                }
             } else {
                 VStack(spacing: 18) {
                     Image(systemName: "waveform.circle.fill")
                         .font(.system(size: 56, weight: .light))
                         .symbolRenderingMode(.hierarchical)
                         .foregroundStyle(LFChrome.accent)
-                    Text("每一堂课，都有自己的空间")
+                    Text("把每一堂课，留在本地")
                         .font(.system(.largeTitle, design: .rounded, weight: .bold))
-                    Text("1. 新建课程和课堂\n2. 导入录音，或开启课堂录音与字幕\n3. 加入课件，课后整理学习笔记")
+                    Text("1. 新建课程\n2. 开始 Lecture 或导入录音\n3. 可选：加入课程资料辅助识别与翻译")
                         .font(.body)
                         .lineSpacing(8)
                         .foregroundStyle(.secondary)
@@ -230,7 +239,7 @@ struct LibraryView: View {
                         Button("新建课程") { newName = ""; form = "course" }
                             .buttonStyle(.borderedProminent)
                             .controlSize(.regular)
-                        Button("模型与资料库设置") { openSettings() }
+                        Button("模型设置") { openSettings() }
                             .controlSize(.regular)
                     }
                     modelDownloadBanner.frame(maxWidth: 520)
@@ -241,14 +250,26 @@ struct LibraryView: View {
         }
         .fileImporter(isPresented: $importing, allowedContentTypes: [.audio],
                       allowsMultipleSelection: true) { result in
+            let courseForImport = importingForCourse
+            importingForCourse = nil
             switch result {
-            case .success(let urls): Task { await model.importAudio(urls) }
+            case .success(let urls):
+                Task {
+                    if let courseForImport {
+                        await model.importAudioCreatingLecture(courseID: courseForImport, urls: urls)
+                    } else {
+                        await model.importAudio(urls)
+                    }
+                }
             case .failure(let error): model.error = error.localizedDescription
             }
         }
+        .onChange(of: importing) { _, open in
+            if !open { importingForCourse = nil }
+        }
         .sheet(isPresented: Binding(get: { form != nil }, set: { if !$0 { form = nil } })) {
             VStack(alignment: .leading, spacing: 18) {
-                Text(form?.hasPrefix("rename") == true ? "重命名" : form == "course" ? "新建课程" : "新建课堂").font(.title2.bold())
+                Text(form?.hasPrefix("rename") == true ? "重命名" : "新建课程").font(.title2.bold())
                 TextField("名称", text: $newName).textFieldStyle(.roundedBorder)
                     .onSubmit { submitForm() }
                 HStack {
@@ -262,10 +283,14 @@ struct LibraryView: View {
         }
         .sheet(isPresented: $showTrash) { TrashView(workspace: model) }
         .sheet(isPresented: $showQueue) { BackgroundQueueView(workspace: model) }
-        .sheet(item: $sharedCourse) { course in
-            VStack {
-                HStack { Text(course.name).font(.headline); Spacer(); Button("完成") { sharedCourse = nil } }
-                MaterialsView(workspace: model, kind: "course", ownerID: course.id)
+        .sheet(item: $materialsCourse) { course in
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Text("\(course.name) · 课程资料").font(.headline)
+                    Spacer()
+                    Button("完成") { materialsCourse = nil }
+                }
+                MaterialsView(workspace: model, courseID: course.id)
             }.padding(18).frame(width: 920, height: 660)
         }
         .confirmationDialog("将“\(archiving?.name ?? "")”移入废纸篓？可在应用中恢复。", isPresented: Binding(get: { archiving != nil }, set: { if !$0 { archiving = nil } })) {
@@ -293,7 +318,10 @@ struct LibraryView: View {
             playback.stop()
         }
         .onChange(of: model.requestedTab) { _, value in
-            if let value { tab = value; model.requestedTab = nil }
+            if let value {
+                tab = value == "live" ? "transcript" : value
+                model.requestedTab = nil
+            }
         }
         .onChange(of: model.live.error) { _, error in
             if let error { model.error = error; model.live.error = nil }
@@ -348,6 +376,10 @@ struct LibraryView: View {
             RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .strokeBorder(dropCourseID == course.id ? LFChrome.dropStroke : .clear, lineWidth: 1.5)
         )
+        .onTapGesture {
+            model.selectCourse(course.id)
+            model.selectLecture(nil)
+        }
         .draggable("lectureflow-course:" + course.id)
         .dropDestination(for: String.self) { items, _ in
             acceptSidebarDrop(items, course: course, lecture: nil)
@@ -355,7 +387,7 @@ struct LibraryView: View {
             updateDropTarget(course.id, targeted: targeted)
         }
         .contextMenu {
-            Button("课程共享课件") { sharedCourse = course }
+            Button("课程资料") { materialsCourse = course }
             Button("重命名") { recordID = course.id; newName = course.name; form = "rename-course" }
             Divider()
             Button("移入废纸篓", role: .destructive) {
@@ -379,8 +411,7 @@ struct LibraryView: View {
         }
     }
 
-    /// Dropping a lecture onto the course header, any lecture row, or “新建课堂”
-    /// moves it into that course — not only onto the tiny folder glyph.
+    /// Dropping a Lecture onto the course header or any Lecture row moves it into that course.
     private func acceptSidebarDrop(_ items: [String], course: Course, lecture: Lecture?) -> Bool {
         guard let item = items.first else { return false }
         if item.hasPrefix("lectureflow-lecture:") {
@@ -398,12 +429,6 @@ struct LibraryView: View {
             Task { await model.perform(["library", "order-courses"] + order) }
             return true
         }
-        if let lecture, item.hasPrefix("lectureflow-segment:") {
-            let id = String(item.dropFirst("lectureflow-segment:".count))
-            let copy = NSEvent.modifierFlags.contains(.option)
-            Task { await model.perform(["library", "transfer", id, lecture.id] + (copy ? ["--copy"] : [])) }
-            return true
-        }
         return false
     }
 
@@ -414,7 +439,6 @@ struct LibraryView: View {
         form = nil
         Task {
             if kind == "course" { await model.createCourse(name) }
-            else if kind == "lecture" { await model.createLecture(courseID, title: name) }
             else { await model.perform(["library", "rename", kind == "rename-course" ? "course" : "lecture", recordID, name]) }
         }
     }
@@ -456,6 +480,10 @@ struct LibraryView: View {
                     .foregroundStyle(.secondary)
             }
             Spacer(minLength: 8)
+            if let course = model.course {
+                Button("课程资料") { materialsCourse = course }
+                    .buttonStyle(.bordered)
+            }
             Button("悬浮字幕", systemImage: "pip") { model.openSubtitles() }
                 .buttonStyle(.bordered)
             Menu {
@@ -528,7 +556,7 @@ struct LibraryView: View {
                     .foregroundStyle(.secondary)
                 Spacer()
                 Toggle("中文翻译", isOn: $model.translate).toggleStyle(.checkbox)
-                Button("转写整堂课") {
+                Button("生成课后转写") {
                     tab = "transcript"
                     Task { await model.enqueue() }
                 }
@@ -553,7 +581,7 @@ struct LibraryView: View {
                                 Text(duration(segment.duration)).font(.caption).foregroundStyle(.secondary)
                             }
                             Spacer()
-                            Button("单段转写") {
+                            Button("仅转写此段") {
                                 Task {
                                     await model.perform([
                                         "library", "enqueue", lecture.id, "--asr", model.model,
@@ -562,8 +590,6 @@ struct LibraryView: View {
                                 }
                             }.disabled(model.busy)
                             Menu {
-                                Menu("移动到课堂") { transferTargets(segment, copy: false) }
-                                Menu("复制到课堂") { transferTargets(segment, copy: true) }
                                 Button("导出录音") {
                                     Task { do { try await playback.export(segment) } catch { model.error = error.localizedDescription } }
                                 }
@@ -595,7 +621,7 @@ struct LibraryView: View {
                         Label("还没有录音", systemImage: "waveform")
                             .font(.title2.weight(.semibold))
                     } description: {
-                        Text("点击上方开始录音，或导入已有课堂录音。多段文件导入后可拖动排序。")
+                        Text("点击上方开始录音，或导入已有录音。多段文件导入后可拖动排序。")
                             .frame(maxWidth: 320)
                     } actions: {
                         Button("导入已有录音") { importing = true }
@@ -608,81 +634,93 @@ struct LibraryView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 
-    private var transcriptView: some View {
+    @ViewBuilder
+    private func unifiedTranscript(_ lecture: Lecture) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            if model.transcript?.possible_context_bias == true {
-                HStack {
-                    Text("此版本使用过旧版课件识别提示。如出现词表混入，可从原音重新转写，旧版本会保留。")
-                        .font(.caption).foregroundStyle(.secondary)
-                    Spacer()
-                    Button("重新转写") { Task { await model.enqueue() } }.disabled(model.busy)
+            Picker("来源", selection: $transcriptSource) {
+                Text("实时记录").tag("live")
+                Text("课后转写").tag("offline")
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .frame(maxWidth: 280)
+            .onAppear {
+                if model.session.hasSession || model.live.flags.needsMicrophone {
+                    transcriptSource = "live"
                 }
             }
-            if model.transcript?.source_missing == true {
-                Label("部分关联录音已永久清空，已完成的转写文字仍保留。", systemImage: "waveform.slash")
-                    .font(.caption).foregroundStyle(.secondary)
-            }
-            HStack {
-                Text("时间戳以约 30 秒处理区间显示").font(.caption).foregroundStyle(.secondary)
-                Spacer()
-                Picker("显示", selection: $textLanguage) {
-                    Text("双语").tag("both"); Text("中文").tag("zh"); Text("英文").tag("en")
-                }.frame(width: 110)
-                Button("复制全文") {
-                    let text = model.transcript?.units.map { unit in
-                        [clock(unit.logical_start), textLanguage == "en" ? "" : unit.chinese,
-                         textLanguage == "zh" ? "" : unit.english].filter { !$0.isEmpty }.joined(separator: "\n")
-                    }.joined(separator: "\n\n") ?? ""
-                    NSPasteboard.general.clearContents(); NSPasteboard.general.setString(text, forType: .string)
-                }
-                TextField("搜索转写", text: $search).textFieldStyle(.roundedBorder).frame(width: 220)
-            }
-            if let transcript = model.transcript, !transcript.units.isEmpty {
-                ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 22) {
-                        ForEach(transcript.units.filter {
-                            search.isEmpty || $0.english.localizedCaseInsensitiveContains(search)
-                                || $0.chinese.localizedCaseInsensitiveContains(search)
-                        }) { unit in
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text(clock(unit.logical_start))
-                                    .font(.caption.monospaced())
-                                    .foregroundStyle(LFChrome.accent)
-                                if textLanguage != "en" && !unit.chinese.isEmpty {
-                                    Text(unit.chinese).font(.title3).lineSpacing(5)
-                                }
-                                if textLanguage != "zh" {
-                                    Text(unit.english).foregroundStyle(.secondary).lineSpacing(4)
-                                }
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .textSelection(.enabled)
-                            Divider()
-                        }
-                    }.padding(.vertical, 8)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            if transcriptSource == "live" {
+                LiveTranscriptView(live: model.live, lecture: lecture, backend: model.backend)
             } else {
-                EmptyPanel(
-                    title: "还没有转写内容",
-                    systemImage: "text.bubble",
-                    description: "开始处理后，完成的内容会陆续出现在这里。"
-                )
+                if model.transcript?.possible_context_bias == true {
+                    HStack {
+                        Text("此版本使用过旧版课件识别提示。如出现词表混入，可从原音重新转写，旧版本会保留。")
+                            .font(.caption).foregroundStyle(.secondary)
+                        Spacer()
+                        Button("重新转写") { Task { await model.enqueue() } }.disabled(model.busy)
+                    }
+                }
+                if model.transcript?.source_missing == true {
+                    Label("部分关联录音已永久清空，已完成的转写文字仍保留。", systemImage: "waveform.slash")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+                if model.transcript?.stale == true {
+                    Label("录音已变化，可重新生成课后转写；旧结果仍保留。", systemImage: "arrow.triangle.2.circlepath")
+                        .font(.caption).foregroundStyle(.orange)
+                }
+                HStack {
+                    Text("时间戳约 30 秒区间 · 不自动整堂重跑").font(.caption).foregroundStyle(.secondary)
+                    Spacer()
+                    Picker("显示", selection: $textLanguage) {
+                        Text("双语").tag("both"); Text("中文").tag("zh"); Text("英文").tag("en")
+                    }.frame(width: 110)
+                    Button("复制全文") {
+                        let text = model.transcript?.units.map { unit in
+                            [clock(unit.logical_start), textLanguage == "en" ? "" : unit.chinese,
+                             textLanguage == "zh" ? "" : unit.english].filter { !$0.isEmpty }.joined(separator: "\n")
+                        }.joined(separator: "\n\n") ?? ""
+                        NSPasteboard.general.clearContents(); NSPasteboard.general.setString(text, forType: .string)
+                    }
+                    TextField("搜索转写", text: $search).textFieldStyle(.roundedBorder).frame(width: 220)
+                }
+                if let transcript = model.transcript, !transcript.units.isEmpty {
+                    ScrollView {
+                        LazyVStack(alignment: .leading, spacing: 22) {
+                            ForEach(transcript.units.filter {
+                                search.isEmpty || $0.english.localizedCaseInsensitiveContains(search)
+                                    || $0.chinese.localizedCaseInsensitiveContains(search)
+                            }) { unit in
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text(clock(unit.logical_start))
+                                        .font(.caption.monospaced())
+                                        .foregroundStyle(LFChrome.accent)
+                                    if textLanguage != "en" && !unit.chinese.isEmpty {
+                                        Text(unit.chinese).font(.title3).lineSpacing(5)
+                                    }
+                                    if textLanguage != "zh" {
+                                        Text(unit.english).foregroundStyle(.secondary).lineSpacing(4)
+                                    }
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .textSelection(.enabled)
+                                Divider()
+                            }
+                        }.padding(.vertical, 8)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    EmptyPanel(
+                        title: "还没有课后转写",
+                        systemImage: "text.bubble",
+                        description: "保存录音后点击「生成课后转写」。实时记录与课后结果相互独立。"
+                    )
+                }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-    }
-
-    private func transferTargets(_ segment: AudioSegment, copy: Bool) -> some View {
-        ForEach(model.overview.courses) { course in
-            Menu(course.name) {
-                ForEach(course.lectures.filter { $0.id != model.selectedLecture }) { target in
-                    Button(target.title) {
-                        playback.stop()
-                        Task { await model.perform(["library", "transfer", segment.id, target.id] + (copy ? ["--copy"] : [])) }
-                    }
-                }
-            }
+        .onChange(of: model.requestedTab) { _, value in
+            if value == "transcript" || value == "live" { transcriptSource = value == "live" ? "live" : "offline" }
         }
     }
 

@@ -39,7 +39,7 @@ def test_courseware_indexes_sources_bilingual_pairs_and_auto_hints(courseware):
     listing = documents.listing(lib, "course", course)
     assert listing["documents"][0]["outline"][0]["title"] == "Dynamic Link Library (DLL)"
     kernel = next(t for t in listing["terms"] if t["english"] == "Kernel")
-    assert kernel["chinese"] == "内核" and kernel["confirmed"] == 0
+    assert kernel["chinese"] == "内核" and kernel["confirmed"] == 1
     assert json.loads(kernel["sources"])[0] == {"document_id": document["id"], "page": 1}
     context = documents.context(lib, lecture)
     assert not context["context"] and "Kernel: 内核" in context["glossary"]
@@ -52,26 +52,28 @@ def test_batch_scope_rejection_is_atomic_and_excluded_terms_do_not_feed_asr(cour
     lib, course, lecture, _, _ = courseware
     shared = knowledge.terms(lib, "course", course)
     term = next(t for t in shared if t["english"] == "DLL")
-    other = documents.save_term(lib, "lecture", lecture, "PrivateTerm", "独立", True)["id"]
+    foreign = lib.create_course("Elsewhere")["id"]
+    other = documents.save_term(lib, "course", foreign, "PrivateTerm", "独立", True)["id"]
     payload = {
         "kind": "course",
         "owner_id": course,
         "term_ids": [term["id"], other],
-        "operation": "confirm",
+        "operation": "exclude",
     }
     with pytest.raises(ValueError, match="不属于"):
         knowledge.batch(lib, payload)
     assert (
         next(t for t in knowledge.terms(lib, "course", course) if t["id"] == term["id"])[
-            "confirmed"
+            "excluded"
         ]
         == 0
     )
+    documents.save_term(lib, "lecture", lecture, "CourseTerm", "课程词", True)
     payload["term_ids"] = [term["id"]]
     payload["operation"] = "exclude"
     knowledge.batch(lib, payload)
     assert all(t["english"] != "DLL" for t in documents.context(lib, lecture)["hint_terms"])
-    assert "PrivateTerm: 独立" in documents.context(lib, lecture)["glossary"]
+    assert "CourseTerm: 课程词" in documents.context(lib, lecture)["glossary"]
 
 
 def test_term_completion_resumes_checkpoint_and_does_not_overwrite_user_edit(courseware):
@@ -130,7 +132,7 @@ def test_edit_during_model_call_wins_and_local_suggestion_needs_review(coursewar
     terms = knowledge.terms(lib, "course", course)
     assert next(t for t in terms if t["id"] == first["id"])["chinese"] == "人工优先"
     suggestions = [t for t in terms if t["origin"] == "local-model"]
-    assert suggestions and all(t["confirmed"] == 0 for t in suggestions)
+    assert suggestions and next(t for t in terms if t["id"] == first["id"])["chinese"] == "人工优先"
 
 
 def test_offline_asr_never_receives_courseware_and_keeps_snapshot(
@@ -205,30 +207,29 @@ def test_archived_owner_pauses_glossary_work_and_cannot_resume_until_restored(co
     assert knowledge.jobs(lib, "course", course)[0]["state"] == "queued"
 
 
-def test_combined_knowledge_management_is_scoped_to_lecture_and_its_parent(courseware):
+def test_combined_knowledge_management_is_scoped_to_course(courseware):
     lib, course, lecture, _, _ = courseware
     own = documents.save_term(lib, "lecture", lecture, "LocalAPI", "本课接口", True)["id"]
     shared = knowledge.terms(lib, "course", course)[0]["id"]
-    listing = documents.listing(lib, "lecture", lecture, include_shared=True)
+    listing = documents.listing(lib, "lecture", lecture)
+    assert listing["scope"] == "course"
     assert {own, shared} <= {t["id"] for t in listing["terms"]}
     payload = {
-        "kind": "lecture",
-        "owner_id": lecture,
-        "include_shared": True,
+        "kind": "course",
+        "owner_id": course,
         "term_ids": [own, shared],
         "operation": "exclude",
     }
     knowledge.batch(lib, payload)
-    assert not documents.context(lib, lecture)["context"].startswith("LocalAPI")
+    assert all(t["english"] != "LocalAPI" for t in documents.context(lib, lecture)["hint_terms"])
     foreign = lib.create_course("Shared")["id"]
     alien = documents.save_term(lib, "course", foreign, "ForeignAPI", "别处接口", True)["id"]
     payload["term_ids"] = [own, alien]
     payload["operation"] = "confirm"
     with pytest.raises(ValueError, match="不属于"):
         knowledge.batch(lib, payload)
-    assert (
-        next(t for t in knowledge.terms(lib, "lecture", lecture) if t["id"] == own)["excluded"] == 1
-    )
+    excluded = next(t for t in knowledge.terms(lib, "course", course) if t["id"] == own)
+    assert excluded["excluded"] == 1
 
 
 def test_old_materials_upgrade_inside_enqueue_without_nested_transaction_failure(

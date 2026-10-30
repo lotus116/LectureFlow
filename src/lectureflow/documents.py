@@ -33,15 +33,83 @@ def owner_path(library, kind: str, key: str) -> Path:
     from .files import hidden, path
 
     if kind not in {"course", "lecture"} or hidden(library, kind, key):
-        raise ValueError("请选择尚未删除的课程或课堂")
+        raise ValueError("请选择尚未删除的课程或 Lecture")
     if kind == "lecture" and hidden(library, "course", library.row("lectures", key)["course_id"]):
         raise ValueError("所属课程在废纸篓中，请先恢复")
     return library.managed_path(path(library, kind, key) / "Documents")
 
 
+def course_scope(library, kind: str, owner_id: str) -> tuple[str, str]:
+    """All courseware belongs to the course; lecture ids resolve to their course."""
+    if kind == "course":
+        owner_path(library, "course", owner_id)
+        return "course", owner_id
+    if kind == "lecture":
+        lecture = library.row("lectures", owner_id)
+        owner_path(library, "course", lecture["course_id"])
+        return "course", lecture["course_id"]
+    raise ValueError("资料只属于课程")
+
+
 def invalidate(library, kind: str, key: str) -> None:
     column = "course_id" if kind == "course" else "id"
     library.db.execute(f"UPDATE lectures SET revision=revision+1 WHERE {column}=?", (key,))
+
+
+def adopt_lecture_documents(library, course_id: str) -> None:
+    """Move legacy lecture-scoped copies into the course Documents folder once."""
+    from .files import path
+
+    lectures = [
+        row["id"]
+        for row in library.db.execute("SELECT id FROM lectures WHERE course_id=?", (course_id,))
+    ]
+    if not lectures:
+        return
+    placeholders = ",".join("?" * len(lectures))
+    rows = list(
+        library.db.execute(
+            f"SELECT * FROM documents WHERE kind='lecture' AND owner_id IN ({placeholders}) "
+            "AND removed=0",
+            lectures,
+        )
+    )
+    if not rows:
+        return
+    course_dir = owner_path(library, "course", course_id)
+    course_dir.mkdir(parents=True, exist_ok=True)
+    for row in rows:
+        folder_name = Path(row["filename"]).parts[0]
+        source_dir = path(library, "lecture", row["owner_id"]) / "Documents" / folder_name
+        target_dir = course_dir / folder_name
+        if source_dir.exists() and not target_dir.exists():
+            shutil.move(str(source_dir), str(target_dir))
+        relative = str(Path(folder_name) / Path(row["filename"]).name)
+        with library.transaction():
+            library.db.execute(
+                "UPDATE documents SET kind='course',owner_id=?,filename=? WHERE id=?",
+                (course_id, relative, row["id"]),
+            )
+            for term in library.db.execute(
+                "SELECT * FROM terms WHERE kind='lecture' AND owner_id=?", (row["owner_id"],)
+            ):
+                conflict = library.db.execute(
+                    "SELECT id,sources FROM terms WHERE kind='course' AND owner_id=? AND english=?",
+                    (course_id, term["english"]),
+                ).fetchone()
+                if conflict:
+                    combined = json.loads(conflict["sources"]) + json.loads(term["sources"])
+                    library.db.execute(
+                        "UPDATE terms SET sources=? WHERE id=?",
+                        (json.dumps(combined[:40]), conflict["id"]),
+                    )
+                    library.db.execute("DELETE FROM terms WHERE id=?", (term["id"],))
+                else:
+                    library.db.execute(
+                        "UPDATE terms SET kind='course',owner_id=? WHERE id=?",
+                        (course_id, term["id"]),
+                    )
+        invalidate(library, "course", course_id)
 
 
 def _xml(archive: zipfile.ZipFile, name: str):
@@ -153,8 +221,17 @@ def import_document(
     source = source.resolve()
     if not source.is_file() or source.suffix.lower() not in {".pdf", ".ppt", ".pptx"}:
         raise ValueError("请选择 PDF、PPTX 或 PPT 课件")
+    kind, owner_id = course_scope(library, kind, owner_id)
     directory = owner_path(library, kind, owner_id)
     directory.mkdir(parents=True, exist_ok=True)
+    source_digest = sha256(source)
+    existing = library.db.execute(
+        "SELECT id,pages FROM documents WHERE kind=? AND owner_id=? AND sha256=? AND removed=0",
+        (kind, owner_id, source_digest),
+    ).fetchone()
+    if existing:
+        pages = json.loads(existing["pages"])
+        return {"id": existing["id"], "pages": len(pages), "terms": 0, "duplicate": True}
     key = identity()
     folder = directory / key
     folder.mkdir()
@@ -209,7 +286,7 @@ def import_document(
                     )
                 else:
                     library.db.execute(
-                        "INSERT INTO terms VALUES(?,?,?,?,?,0,?)",
+                        "INSERT INTO terms VALUES(?,?,?,?,?,1,?)",
                         (
                             identity(),
                             kind,
@@ -233,6 +310,8 @@ def import_document(
 def listing(library, kind: str, owner_id: str, *, include_shared=False) -> dict:
     from . import knowledge
 
+    kind, owner_id = course_scope(library, kind, owner_id)
+    adopt_lecture_documents(library, owner_id)
     directory = owner_path(library, kind, owner_id)
     knowledge.ensure_indexes(library, kind, owner_id)
     documents = []
@@ -250,16 +329,15 @@ def listing(library, kind: str, owner_id: str, *, include_shared=False) -> dict:
         ).fetchone()
         item["outline"] = json.loads(index[0]) if index else []
         documents.append(item)
-    result = {
+    # include_shared is ignored: materials are always course-scoped.
+    _ = include_shared
+    return {
         "documents": documents,
         "terms": knowledge.terms(library, kind, owner_id),
         "jobs": knowledge.jobs(library, kind, owner_id),
+        "scope": "course",
+        "course_id": owner_id,
     }
-    if include_shared and kind == "lecture":
-        shared = listing(library, "course", library.row("lectures", owner_id)["course_id"])
-        for key in ("documents", "terms", "jobs"):
-            result[key] = shared[key] + result[key]
-    return result
 
 
 @metadata_edit
@@ -272,7 +350,7 @@ def save_term(
     confirmed: bool,
     key: str | None = None,
 ) -> dict:
-    owner_path(library, kind, owner_id)
+    kind, owner_id = course_scope(library, kind, owner_id)
     english, chinese = english.strip(), chinese.strip()
     if not english or len(english) > 160 or len(chinese) > 300:
         raise ValueError("请输入简短有效的术语")
@@ -312,18 +390,26 @@ def remove(library, document_id: str, *, confirmed: bool = False) -> None:
     row = library.db.execute("SELECT * FROM documents WHERE id=?", (document_id,)).fetchone()
     if row is None:
         raise ValueError("找不到课件")
-    # Keep its managed file and extraction as historical evidence. It no longer feeds new jobs.
+    # Keep managed file as historical evidence; stop feeding new recognition jobs.
     with library.transaction():
         library.db.execute("UPDATE documents SET removed=1 WHERE id=?", (document_id,))
         for term in library.db.execute(
-            "SELECT * FROM terms WHERE kind=? AND owner_id=?", (row["kind"], row["owner_id"])
+            "SELECT t.*,m.origin FROM terms t LEFT JOIN term_metadata m ON m.term_id=t.id "
+            "WHERE t.kind=? AND t.owner_id=?",
+            (row["kind"], row["owner_id"]),
         ):
             sources = json.loads(term["sources"])
             remaining = [s for s in sources if s["document_id"] != document_id]
             if sources and not remaining:
-                library.db.execute(
-                    "UPDATE terms SET confirmed=0,sources='[]' WHERE id=?", (term["id"],)
-                )
+                if term["origin"] == "manual":
+                    library.db.execute("UPDATE terms SET sources='[]' WHERE id=?", (term["id"],))
+                else:
+                    library.db.execute(
+                        "UPDATE terms SET confirmed=0,sources='[]' WHERE id=?", (term["id"],)
+                    )
+                    library.db.execute(
+                        "UPDATE term_metadata SET excluded=1 WHERE term_id=?", (term["id"],)
+                    )
             elif sources != remaining:
                 library.db.execute(
                     "UPDATE terms SET sources=? WHERE id=?", (json.dumps(remaining), term["id"])
@@ -335,48 +421,47 @@ def context(library, lecture_id: str) -> dict:
     from . import knowledge
 
     lecture = library.row("lectures", lecture_id)
+    course_id = lecture["course_id"]
+    adopt_lecture_documents(library, course_id)
     terms, documents, hint_terms = {}, [], {}
-    for kind, owner_id in (("course", lecture["course_id"]), ("lecture", lecture_id)):
-        knowledge.ensure_indexes(library, kind, owner_id)
-        active = {
-            r[0]
-            for r in library.db.execute(
-                "SELECT id FROM documents WHERE kind=? AND owner_id=? AND removed=0",
-                (kind, owner_id),
-            )
-        }
-        for row in knowledge.terms(library, kind, owner_id):
-            valid_source = any(s["document_id"] in active for s in json.loads(row["sources"]))
-            key = row["english"].casefold()
-            if row["excluded"]:
-                hint_terms.pop(key, None)
-                terms.pop(key, None)
-                continue
-            if row["confirmed"] or (valid_source and row["score"] >= 4):
-                hint_terms[key] = {
-                    "english": row["english"],
-                    "score": row["score"],
-                    "confirmed": bool(row["confirmed"]),
-                    "sources": json.loads(row["sources"]),
-                }
-            if row["confirmed"] or (valid_source and row["origin"] == "courseware"):
-                terms[key] = (row["english"], row["chinese"])
-        for row in library.db.execute(
-            "SELECT id,original_name,pages FROM documents "
-            "WHERE kind=? AND owner_id=? AND removed=0 ORDER BY created_at",
-            (kind, owner_id),
-        ):
-            documents.append(
-                {"id": row["id"], "name": row["original_name"], "pages": json.loads(row["pages"])}
-            )
+    knowledge.ensure_indexes(library, "course", course_id)
+    active = {
+        r[0]
+        for r in library.db.execute(
+            "SELECT id FROM documents WHERE kind='course' AND owner_id=? AND removed=0",
+            (course_id,),
+        )
+    }
+    for row in knowledge.terms(library, "course", course_id):
+        valid_source = any(s["document_id"] in active for s in json.loads(row["sources"]))
+        key = row["english"].casefold()
+        if row["excluded"]:
+            hint_terms.pop(key, None)
+            terms.pop(key, None)
+            continue
+        if row["confirmed"] or (valid_source and row["score"] >= 4):
+            hint_terms[key] = {
+                "english": row["english"],
+                "score": row["score"],
+                "confirmed": bool(row["confirmed"]),
+                "sources": json.loads(row["sources"]),
+            }
+        if row["confirmed"] or (valid_source and row["origin"] == "courseware"):
+            terms[key] = (row["english"], row["chinese"])
+    for row in library.db.execute(
+        "SELECT id,original_name,pages FROM documents "
+        "WHERE kind='course' AND owner_id=? AND removed=0 ORDER BY created_at",
+        (course_id,),
+    ):
+        documents.append(
+            {"id": row["id"], "name": row["original_name"], "pages": json.loads(row["pages"])}
+        )
     snapshot = {
         "hint_terms": list(hint_terms.values())[:2000],
         "glossary": "\n".join(f"{a}: {b}" for a, b in terms.values() if b)[:8000],
         "documents": documents,
+        "context": "",
     }
-    # Materials stay available for guided re-recognition and summaries.
-    # Production ASR still starts from an empty system prompt (audio-first).
-    snapshot["context"] = ""
     return snapshot
 
 

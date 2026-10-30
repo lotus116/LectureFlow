@@ -51,11 +51,12 @@ struct SessionControlBar: View {
             }
             if workspace.session.state == .ended {
                 HStack {
-                    Label(live.pendingSaves > 0 ? "正在加入资料库…" : "已有内容保留在本堂课", systemImage: "checkmark.circle")
+                    Label(live.pendingSaves > 0 ? "正在加入资料库…" : "已有内容保留在本 Lecture", systemImage: "checkmark.circle")
                         .font(.caption).foregroundStyle(.secondary)
                     Spacer()
+                    Button("继续录制") { workspace.primarySessionAction() }
                     Button("查看录音") { workspace.requestedTab = "audio" }
-                    Button("课后转写") { Task { await workspace.enqueue() } }
+                    Button("生成课后转写") { Task { await workspace.enqueue() } }
                         .disabled(workspace.lecture?.segments.isEmpty != false || workspace.busy || live.pendingSaves > 0)
                 }
             }
@@ -72,9 +73,9 @@ struct SessionControlBar: View {
         }
     }
     private var detail: String {
-        if live.pendingSaves > 0 { return "录音文件已封存，正在加入课堂资料库。" }
+        if live.pendingSaves > 0 { return "录音文件已封存，正在加入本 Lecture。" }
         if active { return workspace.captionsWaiting ? "录音已开始，字幕等待本地模型就绪。" : live.message }
-        return "开始后自动保存；暂停可随时继续，结束后仍留在本堂课。"
+        return "开始后自动保存；暂停可继续；结束 Lecture 后仍可追加录制。"
     }
     private func clock(_ seconds: Double) -> String {
         let value = Int(seconds)

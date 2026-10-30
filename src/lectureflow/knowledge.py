@@ -102,8 +102,9 @@ def index_document(library, document_id, pages):
         ).fetchone()
         if term is None:
             key = identity()
+            # Auto-enable course terms; users may later disable or edit manually.
             library.db.execute(
-                "INSERT INTO terms VALUES(?,?,?,?,?,0,?)",
+                "INSERT INTO terms VALUES(?,?,?,?,?,1,?)",
                 (
                     key,
                     document["kind"],
