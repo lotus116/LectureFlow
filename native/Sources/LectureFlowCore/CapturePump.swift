@@ -1,4 +1,5 @@
 import AVFoundation
+import Accelerate
 import Foundation
 
 /// Tap copies are bounded; disk writing never waits on the inference pipe.
@@ -16,6 +17,8 @@ public final class CapturePump {
     private let referenceTime: Double
     private let captureID: String
     private var lastEnd = 0.0
+    private var lastLevel = -1.0
+    public var onLevel: ((Float) -> Void)?
     public var onPCM: ((Data, Double, CaptureFlags) -> Void)?
     public var onMode: ((CaptureFlags) -> Void)?
     public var onRecording: ((URL) -> Void)?
@@ -100,6 +103,11 @@ public final class CapturePump {
     }
 
     private func writeNormalized(_ output: AVAudioPCMBuffer, start: Double) throws {
+        if start - lastLevel >= 0.12 {
+            var rms: Float = 0
+            vDSP_rmsqv(output.floatChannelData![0], 1, &rms, vDSP_Length(output.frameLength))
+            onLevel?(min(1, rms * 8)); lastLevel = start
+        }
         if flags.recording { try writer?.append(output, start: start) }
         if flags.needsASR {
             let bytes = Data(bytes: output.floatChannelData![0], count: Int(output.frameLength) * 4)

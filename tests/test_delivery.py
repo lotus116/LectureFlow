@@ -150,11 +150,12 @@ def test_pptx_uses_deck_order_and_context_is_versioned(library, tmp_path):
     imported = documents.import_document(lib, "course", course, source)
     listing = documents.listing(lib, "course", course)
     assert listing["documents"][0]["preview"].startswith("[1] Kernel memory ABI")
-    assert "ABI" in documents.context(lib, lecture)["context"]
+    assert not documents.context(lib, lecture)["context"]
     documents.save_term(lib, "course", course, "Kernel", "内核", True)
     version = completed(lib, lecture)
     config = lib.version_content(version)["config"]
-    assert "Kernel" in config["context"] and "ABI" in config["context"]
+    assert not config["context"]
+    assert config["asr_input_policy"] == "audio_only_v1"
     assert config["glossary"] == "Kernel: 内核"
     assert config["documents"][0]["pages"][0]["text"] == "Kernel memory ABI"
     documents.save_term(lib, "course", course, "Kernel", "内核态", True)

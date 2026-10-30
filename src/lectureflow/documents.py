@@ -375,7 +375,8 @@ def context(library, lecture_id: str) -> dict:
         "glossary": "\n".join(f"{a}: {b}" for a, b in terms.values() if b)[:8000],
         "documents": documents,
     }
-    snapshot["context"] = knowledge.hints(snapshot)
+    # Index and vocabulary remain inspectable. Recognition itself is audio-only.
+    snapshot["context"] = ""
     return snapshot
 
 

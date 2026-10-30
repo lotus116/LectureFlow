@@ -42,7 +42,6 @@ private struct FloatingSubtitles: View {
     @AppStorage("subtitleEnglish") private var showEnglish = true
     @AppStorage("autoFloatingSubtitles") private var automatic = true
     @State private var settings = false
-    @State private var resumeFlags = CaptureFlags(recording: false, english: true, translate: true)
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -57,10 +56,12 @@ private struct FloatingSubtitles: View {
                     }
                 }.labelsHidden().frame(maxWidth: 250).disabled(live.flags.needsMicrophone)
                 Spacer(minLength: 0)
-                Button(live.flags.needsMicrophone ? "暂停" : "开始字幕", systemImage: live.flags.needsMicrophone ? "pause.fill" : "play.fill") {
-                    if live.flags.needsMicrophone { resumeFlags = live.flags; workspace.changeCapture(.paused) }
-                    else { workspace.changeCapture(resumeFlags) }
-                }.disabled(workspace.lecture == nil || workspace.busy)
+                Button(workspace.session.hasSession ? workspace.session.primaryTitle : "开启字幕", systemImage: live.flags.needsMicrophone ? "pause.fill" : "play.fill") {
+                    workspace.primarySessionAction(subtitlesIfIdle: true)
+                }.disabled(workspace.lecture == nil || (!workspace.session.hasSession && workspace.busy))
+                if workspace.session.hasSession {
+                    Button { workspace.endSession() } label: { Image(systemName: "stop.fill") }.help("保存并结束")
+                }
                 Button { workspace.showMainWindow() } label: {
                     Image(systemName: "rectangle.inset.filled")
                 }.help("返回主窗口")
@@ -73,12 +74,11 @@ private struct FloatingSubtitles: View {
                             Text("字号 \(Int(fontSize))"); Slider(value: $fontSize, in: 18...64)
                             Text("背景透明度"); Slider(value: $opacity, in: 0.2...1)
                             Divider()
-                            Toggle("保存录音", isOn: captureBinding(\.recording))
-                            Toggle("保存英文转写", isOn: captureBinding(\.english))
-                            Toggle("中文翻译", isOn: captureBinding(\.translate))
-                            Text("可关闭主窗口继续听课；⌘⌥L 随时显示字幕。")
+                            CaptureOptionsView(workspace: workspace)
+                            ModelSelector(workspace: workspace, live: live)
+                            Text("菜单栏可随时找回；应用内 ⌘⌥L 显示字幕。")
                                 .font(.caption).foregroundStyle(.secondary)
-                        }.toggleStyle(.checkbox).padding(20).frame(width: 290)
+                        }.toggleStyle(.checkbox).padding(20).frame(width: 350)
                     }
             }.font(.caption).buttonStyle(.plain).foregroundStyle(.white.opacity(0.8))
             ScrollView {
@@ -102,7 +102,9 @@ private struct FloatingSubtitles: View {
                 }
             }.foregroundStyle(.white)
             HStack {
-                Text(live.flags.recording ? "● 录音保存中" : "未保存原始音频")
+                Text(live.flags.recording ? "● 录音保存中" : workspace.session.hasSession
+                    ? (workspace.session.desired.recording ? "录音已暂停，文件保留" : "不保存原始音频")
+                    : "仅字幕模式不保存录音")
                 Spacer()
                 Text(live.flags.needsMicrophone ? "本机处理" : "已暂停")
             }.font(.system(size: 10)).foregroundStyle(.white.opacity(0.45))
@@ -113,11 +115,6 @@ private struct FloatingSubtitles: View {
             .alert("操作未完成", isPresented: Binding(get: { workspace.error != nil }, set: { if !$0 { workspace.error = nil } })) {
                 Button("知道了") { workspace.error = nil; live.error = nil }
             } message: { Text(workspace.error ?? "") }
-    }
-    private func captureBinding(_ key: WritableKeyPath<CaptureFlags, Bool>) -> Binding<Bool> {
-        Binding(get: { live.flags[keyPath: key] }, set: { value in
-            var flags = live.flags; flags[keyPath: key] = value; workspace.changeCapture(flags)
-        })
     }
     private func primary(_ caption: LiveCaption) -> String {
         if !caption.chinese.isEmpty { return caption.chinese }

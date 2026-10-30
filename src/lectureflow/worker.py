@@ -11,6 +11,7 @@ from tempfile import TemporaryDirectory
 
 from .adapters import HyMTTranslator, QwenASR
 from .exporting import export_version
+from .inference_policy import ASR_INPUT_POLICY, matching_glossary
 from .library import Library, now
 from .model_lease import live_requested
 from .models import CATALOG, resolve
@@ -48,34 +49,18 @@ def process_task(
                 item["source_end"] - item["source_start"],
             )
             started = time.perf_counter()
-            previous = library.db.execute(
-                "SELECT english FROM units WHERE version_id=? AND sequence=?",
-                (task["version_id"], sequence - 1),
-            ).fetchone()
-            from .knowledge import hints
-
-            asr_context = hints(config, previous["english"] if previous else "")
-            recognized = asr.transcribe(audio, asr_context)
+            # Applies to old queued/resumed snapshots too. Never feed a vocabulary list,
+            # previous transcript or slide text into recognition as a language prefix.
+            recognized = asr.transcribe(audio, "")
             if recognized.get("truncated"):
                 raise ValueError("识别结果达到长度上限，未提交本区间；请重试或调整模型")
             translated = {"text": "", "truncated": False}
             if config["translate"]:
                 if translator is None:
                     raise ValueError("翻译模型未加载")
-                previous = library.db.execute(
-                    "SELECT english FROM units WHERE version_id=? AND sequence=?",
-                    (task["version_id"], sequence - 1),
-                ).fetchone()
-                from .documents import related
-
-                reference = related(config.get("documents", []), recognized["text"])
-                context = previous["english"][-1000:] if previous else ""
-                if reference:
-                    context += "\n课件参考（仅作术语消歧，不得补写未说出的内容）：\n" + reference
                 translated = translator.translate(
                     recognized["text"],
-                    config["glossary"],
-                    context=context,
+                    matching_glossary(config.get("glossary", ""), recognized["text"]),
                 )
                 if translated.get("truncated"):
                     raise ValueError("翻译结果达到长度上限，本区间未提交")
@@ -87,7 +72,8 @@ def process_task(
                     "asr": recognized,
                     "translation": translated,
                     "decoded_duration": duration,
-                    "courseware_hints": asr_context,
+                    "courseware_hints": "",
+                    "asr_input_policy": ASR_INPUT_POLICY,
                     "elapsed_s": time.perf_counter() - started,
                     "mlx_memory": mlx_memory(),
                 },

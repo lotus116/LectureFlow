@@ -55,6 +55,7 @@ struct Transcript: Decodable, Sendable {
     let stale: Bool
     let units: [TranscriptUnit]
     let source_missing: Bool?
+    let possible_context_bias: Bool?
 }
 struct TranscriptUnit: Decodable, Identifiable, Sendable {
     let sequence: Int

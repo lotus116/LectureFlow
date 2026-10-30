@@ -21,7 +21,10 @@ struct LectureFlowApp: App {
                 Button("显示悬浮字幕") { workspace.openSubtitles() }
                     .keyboardShortcut("l", modifiers: [.command, .option])
                 Button("仅显示悬浮字幕") { workspace.openSubtitles(hideMain: true) }
-                Button("暂停全部采集") { workspace.live.shutdown() }
+                Button("开始／暂停课堂") { workspace.primarySessionAction() }
+                    .keyboardShortcut("r", modifiers: [.command, .shift])
+                Button("保存并结束课堂") { workspace.endSession() }.disabled(!workspace.session.hasSession)
+                Button("暂停全部采集") { workspace.pauseSession() }
                     .keyboardShortcut("p", modifiers: [.command, .shift])
             }
         }
@@ -32,7 +35,8 @@ struct LectureFlowApp: App {
             Button("显示悬浮字幕") { workspace.openSubtitles() }
             Button("仅显示悬浮字幕") { workspace.openSubtitles(hideMain: true) }
             Divider()
-            Button("暂停全部采集") { workspace.live.shutdown() }.disabled(!workspace.live.flags.needsMicrophone)
+            Button(workspace.session.primaryTitle) { workspace.primarySessionAction() }.disabled(workspace.lecture == nil)
+            Button("保存并结束课堂") { workspace.endSession() }.disabled(!workspace.session.hasSession)
             Button("退出 LectureFlow") { NSApp.terminate(nil) }
         }
     }
@@ -78,6 +82,7 @@ private struct ArchiveTarget {
 struct LibraryView: View {
     @ObservedObject var model: Workspace
     @State private var importing = false
+    @AppStorage("librarySidebarVisible") private var sidebarVisible = true
     @State private var form: String?
     @State private var courseID = ""
     @State private var newName = ""
@@ -87,13 +92,14 @@ struct LibraryView: View {
     @State private var recordID = ""
     @State private var archiving: ArchiveTarget?
     @State private var showTrash = false
+    @State private var showQueue = false
     @State private var sharedCourse: Course?
     @State private var textLanguage = "both"
     @StateObject private var playback = AudioPlayback()
     @Environment(\.openSettings) private var openSettings
 
     var body: some View {
-        NavigationSplitView {
+        LibrarySplitLayout(sidebarVisible: $sidebarVisible) {
             List(selection: Binding(get: { model.selectedLecture }, set: { model.selectLecture($0) })) {
                 ForEach(model.overview.courses) { course in
                     Section {
@@ -149,8 +155,7 @@ struct LibraryView: View {
                     }
                 }
             }
-            .navigationTitle("")
-            .navigationSplitViewColumnWidth(min: 200, ideal: 225, max: 300)
+            .listStyle(.sidebar)
             .safeAreaInset(edge: .top) {
                 HStack(spacing: 9) {
                     Image(nsImage: NSApp.applicationIconImage).resizable().frame(width: 32, height: 32)
@@ -233,6 +238,7 @@ struct LibraryView: View {
             }.padding(24).frame(width: 370)
         }
         .sheet(isPresented: $showTrash) { TrashView(workspace: model) }
+        .sheet(isPresented: $showQueue) { BackgroundQueueView(workspace: model) }
         .sheet(item: $sharedCourse) { course in
             VStack {
                 HStack { Text(course.name).font(.headline); Spacer(); Button("完成") { sharedCourse = nil } }
@@ -263,16 +269,36 @@ struct LibraryView: View {
         .onChange(of: model.selectedLecture) { _, next in
             playback.stop()
         }
-        .onChange(of: model.live.flags.needsMicrophone) { _, active in if active { tab = "live" } }
-        .onChange(of: model.model) { _, _ in
-            if model.live.flags.needsASR, let lecture = model.lecture {
-                model.live.change(model.live.flags, lecture: lecture, backend: model.backend, model: model.model)
-            }
+        .onChange(of: model.requestedTab) { _, value in
+            if let value { tab = value; model.requestedTab = nil }
         }
         .onChange(of: model.live.error) { _, error in
             if let error { model.error = error; model.live.error = nil }
         }
         .task { model.startMonitoring() }
+        .toolbar(removing: .sidebarToggle)
+        .toolbar {
+            ToolbarItem(placement: .navigation) {
+                Button {
+                    withAnimation(.easeInOut(duration: 0.18)) { sidebarVisible.toggle() }
+                } label: { Image(systemName: "sidebar.left") }
+                    .help("显示或隐藏侧边栏").accessibilityIdentifier("sidebar-toggle")
+            }
+            ToolbarItem(placement: .primaryAction) {
+                Button { showQueue = true } label: {
+                    Label("后台 \(model.backgroundItems.count)", systemImage: "list.bullet.rectangle")
+                }.help("查看、暂停和继续所有课程的后台任务")
+            }
+        }
+        .safeAreaInset(edge: .bottom) {
+            if let message = model.refreshError {
+                HStack {
+                    Label("资料库暂未刷新：" + message, systemImage: "exclamationmark.circle").lineLimit(1)
+                    Spacer()
+                    Button("重试") { Task { await model.refresh() } }
+                }.font(.caption).padding(8).background(.bar)
+            }
+        }
         .background(MainWindowMarker())
         .controlSize(.small)
         .tint(Color(red: 0.13, green: 0.45, blue: 0.65))
@@ -343,7 +369,7 @@ struct LibraryView: View {
                 Text(task.label).fontWeight(.medium)
                 Text(task.scopeLabel).font(.caption).foregroundStyle(.secondary)
                 if let count = task.material_count, count > 0 {
-                    Text("课件增强 \(count) 份").font(.caption).foregroundStyle(.secondary)
+                    Text("参考课件 \(count) 份").font(.caption).foregroundStyle(.secondary)
                 }
                 if task.stale != 0 { Text("素材已变动，需要更新").foregroundStyle(.orange) }
                 Spacer()
@@ -386,10 +412,6 @@ struct LibraryView: View {
             HStack {
                 Text("按下列顺序处理，可拖动调整").font(.callout).foregroundStyle(.secondary)
                 Spacer()
-                Picker("识别", selection: $model.model) {
-                    Text("轻快").tag("asr-small")
-                    Text("高精度").tag("asr-large")
-                }.frame(width: 160)
                 Toggle("中文翻译", isOn: $model.translate).toggleStyle(.checkbox)
                 Button("转写整堂课") {
                     tab = "transcript"
@@ -442,11 +464,30 @@ struct LibraryView: View {
                     }
                 }
             }
+            .overlay {
+                if lecture.segments.isEmpty {
+                    ContentUnavailableView {
+                        Label("还没有录音", systemImage: "waveform")
+                    } description: {
+                        Text("点击上方开始录音，或导入已有课堂录音。多段文件导入后可拖动排序。")
+                    } actions: {
+                        Button("导入已有录音") { importing = true }
+                    }
+                }
+            }
         }
     }
 
     private var transcriptView: some View {
         VStack(alignment: .leading, spacing: 12) {
+            if model.transcript?.possible_context_bias == true {
+                HStack {
+                    Text("此版本使用过旧版课件识别提示。如出现词表混入，可从原音重新转写，旧版本会保留。")
+                        .font(.caption).foregroundStyle(.secondary)
+                    Spacer()
+                    Button("重新转写") { Task { await model.enqueue() } }.disabled(model.busy)
+                }
+            }
             if model.transcript?.source_missing == true {
                 Label("部分关联录音已永久清空，已完成的转写文字仍保留。", systemImage: "waveform.slash")
                     .font(.caption).foregroundStyle(.secondary)

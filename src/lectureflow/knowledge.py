@@ -164,40 +164,6 @@ def terms(library, kind, owner_id):
     ]
 
 
-def hints(config, recent="", limit=3500):
-    candidates = config.get("hint_terms", [])
-    if not candidates:
-        return config.get("context", "")[:limit]
-    query = set(re.findall(r"[a-z][a-z0-9_-]{2,}", recent.casefold()))
-    related_pages = []
-    if query:
-        from .documents import STOP
-
-        for document in config.get("documents", []):
-            for page in document["pages"]:
-                tokens = set(re.findall(r"[a-z][a-z0-9_-]{2,}", page["text"].casefold())) - STOP
-                score = len((query - STOP) & tokens)
-                if score >= 2:
-                    related_pages.append((score, document["id"], page["page"]))
-    related_pages.sort(reverse=True)
-    anchors = {(doc, page) for _, doc, page in related_pages[:2]}
-    ranked = []
-    for term in candidates:
-        tokens = set(re.findall(r"[a-z][a-z0-9_-]{2,}", term["english"].casefold()))
-        score = (
-            term.get("score", 0) + (80 if term.get("confirmed") else 0) + 12 * len(query & tokens)
-        )
-        if any((ref["document_id"], ref["page"]) in anchors for ref in term.get("sources", [])):
-            score += 25
-        ranked.append((score, term["english"]))
-    ranked.sort(key=lambda entry: -entry[0])
-    values = []
-    for _, english in ranked[:70]:
-        if len(", ".join(values + [english])) <= limit:
-            values.append(english)
-    return ", ".join(values)
-
-
 @metadata_edit
 def batch(library, payload):
     from .documents import invalidate, owner_path

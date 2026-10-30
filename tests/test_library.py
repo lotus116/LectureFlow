@@ -123,7 +123,7 @@ def test_resume_after_interruption_neither_duplicates_nor_skips_audio(setup_libr
     assert [(u["source_start"], u["source_end"]) for u in content["units"]] == [
         (0, 30), (30, 60), (60, 65),
     ]
-    assert translator.contexts[1] == "original 1"
+    assert translator.contexts[1] == ""  # Previous speech is not translation input.
     assert (library.lecture_path(lecture) / "Transcripts" / task["version_id"]
             / "transcript.json").is_file()
 

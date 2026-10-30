@@ -1,4 +1,4 @@
-public struct CaptureFlags: Equatable, Sendable {
+public struct CaptureFlags: Equatable, Codable, Sendable {
     public var recording: Bool
     public var english: Bool
     public var translate: Bool
@@ -7,6 +7,10 @@ public struct CaptureFlags: Equatable, Sendable {
     }
     public var needsMicrophone: Bool { recording || english || translate }
     public var needsASR: Bool { english || translate }
+    public func available(asr: Bool, translation: Bool) -> CaptureFlags {
+        CaptureFlags(recording: recording, english: english && asr,
+                     translate: translate && asr && translation)
+    }
     public static let all = CaptureFlags(recording: true, english: true, translate: true)
     public static let paused = CaptureFlags()
 }

@@ -19,7 +19,7 @@ info={
     'CFBundleExecutable':'LectureFlow',
     'CFBundlePackageType':'APPL',
     'CFBundleShortVersionString':Path('VERSION').read_text().strip(),
-    'CFBundleVersion':'3',
+    'CFBundleVersion':'4',
     'LSMinimumSystemVersion':'26.0',
     'NSHighResolutionCapable':True,
     'NSMicrophoneUsageDescription':'在你开启课堂录音或实时字幕时采集麦克风音频；仅在本机处理。',
