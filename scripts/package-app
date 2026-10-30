@@ -1,0 +1,6 @@
+#!/bin/zsh
+set -eu
+cd "${0:A:h:h}"
+export UV_CACHE_DIR="$PWD/.cache/uv"
+export UV_PYTHON_INSTALL_DIR="$PWD/.tools/python"
+.venv/bin/python scripts/package_app.py "$@"

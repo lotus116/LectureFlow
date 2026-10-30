@@ -1,4 +1,5 @@
 """A logical recording contains independently sealed CAF chunks; no physical merge required."""
+
 from __future__ import annotations
 
 import fcntl
@@ -11,6 +12,34 @@ from tempfile import TemporaryDirectory
 from .audio import extract_clip, probe_duration
 from .library import now
 from .runtime import sha256, write_json
+
+
+def source_files(source):
+    if source.name != "segment.json":
+        return [source]
+    import json
+
+    content = json.loads(source.read_text())
+    files = []
+    for chunk in content["chunks"]:
+        path = source.parent / chunk["file"]
+        if not path.resolve().is_relative_to(source.parent.resolve()):
+            raise ValueError("录音分块超出受管目录")
+        files.append(path)
+    return files
+
+
+def discard(library, lecture_id, directory, *, confirmed=False):
+    if not confirmed:
+        raise ValueError("取消本段录音需要明确确认")
+    from .files import archive
+
+    descriptor = json.loads((library.managed_path(directory) / "capture.json").read_text())
+    if not descriptor.get("sealed"):
+        raise ValueError("请先封存当前录音，再取消")
+    result = register(library, lecture_id, directory)
+    archive(library, "segment", result["id"], confirmed=True, sealed_recording=directory)
+    return {"id": result["id"]}
 
 
 def register(library, lecture_id: str, directory: Path, *, recover: bool = False) -> dict:
@@ -49,11 +78,19 @@ def register(library, lecture_id: str, directory: Path, *, recover: bool = False
         if not chunks:
             raise ValueError("没有可恢复的音频块；原文件仍保留在录音目录")
         manifest = directory / "segment.json"
-        write_json(manifest, {"lectureflow_recording": 1, "id": key, "chunks": chunks,
-                              "created_at": descriptor.get("created_at"), "recovered": recover,
-                              "capture_id": descriptor.get("capture_id"),
-                              "start_offset_s": descriptor.get("start_offset_s", 0),
-                              "unreadable_chunks": unreadable})
+        write_json(
+            manifest,
+            {
+                "lectureflow_recording": 1,
+                "id": key,
+                "chunks": chunks,
+                "created_at": descriptor.get("created_at"),
+                "recovered": recover,
+                "capture_id": descriptor.get("capture_id"),
+                "start_offset_s": descriptor.get("start_offset_s", 0),
+                "unreadable_chunks": unreadable,
+            },
+        )
         with library.transaction():
             # Recheck under the write lock: callbacks/recovery may race.
             if library.db.execute("SELECT 1 FROM segments WHERE id=?", (key,)).fetchone():
@@ -62,12 +99,20 @@ def register(library, lecture_id: str, directory: Path, *, recover: bool = False
                 "SELECT COALESCE(MAX(position),-1)+1 FROM segments WHERE lecture_id=?",
                 (lecture_id,),
             ).fetchone()[0]
-            library.db.execute("INSERT INTO segments VALUES(?,?,?,?,?,?,?,?)", (
-                key, lecture_id, position, str(manifest.relative_to(audio_root)),
-                ("恢复录音（部分音频待检查） · " if unreadable else "课堂录音 · ")
-                + str(descriptor.get("created_at", key)), sha256(manifest),
-                sum(c["duration"] for c in chunks), now(),
-            ))
+            library.db.execute(
+                "INSERT INTO segments VALUES(?,?,?,?,?,?,?,?)",
+                (
+                    key,
+                    lecture_id,
+                    position,
+                    str(manifest.relative_to(audio_root)),
+                    ("恢复录音（部分音频待检查） · " if unreadable else "课堂录音 · ")
+                    + str(descriptor.get("created_at", key)),
+                    sha256(manifest),
+                    sum(c["duration"] for c in chunks),
+                    now(),
+                ),
+            )
             library.db.execute("UPDATE lectures SET revision=revision+1 WHERE id=?", (lecture_id,))
         return library.row("segments", key)
 

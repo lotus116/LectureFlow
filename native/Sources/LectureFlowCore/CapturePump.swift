@@ -19,6 +19,7 @@ public final class CapturePump {
     public var onPCM: ((Data, Double, CaptureFlags) -> Void)?
     public var onMode: ((CaptureFlags) -> Void)?
     public var onRecording: ((URL) -> Void)?
+    public var onDiscardedRecording: ((URL) -> Void)?
     public var onFailure: ((String) -> Void)?
 
     public init(audioRoot: URL, referenceTime: Double, captureID: String = UUID().uuidString) {
@@ -125,5 +126,20 @@ public final class CapturePump {
     public func finish() {
         update(.paused)
         queue.sync {} // bounded pending input; this never waits for a model.
+    }
+
+    /// Cancellation seals the media first; the library then moves it to recoverable trash.
+    public func cancelRecording() {
+        queue.async {
+            do {
+                if !self.flags.needsASR { try self.flushConverter() }
+                if let writer = self.writer, let path = try writer.finish() {
+                    self.onDiscardedRecording?(path)
+                }
+                self.writer = nil
+                self.flags.recording = false
+                self.onMode?(self.flags)
+            } catch { self.fail(error) }
+        }
     }
 }

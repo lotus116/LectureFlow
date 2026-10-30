@@ -70,7 +70,7 @@ PRAGMA user_version=1;
 
 
 class Library:
-    def __init__(self, root: Path):
+    def __init__(self, root: Path, *, worker_lock_owned=False):
         self.root = root.resolve()
         self.root.mkdir(parents=True, exist_ok=True)
         self.db = sqlite3.connect(self.root / "Library.sqlite3", timeout=30, isolation_level=None)
@@ -92,11 +92,23 @@ class Library:
             except BaseException:
                 self.db.execute("ROLLBACK")
                 raise
-        elif version not in {1, 2}:
+        elif version not in {1, 2, 3}:
             raise ValueError("资料库版本较新，请使用匹配的 LectureFlow 版本")
+        if version in {1, 2}:
+            backups = self.managed_path(self.root / ".Backups")
+            backups.mkdir(exist_ok=True)
+            with sqlite3.connect(backups / f"Library-v{version}-{identity()}.sqlite3") as backup:
+                self.db.backup(backup)
         from .live_store import migrate
 
         migrate(self.db)
+        from . import documents, files, summaries
+
+        files.migrate(self.db)
+        documents.migrate(self.db)
+        summaries.migrate(self.db)
+        self.db.execute("PRAGMA user_version=3")
+        files.recover(self, worker_lock_owned=worker_lock_owned)
 
     def close(self) -> None:
         self.db.close()
@@ -126,10 +138,9 @@ class Library:
         return dict(result)
 
     def lecture_path(self, lecture_id: str) -> Path:
-        lecture = self.row("lectures", lecture_id)
-        course = self.row("courses", lecture["course_id"])
-        path = self.root / course["folder"] / lecture["folder"]
-        return self.managed_path(path)
+        from .files import path
+
+        return path(self, "lecture", lecture_id)
 
     def managed_path(self, path: Path) -> Path:
         if not path.resolve().is_relative_to(self.root):
@@ -137,11 +148,9 @@ class Library:
         return path
 
     def segment_path(self, segment_id: str) -> Path:
-        item = self.row("segments", segment_id)
-        path = self.lecture_path(item["lecture_id"]) / "Audio" / item["filename"]
-        if not path.resolve().is_relative_to(self.root):
-            raise ValueError("录音目录超出资料库范围")
-        return path
+        from .files import path
+
+        return path(self, "segment", segment_id)
 
     def create_course(self, name: str) -> dict:
         key = identity()
@@ -178,10 +187,12 @@ class Library:
         return self.row("lectures", key)
 
     def segments(self, lecture_id: str) -> list[dict]:
+        from .files import hidden
+
         self.row("lectures", lecture_id)
         return [dict(r) for r in self.db.execute(
             "SELECT * FROM segments WHERE lecture_id=? ORDER BY position, id", (lecture_id,),
-        )]
+        ) if not hidden(self, "segment", r["id"])]
 
     def import_audio(self, lecture_id: str, sources: list[Path]) -> list[dict]:
         if not sources:
@@ -276,6 +287,12 @@ class Library:
                     })
                 logical += segment["duration"]
             config = {"asr": asr, "translate": translate, "context": context, "glossary": glossary}
+            from .documents import context as document_context
+
+            materials = document_context(self, lecture_id)
+            config["context"] = context or materials["context"]
+            config["glossary"] = glossary or materials["glossary"]
+            config["documents"] = materials["documents"]
             config["models"] = {
                 "asr": CATALOG[asr], "translation": CATALOG["translate"] if translate else None,
             }
@@ -380,14 +397,24 @@ class Library:
         }
 
     def overview(self) -> dict:
-        courses = [dict(r) for r in self.db.execute("SELECT * FROM courses ORDER BY created_at,id")]
+        from .files import hidden
+
+        courses = [dict(r) for r in self.db.execute(
+            "SELECT c.* FROM courses c LEFT JOIN entity_state s ON s.kind='course' AND s.id=c.id "
+            "WHERE s.archived_path IS NULL ORDER BY COALESCE(s.sort_order,999999),c.created_at,c.id"
+        )]
         for course in courses:
             course["lectures"] = [dict(r) for r in self.db.execute(
                 "SELECT * FROM lectures WHERE course_id=? ORDER BY created_at,id", (course["id"],),
-            )]
+            ) if not hidden(self, "lecture", r["id"])]
             for lecture in course["lectures"]:
                 lecture["path"] = str(self.lecture_path(lecture["id"]))
                 lecture["segments"] = self.segments(lecture["id"])
+                from .recordings import source_files
+
+                for segment in lecture["segments"]:
+                    source = self.segment_path(segment["id"])
+                    segment["files"] = [str(p) for p in source_files(source)]
                 lecture["tasks"] = [dict(r) for r in self.db.execute(
                     "SELECT t.*,v.revision,v.config,v.snapshot,(v.revision<>?) AS stale "
                     "FROM tasks t "
@@ -395,7 +422,7 @@ class Library:
                     "ORDER BY v.created_at DESC,t.id DESC", (lecture["revision"], lecture["id"]),
                 )]
                 for task in lecture["tasks"]:
-                    config = json.loads(task["config"])
+                    config = json.loads(task.pop("config"))
                     ids = {s["segment_id"] for s in json.loads(task.pop("snapshot"))}
                     task["scope"] = config.get("scope") or (
                         "lecture" if ids == {s["id"] for s in lecture["segments"]} else "segments"

@@ -1,0 +1,56 @@
+name: Release macOS app
+
+on:
+  push:
+    branches: [main]
+    paths: [VERSION, .github/workflows/release.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-macos
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: macos-26
+    permissions:
+      contents: write
+    env:
+      UV_CACHE_DIR: ${{ github.workspace }}/.cache/uv
+      UV_PYTHON_INSTALL_DIR: ${{ github.workspace }}/.tools/python
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Install isolated build environment
+        run: |
+          python3 -m pip install --target .tools uv==0.9.7
+          .tools/bin/uv python install 3.12.12
+          .tools/bin/uv sync --frozen --extra models --extra dev --python .tools/python/cpython-3.12.12-macos-aarch64-none/bin/python3.12
+      - name: Check code and data protection
+        run: |
+          .venv/bin/ruff check src tests scripts/smoke-live.py scripts/package_app.py
+          .venv/bin/pytest -q
+          zsh scripts/test-native
+      - name: Build standalone app
+        run: zsh scripts/package-app --zip
+      - name: Publish checked package
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          lectureflow_version="$(cat VERSION)"
+          lectureflow_tag="v$lectureflow_version"
+          if gh release view "$lectureflow_tag" --json isDraft --jq '.isDraft' > .build/release-state 2>/dev/null; then
+            if [[ "$(cat .build/release-state)" == false ]]; then
+              echo "This version is already published."
+              exit 0
+            fi
+          else
+            gh release create "$lectureflow_tag" --target "$GITHUB_SHA" --draft --title "LectureFlow $lectureflow_version · 课堂体验版" --notes-file "docs/RELEASE-$lectureflow_version.md"
+          fi
+          (cd dist && shasum -a 256 "LectureFlow-$lectureflow_version-macOS-arm64.zip" > SHA256SUMS)
+          gh release upload "$lectureflow_tag" "dist/LectureFlow-$lectureflow_version-macOS-arm64.zip" dist/SHA256SUMS --clobber
+          gh release edit "$lectureflow_tag" --draft=false --latest

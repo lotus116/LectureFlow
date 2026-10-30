@@ -15,7 +15,7 @@ struct LiveCaption: Decodable, Identifiable {
 struct LiveHistory: Decodable { let captions: [LiveCaption] }
 
 private final class LivePipe {
-    private let process = Process()
+    private let process: Process
     private let input = Pipe()
     private let output = Pipe()
     private let writes = DispatchQueue(label: "LectureFlow.inference-input")
@@ -26,27 +26,18 @@ private final class LivePipe {
     private var accumulatedStart = 0.0
     private var current = CaptureFlags.paused
     private var stopping = false
+    private var model: String
     private let event: ([String: Any]) -> Void
 
-    init(root: URL, lectureID: String, sessionID: String, model: String,
+    init(paths: RuntimePaths, lectureID: String, sessionID: String, model: String,
          event: @escaping ([String: Any]) -> Void) throws {
-        self.event = event
-        process.executableURL = root.appendingPathComponent(".venv/bin/python")
-        process.currentDirectoryURL = root
-        process.arguments = ["-m", "lectureflow.cli", "--model-root", root.appendingPathComponent("models").path,
-                             "--library-root", root.appendingPathComponent("data/library").path,
-                             "live", "run", lectureID, sessionID, "--asr", model]
+        self.event = event; self.model = model
+        process = try paths.process(["live", "run", lectureID, sessionID, "--asr", model])
         process.standardInput = input; process.standardOutput = output
         // A dead inference child must never terminate the recording app via SIGPIPE.
         try protectInferencePipe(input.fileHandleForWriting)
-        let logs = root.appendingPathComponent("reports/private")
-        try FileManager.default.createDirectory(at: logs, withIntermediateDirectories: true)
-        let log = logs.appendingPathComponent("live.log")
-        if !FileManager.default.fileExists(atPath: log.path) {
-            FileManager.default.createFile(atPath: log.path, contents: nil)
-        }
-        let errors = try FileHandle(forWritingTo: log)
-        try errors.seekToEnd(); process.standardError = errors
+        let errors = try paths.log("live")
+        process.standardError = errors
         defer { try? errors.close() }
         process.terminationHandler = { [weak self] child in
             if child.terminationStatus != 0 {
@@ -81,7 +72,16 @@ private final class LivePipe {
         guard !stopping else { return }
         flushLocked()
         current = flags
-        enqueueLocked(["type": "configure", "english": flags.english, "translate": flags.translate], audio: false)
+        enqueueLocked(["type": "configure", "english": flags.english, "translate": flags.translate,
+                       "asr": model], audio: false)
+    }
+
+    func selectModel(_ value: String) {
+        lock.lock(); defer { lock.unlock() }
+        guard !stopping, model != value else { return }
+        flushLocked(); model = value
+        enqueueLocked(["type": "configure", "english": current.english, "translate": current.translate,
+                       "asr": model], audio: false)
     }
 
     func audio(_ data: Data, start: Double, flags: CaptureFlags) {
@@ -100,7 +100,7 @@ private final class LivePipe {
 
     private func enqueueAudioLocked(_ data: Data, start: Double) {
         enqueueLocked(["type": "audio", "pcm": data.base64EncodedString(), "start": start,
-                       "english": current.english, "translate": current.translate], audio: true)
+                       "english": current.english, "translate": current.translate, "asr": model], audio: true)
     }
     private func flushLocked() {
         if !accumulated.isEmpty {
@@ -141,6 +141,7 @@ private final class LivePipeBox {
         old?.stop()
     }
     func mode(_ flags: CaptureFlags) { lock.lock(); let value = pipe; lock.unlock(); value?.mode(flags) }
+    func selectModel(_ model: String) { lock.lock(); let value = pipe; lock.unlock(); value?.selectModel(model) }
     func audio(_ bytes: Data, start: Double, flags: CaptureFlags) {
         lock.lock(); let value = pipe; lock.unlock(); value?.audio(bytes, start: start, flags: flags)
     }
@@ -153,6 +154,7 @@ final class LiveController: NSObject, ObservableObject {
     @Published private(set) var message = "随时开始，随时暂停"
     @Published private(set) var lectureID: String?
     @Published var error: String?
+    @Published var inputDevice: UInt32 = UInt32(UserDefaults.standard.integer(forKey: "inputDevice"))
     private var engine: AVAudioEngine?
     private var pump: CapturePump?
     private let pipes = LivePipeBox()
@@ -230,6 +232,15 @@ final class LiveController: NSObject, ObservableObject {
                             } catch { self?.error = "录音文件已保留，可用“恢复录音”重新加入课堂。" }
                         }
                     }
+                    new.onDiscardedRecording = { [weak self] directory in
+                        Task { @MainActor in
+                            do {
+                                _ = try await backend.call(["library", "discard-recording", lecture.id,
+                                                            directory.path, "--confirmed"])
+                                self?.onLibraryChange?()
+                            } catch { self?.error = "录音已封存。取消未完成，可暂停其他处理后从片段列表移入废纸篓。" }
+                        }
+                    }
                     new.onFailure = { [weak self] message in
                         Task { @MainActor in self?.shutdown(); self?.error = message }
                     }
@@ -239,6 +250,7 @@ final class LiveController: NSObject, ObservableObject {
                 let engine = prepareEngine()
                 if !engine.isRunning {
                     let node = engine.inputNode
+                    try AudioDevices.select(inputDevice, for: node)
                     let format = node.outputFormat(forBus: 0)
                     guard format.sampleRate > 0 && format.channelCount > 0 else {
                         throw BackendError.unavailable("没有可用的麦克风。")
@@ -262,14 +274,13 @@ final class LiveController: NSObject, ObservableObject {
                         ])).id
                     }
                     guard revision == generation else { return }
-                    let root = backend.root
                     let token = UUID(); pipeToken = token
-                    let pipe = try LivePipe(root: root, lectureID: lecture.id, sessionID: sessionID!, model: model) {
+                    let pipe = try LivePipe(paths: backend.paths, lectureID: lecture.id, sessionID: sessionID!, model: model) {
                         [weak self] event in
                         Task { @MainActor in self?.receive(event, token: token, sourceLecture: lecture.id) }
                     }
                     pipes.replace(pipe); pipes.mode(desired)
-                }
+                } else { pipes.selectModel(model) }
             } catch {
                 if engine?.isRunning == true && flags.recording {
                     flags.english = false; flags.translate = false
@@ -285,6 +296,8 @@ final class LiveController: NSObject, ObservableObject {
         if event["type"] as? String != "caption" && token != pipeToken { return }
         switch event["type"] as? String {
         case "ready": message = "实时字幕已就绪"
+        case "loading": message = event["message"] as? String ?? "正在准备模型"
+        case "model_changed": message = "识别模型已切换，录音连续保存"
         case "warning": message = event["message"] as? String ?? "字幕有短暂中断"
         case "error":
             pipeToken = nil; pipes.replace(nil); flags.english = false; flags.translate = false
@@ -295,7 +308,10 @@ final class LiveController: NSObject, ObservableObject {
                   let caption = try? JSONDecoder().decode(LiveCaption.self, from: data) else { return }
             if let index = captions.firstIndex(where: { $0.id == caption.id }) {
                 if captions[index].revision < caption.revision { captions[index] = caption }
-            } else { captions.append(caption) }
+            } else {
+                captions.append(caption)
+                if captions.count > 5000 { captions.removeFirst(captions.count - 5000) }
+            }
         default: break
         }
     }
@@ -323,5 +339,14 @@ final class LiveController: NSObject, ObservableObject {
         pipeToken = nil; pipes.replace(nil); flags = .paused
         message = "已暂停，已保存的录音和字幕保留在课堂中"
     }
+    func cancelCurrentRecording() {
+        guard flags.recording else { return }
+        generation += 1
+        flags.recording = false
+        pump?.cancelRecording()
+        if !flags.needsMicrophone { shutdown() }
+        else { message = "本段录音已取消，字幕继续运行；可从废纸篓恢复录音。" }
+    }
+
     @objc private func sleeping() { shutdown(); message = "电脑即将睡眠，已结束当前录音段。" }
 }

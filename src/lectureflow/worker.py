@@ -52,9 +52,15 @@ def process_task(
                     "SELECT english FROM units WHERE version_id=? AND sequence=?",
                     (task["version_id"], sequence - 1),
                 ).fetchone()
+                from .documents import related
+
+                reference = related(config.get("documents", []), recognized["text"])
+                context = previous["english"][-1000:] if previous else ""
+                if reference:
+                    context += "\n课件参考（仅作术语消歧，不得补写未说出的内容）：\n" + reference
                 translated = translator.translate(
                     recognized["text"], config["glossary"],
-                    context=previous["english"][-1000:] if previous else "",
+                    context=context,
                 )
                 if translated.get("truncated"):
                     raise ValueError("翻译结果达到长度上限，本区间未提交")
@@ -105,7 +111,7 @@ def run_worker(root: Path, model_root: Path) -> dict:
         old_int = signal.signal(signal.SIGINT, stop)
         processed = []
         try:
-            with Library(root) as library:
+            with Library(root, worker_lock_owned=True) as library:
                 library.recover_worker_tasks()
                 while not stopped and not live_requested(root) and (task := library.claim()):
                     try:

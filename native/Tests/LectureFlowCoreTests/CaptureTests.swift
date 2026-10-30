@@ -117,4 +117,25 @@ final class CaptureTests: XCTestCase {
         XCTAssertThrowsError(try pipe.fileHandleForWriting.write(contentsOf: Data([1, 2, 3])))
         try pipe.fileHandleForWriting.close()
     }
+
+    func testCancelSealsOnlyCurrentRecordingAndKeepsCaptionAudioRunning() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let pump = CapturePump(audioRoot: root, referenceTime: 0)
+        var discarded: [URL] = []
+        var bytes = 0
+        pump.onRecording = { _ in XCTFail("Cancelled segment must use the discard route") }
+        pump.onDiscardedRecording = { discarded.append($0) }
+        pump.onPCM = { data, _, _ in bytes += data.count }
+        pump.onFailure = { XCTFail($0) }
+        pump.update(.all)
+        pump.submit(pcm(frames: 4000), hostTime: 0)
+        pump.cancelRecording()
+        pump.submit(pcm(frames: 4000), hostTime: 0.25)
+        pump.finish()
+        XCTAssertEqual(discarded.count, 1)
+        XCTAssertEqual(bytes, 32000)
+        let audio = try AVAudioFile(forReading: discarded[0].appendingPathComponent("chunk-00000.caf"))
+        XCTAssertEqual(audio.length, 4000)
+    }
 }

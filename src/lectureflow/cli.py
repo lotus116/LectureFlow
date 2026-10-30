@@ -20,6 +20,7 @@ def parser() -> argparse.ArgumentParser:
     doctor.add_argument("--output", type=Path)
     fetch = commands.add_parser("fetch", help="下载固定版本模型，不读取课堂资料")
     fetch.add_argument("models", nargs="+", choices=CATALOG)
+    fetch.add_argument("--progress-file", type=Path)
     bench = commands.add_parser("benchmark", help="只读音频片段，离线基准")
     bench.add_argument("audio", type=Path)
     bench.add_argument("--asr", choices=["asr-small", "asr-large"], default="asr-small")
@@ -69,6 +70,10 @@ def parser() -> argparse.ArgumentParser:
     recorded = actions.add_parser("register-recording")
     recorded.add_argument("lecture_id")
     recorded.add_argument("directory", type=Path)
+    discard = actions.add_parser("discard-recording")
+    discard.add_argument("lecture_id")
+    discard.add_argument("directory", type=Path)
+    discard.add_argument("--confirmed", action="store_true")
     recovered = actions.add_parser("recover-recordings")
     recovered.add_argument("lecture_id")
     live = commands.add_parser("live", help="本地实时字幕")
@@ -85,6 +90,9 @@ def parser() -> argparse.ArgumentParser:
     run.add_argument("session_id")
     run.add_argument("--asr", choices=["asr-small", "asr-large"], default="asr-small")
     commands.add_parser("worker", help="处理队列；关闭界面不会取消任务")
+    from .commands import add
+
+    add(commands, actions)
     return root
 
 
@@ -103,18 +111,28 @@ def main() -> int:
                 write_json(args.output, report)
             print(json.dumps(report, ensure_ascii=False, indent=2))
         elif args.command == "fetch":
-            from .models import fetch
+            from .models import fetch, progress_writer
 
-            for alias in args.models:
-                record = fetch(alias, args.model_root)
+            for index, alias in enumerate(args.models):
+                progress = (
+                    progress_writer(args.progress_file, alias, index, len(args.models))
+                    if args.progress_file
+                    else None
+                )
+                record = fetch(alias, args.model_root, progress=progress)
                 print(f"Downloaded {alias}: {record['repo']} @ {record['revision']}", flush=True)
         elif args.command == "benchmark":
             from .benchmark import run_benchmark
 
             report = run_benchmark(
-                audio=args.audio, model_root=args.model_root, asr=args.asr,
-                translate=args.translate, output=args.output, start=args.start,
-                seconds=args.seconds, repeats=args.repeats,
+                audio=args.audio,
+                model_root=args.model_root,
+                asr=args.asr,
+                translate=args.translate,
+                output=args.output,
+                start=args.start,
+                seconds=args.seconds,
+                repeats=args.repeats,
                 context=args.context_file.read_text() if args.context_file else "",
                 glossary=args.glossary_file.read_text() if args.glossary_file else "",
                 reference=args.reference.read_text() if args.reference else None,
@@ -125,8 +143,12 @@ def main() -> int:
             from .stream_probe import probe
 
             report = probe(
-                audio=args.audio, model_root=args.model_root, output=args.output,
-                start=args.start, seconds=args.seconds, chunk_seconds=args.chunk_seconds,
+                audio=args.audio,
+                model_root=args.model_root,
+                output=args.output,
+                start=args.start,
+                seconds=args.seconds,
+                chunk_seconds=args.chunk_seconds,
                 context=args.context_file.read_text() if args.context_file else "",
             )
             print(f"{report['status']}: {args.output}")
@@ -135,7 +157,11 @@ def main() -> int:
             from .library import Library
 
             with Library(args.library_root) as library:
-                if args.action == "status":
+                from .commands import FILE_ACTIONS, library_action
+
+                if args.action in FILE_ACTIONS:
+                    result = library_action(library, args)
+                elif args.action == "status":
                     result = library.overview()
                 elif args.action == "create-course":
                     result = library.create_course(args.name)
@@ -148,7 +174,9 @@ def main() -> int:
                     result = library.segments(args.lecture_id)
                 elif args.action == "enqueue":
                     result = library.enqueue(
-                        args.lecture_id, asr=args.asr, translate=not args.no_translation,
+                        args.lecture_id,
+                        asr=args.asr,
+                        translate=not args.no_translation,
                         segment_ids=args.segment_ids,
                         context=args.context_file.read_text() if args.context_file else "",
                         glossary=args.glossary_file.read_text() if args.glossary_file else "",
@@ -165,11 +193,21 @@ def main() -> int:
                     from .recordings import register
 
                     result = register(library, args.lecture_id, args.directory)
+                elif args.action == "discard-recording":
+                    from .recordings import discard
+
+                    result = discard(
+                        library, args.lecture_id, args.directory, confirmed=args.confirmed
+                    )
                 elif args.action == "recover-recordings":
                     from .recordings import recover_all
 
                     result = recover_all(library, args.lecture_id)
                 print(json.dumps(result, ensure_ascii=False))
+        elif args.command in {"materials", "summary", "models"}:
+            from .commands import dispatch
+
+            print(json.dumps(dispatch(args), ensure_ascii=False))
         elif args.command == "live":
             from .library import Library
 
@@ -177,7 +215,11 @@ def main() -> int:
                 from .live import run_live
 
                 run_live(
-                    args.library_root, args.model_root, args.lecture_id, args.session_id, args.asr,
+                    args.library_root,
+                    args.model_root,
+                    args.lecture_id,
+                    args.session_id,
+                    args.asr,
                 )
             else:
                 from . import live_store
