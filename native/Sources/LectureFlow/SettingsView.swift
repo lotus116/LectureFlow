@@ -67,11 +67,23 @@ struct SettingsView: View {
             Section("悬浮字幕") {
                 Toggle("开始实时字幕时自动显示", isOn: $autoFloatingSubtitles)
             }
-            Section("资料库") {
+            Section("存储与关于") {
                 Text(workspace.backend.paths.library.path).textSelection(.enabled).font(.caption)
                 Button("在 Finder 中打开") { NSWorkspace.shared.open(workspace.backend.paths.library) }
-                Text("本机单一资料库。测试与开发可用环境变量注入隔离路径；界面不再提供切换。")
+                Text("本机单一资料库。备份前请暂停处理并完全退出，再复制整个资料库文件夹。测试可用环境变量注入隔离路径。")
                     .font(.caption).foregroundStyle(.secondary)
+                Button("复制诊断信息") {
+                    let text = [
+                        "LectureFlow diagnostic",
+                        "version: \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?")",
+                        "models: \(workspace.installedModels.filter(\.installed).map(\.id).joined(separator: ","))",
+                        "tasks: \(workspace.overview.courses.flatMap(\.lectures).flatMap(\.tasks).map { "\($0.state):\($0.id.prefix(8))" }.joined(separator: ","))",
+                        "download: \(workspace.downloading ? "active" : "idle")",
+                    ].joined(separator: "\n")
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(text, forType: .string)
+                    message = "诊断信息已复制（不含音频、转写、路径细节与密钥）。"
+                }
             }
             if !message.isEmpty { Text(message).font(.callout).foregroundStyle(.teal) }
         }.formStyle(.grouped).padding(10).frame(width: 610, height: 620)

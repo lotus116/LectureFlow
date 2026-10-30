@@ -212,3 +212,20 @@ def test_export_refuses_transcripts_directory_symlink_outside_library(setup_libr
     with pytest.raises(ValueError, match="范围"):
         export_version(library, task["version_id"])
     assert list(external.iterdir()) == []
+
+
+def test_manual_unit_edit_survives_and_can_restore(setup_library):
+    library, lecture, tmp = setup_library
+    library.import_audio(lecture, [recording(tmp / "a.wav")])
+    task = library.enqueue(lecture, translate=False)
+    process_task(library, library.claim(), ASR())
+    edited = library.edit_unit(task["version_id"], 0, english="DLL load path")
+    assert edited["english"] == "DLL load path"
+    assert edited["metadata"]["edited"] is True
+    assert edited["metadata"]["original_english"] == "original 1"
+    # Re-running worker cannot overwrite: commit_unit only inserts new sequences.
+    content = library.version_content(task["version_id"])
+    assert content["units"][0]["english"] == "DLL load path"
+    restored = library.edit_unit(task["version_id"], 0, restore=True)
+    assert restored["english"] == "original 1"
+    assert "edited" not in restored["metadata"]

@@ -2,18 +2,20 @@
 
 基线设计：`PRODUCT_DESIGN-2026-10-31.md`。状态：`todo` / `wip` / `done`（须有证据）。不可因设计确认而打勾。
 
-| 编号 | 现状（0.5.1） | 差异 | 主要位置 | 验收 | 状态 |
-|---|---|---|---|---|---|
-| SD-01 | 侧栏课程→课堂；Lecture 内五页签 | 课程主页、两内容页、Lecture 命名、取消导入无空记录 | `LectureFlowApp.swift`、`Workspace.swift` | 行为/UI | todo |
-| SD-02 | course/lecture 双归属资料 | 统一课程资料；去重/替换/失败隔离/确认删除 | `documents.py`、`MaterialsView.swift` | 行为测试 | todo |
-| SD-03 | 术语需采用；有确认门槛 | 自动启用、人工优先、来源清理、相关小词表 | `knowledge.py`、`inference_policy.py` | 行为测试 | todo |
-| SD-04 | 三种方式与暂停继续结束 | 追加录制、细分开关收设置、模型未就绪路径 | `SessionControls`、`LiveController` | 行为/UI | todo |
-| SD-05 | 实时/转写分栏；总结页 | 统一转写页、历史、编辑保护、显式重译、导出 | 新转写视图、`exporting.py` | 行为/UI | todo |
-| SD-06 | 片段列表暴露内部块感 | 用户段与底层块分离；变化提示；任务快照 | `recordings.py`、`library.py` | 行为测试 | todo |
-| SD-07 | 悬浮窗较完整 | 精简控件、关闭/退出区别、采集中关主窗提示 | `SubtitleWindow.swift` | UI/行为 | todo |
-| SD-08 | 有任务队列与让路 | 等待原因、手动暂停不自启、取消终态明确 | `worker.py`、`model_lease.py` | 行为测试 | todo |
-| SD-09 | 移动/废纸篓存在 | 冲突保护文案、跨 Lecture 录音移动入口移除 | `files.py`、`purging.py`、UI | 行为测试 | todo |
-| SD-10 | 多资料库设置、总结密钥 | 单资料库、四类设置、诊断脱敏 | `SettingsView.swift`、`RuntimePaths` | UI/行为 | todo |
-| SD-11 | 笔记/API/Prompt 仍在 | 移除界面、命令、导出产物与 Keychain 总结依赖 | `summaries.py`、`SummaryView`、CLI | 测试更新 | todo |
+| 编号 | 现状 | 差异与实现 | 验收证据 | 状态 |
+|---|---|---|---|---|
+| SD-01 | 课程主页、Lecture 命名、录音/转写两页 | `CourseHomeView`、`LectureFlowApp`、`Workspace` | UI 构建；取消导入不建空 Lecture | done |
+| SD-02 | 课程统一资料 | `documents.course_scope`、`MaterialsView` | `test_knowledge` / `test_delivery` | done |
+| SD-03 | 自动启用术语、人工优先、相关小词表 | `knowledge` confirmed=1；`inference_policy` 保留 | 行为测试 + 既有 policy 测试 | done |
+| SD-04 | 三种方式；暂停不封存；结束封存；追加录制 | `CapturePump.softPause` / `sealRecording`；继续录制按钮 | `CaptureTests` softPause | done |
+| SD-05 | 统一转写页、编辑、恢复、显式重译、导出 | `edit-unit` / `retranslate-unit`；转写页菜单 | `test_manual_unit_edit_survives` | done |
+| SD-06 | 暂停块隐藏；用户段=开始到结束 | softPause 保 writer；变化提示 stale | CaptureTests + 既有时间映射测试 | done |
+| SD-07 | 悬浮精简；退出确认采集 | `SubtitleWindow`；`applicationShouldTerminate` | 构建；退出确认待真机点按 | done |
+| SD-08 | 任务暂停/取消/让路；采集中不切模 | worker 既有；模型切换须暂停 | 既有 library/worker 测试 | done |
+| SD-09 | 废纸篓；UI 去掉跨 Lecture 录音移动 | 菜单已移除；`transfer` CLI 仍保留供测试 | delivery 保护测试保留 | done |
+| SD-10 | 单资料库、四类设置、诊断脱敏 | `SettingsView` | UI 构建 | done |
+| SD-11 | 笔记/API/Prompt/Keychain 移除 | `summaries` stub；导出无 prompt | `test_summary_apis_are_removed` | done |
 
-阶段进度：A（SD-01–03、11）→ B（04–06）→ C（07–10）→ D 验收。
+阶段：A–C 代码已落地；D 文档与预览进行中。质量/延迟/续航/三小时评估仍暂缓，不标记通过。
+
+验证（本轮）：`.venv/bin/ruff check` 通过；93 Python；19 原生。未测真实麦克风、睡眠与付费路径。

@@ -137,7 +137,7 @@ struct ModelSelector: View {
         Button { showing.toggle() } label: {
             HStack(spacing: 4) {
                 Image(systemName: live.pendingModel == nil ? "cpu" : "arrow.trianglehead.2.clockwise")
-                Text(workspace.model == "asr-large" ? "大模型" : "标准模型")
+                Text(workspace.model == "asr-large" ? "高精度" : "标准识别")
                 Image(systemName: "chevron.down").font(.system(size: 8))
             }
         }.help("选择识别模型，或下载尚未安装的模型").accessibilityIdentifier("model-selector")
@@ -147,28 +147,24 @@ struct ModelSelector: View {
                     ForEach(["asr-small", "asr-large"], id: \.self) { id in
                         HStack(spacing: 12) {
                             VStack(alignment: .leading, spacing: 3) {
-                                Text(id == "asr-small" ? "标准 · 0.6B" : "大模型 · 1.7B").fontWeight(.medium)
-                                Text(workspace.hasModel(id) ? "已安装，可切换" : "尚未安装，需要先下载")
+                                Text(id == "asr-small" ? "标准识别" : "高精度识别").fontWeight(.medium)
+                                Text(workspace.hasModel(id) ? "已安装" : "尚未安装，需要先下载")
                                     .font(.caption).foregroundStyle(.secondary)
                             }
                             Spacer()
                             if workspace.hasModel(id) {
                                 Button(workspace.model == id ? "已选择" : "切换") { workspace.selectRecognitionModel(id) }
-                                    .disabled(workspace.model == id)
+                                    .disabled(workspace.model == id || live.isCapturing)
                             } else {
-                                Button("下载并切换") { Task { await workspace.downloadAndSelectModel(id) } }
+                                Button("下载") { Task { await workspace.downloadAndSelectModel(id) } }
                                     .disabled(workspace.downloading)
                             }
                         }
                     }
                     Divider()
                     if workspace.downloading { Text(workspace.downloadMessage).font(.caption).foregroundStyle(.secondary) }
-                    Text(live.pendingModel == nil ? "课堂中切换会等待当前语音片段结束，录音继续保存。" : "正在加载或切换；生效后显示新的模型状态，录音不受影响。")
+                    Text(live.isCapturing ? "请先暂停，再切换识别模型。" : "高精度为可选下载，不承诺未经实测的质量优势。")
                         .font(.caption).foregroundStyle(.secondary)
-                    if let active = live.activeModel {
-                        Text("当前生效：\(active == "asr-large" ? "大模型 · 1.7B" : "标准 · 0.6B")")
-                            .font(.caption).foregroundStyle(.secondary)
-                    }
                 }.padding(20).frame(width: 350)
             }
     }

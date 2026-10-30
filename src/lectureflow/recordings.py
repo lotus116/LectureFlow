@@ -106,7 +106,7 @@ def register(library, lecture_id: str, directory: Path, *, recover: bool = False
                     lecture_id,
                     position,
                     str(manifest.relative_to(audio_root)),
-                    ("恢复录音（部分音频待检查） · " if unreadable else "课堂录音 · ")
+                    ("恢复录音（部分音频待检查） · " if unreadable else "录制 · ")
                     + str(descriptor.get("created_at", key)),
                     sha256(manifest),
                     sum(c["duration"] for c in chunks),

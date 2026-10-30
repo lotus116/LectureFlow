@@ -46,6 +46,20 @@ struct LectureFlowApp: App {
 final class LectureFlowDelegate: NSObject, NSApplicationDelegate {
     weak var workspace: Workspace?
     private var reopened: NSWindowController?
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        guard let workspace else { return .terminateNow }
+        if workspace.live.flags.needsMicrophone || workspace.session.state == .running
+            || workspace.session.state == .preparing {
+            let alert = NSAlert()
+            alert.messageText = "结束当前采集并退出？"
+            alert.informativeText = "确认后会封存已录内容再退出。仅有后台任务时会保存进度，不额外询问。"
+            alert.addButton(withTitle: "结束并退出")
+            alert.addButton(withTitle: "取消")
+            if alert.runModal() != .alertFirstButtonReturn { return .terminateCancel }
+            workspace.endSession()
+        }
+        return .terminateNow
+    }
     func applicationWillTerminate(_ notification: Notification) {
         workspace?.live.shutdown()
         workspace?.backend.downloadLifetime.stop(shutdown: true)
@@ -96,6 +110,9 @@ struct LibraryView: View {
     @State private var materialsCourse: Course?
     @State private var textLanguage = "both"
     @State private var transcriptSource = "offline"
+    @State private var editingUnit: Int?
+    @State private var editEnglish = ""
+    @State private var editChinese = ""
     @State private var dropCourseID: String?
     @State private var importingForCourse: String?
     @StateObject private var playback = AudioPlayback()
@@ -280,6 +297,30 @@ struct LibraryView: View {
                         .disabled(newName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }.padding(24).frame(width: 370)
+        }
+        .sheet(isPresented: Binding(get: { editingUnit != nil }, set: { if !$0 { editingUnit = nil } })) {
+            VStack(alignment: .leading, spacing: 16) {
+                Text("编辑转写段落").font(.title2.bold())
+                TextField("英文", text: $editEnglish, axis: .vertical).lineLimit(3...8)
+                TextField("中文", text: $editChinese, axis: .vertical).lineLimit(3...8)
+                Text("修改英文后不会自动改中文；需要时请使用「重新翻译本段」。后台结果不会覆盖人工修改。")
+                    .font(.caption).foregroundStyle(.secondary)
+                HStack {
+                    Spacer()
+                    Button("取消") { editingUnit = nil }
+                    Button("保存") {
+                        guard let sequence = editingUnit, let version = model.activeTask?.version_id else { return }
+                        let en = editEnglish, zh = editChinese
+                        editingUnit = nil
+                        Task {
+                            await model.perform([
+                                "library", "edit-unit", version, String(sequence),
+                                "--english", en, "--chinese", zh
+                            ])
+                        }
+                    }.keyboardShortcut(.defaultAction)
+                }
+            }.padding(24).frame(width: 480)
         }
         .sheet(isPresented: $showTrash) { TrashView(workspace: model) }
         .sheet(isPresented: $showQueue) { BackgroundQueueView(workspace: model) }
@@ -692,9 +733,55 @@ struct LibraryView: View {
                                     || $0.chinese.localizedCaseInsensitiveContains(search)
                             }) { unit in
                                 VStack(alignment: .leading, spacing: 8) {
-                                    Text(clock(unit.logical_start))
-                                        .font(.caption.monospaced())
-                                        .foregroundStyle(LFChrome.accent)
+                                    HStack {
+                                        Text(clock(unit.logical_start))
+                                            .font(.caption.monospaced())
+                                            .foregroundStyle(LFChrome.accent)
+                                        if unit.isEdited {
+                                            Text(unit.englishEdited ? "英文已修改" : "已编辑")
+                                                .font(.caption2)
+                                                .foregroundStyle(.orange)
+                                        }
+                                        Spacer()
+                                        Menu {
+                                            Button("编辑本段") {
+                                                editEnglish = unit.english
+                                                editChinese = unit.chinese
+                                                editingUnit = unit.sequence
+                                            }
+                                            if unit.englishEdited {
+                                                Button("重新翻译本段") {
+                                                    Task {
+                                                        guard let version = model.activeTask?.version_id else { return }
+                                                        await model.perform([
+                                                            "library", "retranslate-unit", version,
+                                                            String(unit.sequence)
+                                                        ])
+                                                    }
+                                                }
+                                            }
+                                            if unit.isEdited {
+                                                Button("恢复原文") {
+                                                    Task {
+                                                        guard let version = model.activeTask?.version_id else { return }
+                                                        await model.perform([
+                                                            "library", "edit-unit", version,
+                                                            String(unit.sequence), "--restore"
+                                                        ])
+                                                    }
+                                                }
+                                            }
+                                            Button("复制本段") {
+                                                let text = [textLanguage == "en" ? "" : unit.chinese,
+                                                            textLanguage == "zh" ? "" : unit.english]
+                                                    .filter { !$0.isEmpty }.joined(separator: "\n")
+                                                NSPasteboard.general.clearContents()
+                                                NSPasteboard.general.setString(text, forType: .string)
+                                            }
+                                        } label: { Image(systemName: "ellipsis.circle") }
+                                        .menuStyle(.borderlessButton)
+                                        .frame(width: 22)
+                                    }
                                     if textLanguage != "en" && !unit.chinese.isEmpty {
                                         Text(unit.chinese).font(.title3).lineSpacing(5)
                                     }

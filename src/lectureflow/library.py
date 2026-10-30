@@ -393,6 +393,57 @@ class Library:
                 "failed" if error else "completed", error, now(), task_id,
             ))
 
+    def edit_unit(
+        self,
+        version_id: str,
+        sequence: int,
+        *,
+        english: str | None = None,
+        chinese: str | None = None,
+        restore: bool = False,
+    ) -> dict:
+        """Persist a manual edit. Worker inserts never update existing rows, so edits stay."""
+        with self.transaction():
+            row = self.db.execute(
+                "SELECT * FROM units WHERE version_id=? AND sequence=?",
+                (version_id, sequence),
+            ).fetchone()
+            if row is None:
+                raise ValueError("找不到该转写段落")
+            unit = dict(row)
+            meta = json.loads(unit["metadata"])
+            if restore:
+                if "original_english" in meta:
+                    unit["english"] = meta.pop("original_english")
+                if "original_chinese" in meta:
+                    unit["chinese"] = meta.pop("original_chinese")
+                meta.pop("edited", None)
+                meta.pop("english_edited", None)
+                meta.pop("chinese_edited", None)
+            else:
+                if english is not None and english != unit["english"]:
+                    meta.setdefault("original_english", unit["english"])
+                    unit["english"] = english
+                    meta["edited"] = True
+                    meta["english_edited"] = True
+                if chinese is not None and chinese != unit["chinese"]:
+                    meta.setdefault("original_chinese", unit["chinese"])
+                    unit["chinese"] = chinese
+                    meta["edited"] = True
+                    meta["chinese_edited"] = True
+            self.db.execute(
+                "UPDATE units SET english=?,chinese=?,metadata=? WHERE version_id=? AND sequence=?",
+                (
+                    unit["english"],
+                    unit["chinese"],
+                    json.dumps(meta, ensure_ascii=False),
+                    version_id,
+                    sequence,
+                ),
+            )
+            unit["metadata"] = meta
+            return unit
+
     def version_content(self, version_id: str) -> dict:
         with self.transaction(write=False):
             return self._version_content(version_id)

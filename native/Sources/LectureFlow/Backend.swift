@@ -57,12 +57,20 @@ struct Transcript: Decodable, Sendable {
     let source_missing: Bool?
     let possible_context_bias: Bool?
 }
+struct TranscriptUnitMeta: Decodable, Sendable {
+    var edited: Bool?
+    var english_edited: Bool?
+    var chinese_edited: Bool?
+}
 struct TranscriptUnit: Decodable, Identifiable, Sendable {
     let sequence: Int
     let logical_start: Double
     let english: String
     let chinese: String
+    var metadata: TranscriptUnitMeta?
     var id: Int { sequence }
+    var isEdited: Bool { metadata?.edited == true }
+    var englishEdited: Bool { metadata?.english_edited == true }
 }
 struct Created: Decodable, Sendable { let id: String }
 struct Exported: Decodable, Sendable { let directory: String }

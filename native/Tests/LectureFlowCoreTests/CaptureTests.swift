@@ -54,19 +54,27 @@ final class CaptureTests: XCTestCase {
         XCTAssertEqual(received, 16000)
         XCTAssertFalse(FileManager.default.fileExists(atPath: root.path))
     }
-    func testRecordingAloneNeverSendsInferenceAudioAndResumeCreatesNewSegment() throws {
+    func testSoftPauseKeepsOneSegmentUntilSealThenAppendCreatesAnother() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: root) }
         let pump = CapturePump(audioRoot: root, referenceTime: 0)
         var sealed: [URL] = []
         pump.onRecording = { sealed.append($0) }
         pump.onPCM = { _, _, _ in XCTFail("Recording alone must not run inference") }
-        for _ in 0..<2 {
-            pump.update(CaptureFlags(recording: true))
-            pump.submit(pcm(frames: 4000), hostTime: 0)
-            pump.update(.paused)
-        }
-        pump.finish()
+        pump.update(CaptureFlags(recording: true))
+        pump.submit(pcm(frames: 4000), hostTime: 0)
+        pump.softPause()
+        pump.barrier()
+        XCTAssertEqual(sealed.count, 0)
+        pump.update(CaptureFlags(recording: true))
+        pump.submit(pcm(frames: 4000), hostTime: 0.5)
+        pump.sealRecording()
+        pump.barrier()
+        XCTAssertEqual(sealed.count, 1)
+        pump.update(CaptureFlags(recording: true))
+        pump.submit(pcm(frames: 4000), hostTime: 1)
+        pump.sealRecording()
+        pump.barrier()
         XCTAssertEqual(sealed.count, 2)
         XCTAssertNotEqual(sealed[0], sealed[1])
     }
@@ -84,7 +92,8 @@ final class CaptureTests: XCTestCase {
         pump.onFailure = { XCTFail($0) }
         pump.update(CaptureFlags(recording: true))
         pump.submit(buffer, hostTime: 0)
-        pump.finish()
+        pump.sealRecording()
+        pump.barrier()
         let url = try XCTUnwrap(directory).appendingPathComponent("chunk-00000.caf")
         let audio = try AVAudioFile(forReading: url)
         XCTAssertEqual(audio.length, 16000)
@@ -104,7 +113,12 @@ final class CaptureTests: XCTestCase {
             pump.onFailure = { XCTFail($0) }
             pump.update(flags)
             pump.submit(pcm(frames: 4000), hostTime: 0)
-            pump.finish()
+            if flags.recording {
+                pump.sealRecording()
+            } else {
+                pump.finish()
+            }
+            pump.barrier()
             XCTAssertEqual(inferredBytes > 0, flags.needsASR)
             XCTAssertEqual(recordings, flags.recording ? 1 : 0)
         }

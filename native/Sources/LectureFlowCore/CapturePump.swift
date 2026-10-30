@@ -40,6 +40,7 @@ public final class CapturePump {
                 if self.flags.needsMicrophone && !value.needsMicrophone {
                     try self.flushConverter()
                 }
+                // Dropping recording seals one user-visible segment; soft pause keeps the writer.
                 if !value.recording, let writer = self.writer {
                     if let path = try writer.finish() { self.onRecording?(path) }
                     self.writer = nil
@@ -51,6 +52,36 @@ public final class CapturePump {
                 self.onMode?(value)
             } catch { self.fail(error) }
         }
+    }
+
+    /// Pause without sealing so continue stays on the same user-visible recording.
+    public func softPause() {
+        queue.async {
+            do {
+                try self.flushConverter()
+                self.flags = .paused
+                self.onMode?(self.flags)
+            } catch { self.fail(error) }
+        }
+    }
+
+    /// End Lecture recording: seal once and notify the library.
+    public func sealRecording() {
+        queue.async {
+            do {
+                try self.flushConverter()
+                if let writer = self.writer {
+                    if let path = try writer.finish() { self.onRecording?(path) }
+                    self.writer = nil
+                }
+                self.flags = .paused
+                self.onMode?(self.flags)
+            } catch { self.fail(error) }
+        }
+    }
+
+    public func barrier() {
+        queue.sync {}
     }
 
     public func submit(_ buffer: AVAudioPCMBuffer, hostTime: Double) {
@@ -132,8 +163,8 @@ public final class CapturePump {
     }
 
     public func finish() {
-        update(.paused)
-        queue.sync {} // bounded pending input; this never waits for a model.
+        softPause()
+        barrier() // bounded pending input; this never waits for a model.
     }
 
     /// Cancellation seals the media first; the library then moves it to recoverable trash.

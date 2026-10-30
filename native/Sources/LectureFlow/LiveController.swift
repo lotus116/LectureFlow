@@ -365,23 +365,36 @@ final class LiveController: NSObject, ObservableObject {
     }
 
     @objc func shutdown() {
+        // Pause: stop mic/ASR but keep the open writer so continue stays one user segment.
         generation += 1
         engine?.stop()
         if hasTap { engine?.inputNode.removeTap(onBus: 0); hasTap = false }
-        pump?.finish(); pump = nil
+        pump?.softPause()
+        pump?.barrier()
         pipeToken = nil; pipes.replace(nil); flags = .paused
         isCapturing = false; level = 0; modelSelection.reset()
-        message = "已暂停，已保存的录音和字幕保留在课堂中"
+        message = "已暂停；继续后仍属同一段录音"
     }
     func endSession() {
-        shutdown()
+        generation += 1
+        engine?.stop()
+        if hasTap { engine?.inputNode.removeTap(onBus: 0); hasTap = false }
+        pump?.sealRecording()
+        pump?.barrier()
+        pump = nil
+        pipeToken = nil; pipes.replace(nil); flags = .paused
+        isCapturing = false; level = 0; modelSelection.reset()
         captureStarted = false; sessionID = nil
-        message = "本次课堂已结束，录音与字幕已保留"
+        message = "Lecture 已结束；可追加录制或生成课后转写"
     }
     func selectRecognitionModel(_ model: String) {
+        guard !isCapturing else {
+            error = "请先暂停，再切换识别模型。"
+            return
+        }
         guard flags.needsASR, modelSelection.requested != model else { return }
         modelSelection.request(model)
-        message = activeModel == model ? "保持当前识别模型" : "正在请求切换识别模型，录音继续保存"
+        message = activeModel == model ? "保持当前识别模型" : "将在下次开始时使用所选识别模型"
         if pipes.present { pipes.selectModel(model) }
     }
     func cancelCurrentRecording() {
@@ -393,5 +406,8 @@ final class LiveController: NSObject, ObservableObject {
         else { message = "本段录音已取消，字幕继续运行；可从废纸篓恢复录音。" }
     }
 
-    @objc private func sleeping() { shutdown(); message = "电脑即将睡眠，已结束当前录音段。" }
+    @objc private func sleeping() {
+        endSession()
+        message = "电脑即将睡眠，已结束当前采集并封存录音。"
+    }
 }

@@ -65,6 +65,15 @@ def parser() -> argparse.ArgumentParser:
     control.add_argument("operation", choices=["pause", "resume", "cancel", "retry"])
     content = actions.add_parser("content")
     content.add_argument("version_id")
+    edit_unit = actions.add_parser("edit-unit")
+    edit_unit.add_argument("version_id")
+    edit_unit.add_argument("sequence", type=int)
+    edit_unit.add_argument("--english")
+    edit_unit.add_argument("--chinese")
+    edit_unit.add_argument("--restore", action="store_true")
+    retranslate = actions.add_parser("retranslate-unit")
+    retranslate.add_argument("version_id")
+    retranslate.add_argument("sequence", type=int)
     export = actions.add_parser("export")
     export.add_argument("version_id")
     recorded = actions.add_parser("register-recording")
@@ -185,6 +194,35 @@ def main() -> int:
                     result = library.control(args.task_id, args.operation)
                 elif args.action == "content":
                     result = library.version_content(args.version_id)
+                elif args.action == "edit-unit":
+                    result = library.edit_unit(
+                        args.version_id,
+                        args.sequence,
+                        english=args.english,
+                        chinese=args.chinese,
+                        restore=args.restore,
+                    )
+                elif args.action == "retranslate-unit":
+                    from .adapters import HyMTTranslator
+                    from .models import resolve
+
+                    unit = library.version_content(args.version_id)["units"]
+                    target = next((u for u in unit if u["sequence"] == args.sequence), None)
+                    if target is None:
+                        raise ValueError("找不到该转写段落")
+                    try:
+                        spec = resolve("translate", args.model_root, "translation")
+                    except Exception as error:  # noqa: BLE001 — surface install guidance
+                        raise ValueError("本地翻译模型尚未就绪") from error
+                    translator = HyMTTranslator(Path(spec["path"]))
+                    config = library.version_content(args.version_id)["config"]
+                    glossary = config.get("glossary", "")
+                    translated = translator.translate(target["english"], glossary=glossary)
+                    result = library.edit_unit(
+                        args.version_id,
+                        args.sequence,
+                        chinese=translated.get("text", ""),
+                    )
                 elif args.action == "export":
                     from .exporting import export_version
 
