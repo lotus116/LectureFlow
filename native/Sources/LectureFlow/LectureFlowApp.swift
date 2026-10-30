@@ -56,16 +56,21 @@ struct LibraryView: View {
             if let lecture = model.lecture {
                 VStack(alignment: .leading, spacing: 18) {
                     header(lecture)
+                    LiveControlView(live: model.live, lecture: lecture, backend: model.backend, model: model.model)
                     HStack(spacing: 8) {
                         Image(systemName: "desktopcomputer")
-                        Text("本地处理 · 当前为离线原型，识别与翻译结果需要核对")
+                        Text("本地处理 · 实时功能为实验版本，识别与翻译结果需要核对")
                     }.font(.callout).foregroundStyle(.secondary)
                     if let task = model.activeTask { taskView(task) }
                     Picker("内容", selection: $tab) {
                         Text("录音片段").tag("audio")
                         Text("双语转写").tag("transcript")
-                    }.pickerStyle(.segmented).frame(width: 260)
-                    if tab == "audio" { audioList(lecture) } else { transcriptView }
+                        Text("实时字幕").tag("live")
+                    }.pickerStyle(.segmented).frame(width: 360)
+                    if tab == "audio" { audioList(lecture) }
+                    else if tab == "live" {
+                        LiveTranscriptView(live: model.live, lecture: lecture, backend: model.backend)
+                    } else { transcriptView }
                 }.padding(26)
             } else {
                 ContentUnavailableView(
@@ -110,7 +115,21 @@ struct LibraryView: View {
                 cancelling = nil
             }
         }
-        .onChange(of: model.selectedLecture) { _, _ in model.selectedVersion = nil }
+        .onChange(of: model.selectedLecture) { _, next in
+            if model.live.flags.needsMicrophone && next != model.live.lectureID {
+                model.selectedLecture = model.live.lectureID
+                model.error = "请先暂停当前课堂，再切换课堂。"
+            } else {
+                model.selectedVersion = nil
+                if let lecture = model.lecture {
+                    Task { await model.live.loadHistory(lecture: lecture, backend: model.backend) }
+                }
+            }
+        }
+        .onChange(of: model.live.flags.needsMicrophone) { _, active in if active { tab = "live" } }
+        .onChange(of: model.live.error) { _, error in
+            if let error { model.error = error; model.live.error = nil }
+        }
         .task {
             while !Task.isCancelled {
                 await model.refresh()
@@ -141,6 +160,9 @@ struct LibraryView: View {
             Button { NSWorkspace.shared.open(URL(fileURLWithPath: lecture.path)) } label: {
                 Image(systemName: "folder")
             }.help("在 Finder 中打开课堂")
+            Button("恢复录音") {
+                Task { await model.perform(["library", "recover-recordings", lecture.id]) }
+            }.help("找回意外退出后保留的录音块")
             Button { importing = true } label: {
                 Label("导入录音", systemImage: "plus")
             }.disabled(model.busy)
@@ -197,7 +219,7 @@ struct LibraryView: View {
                 Picker("识别", selection: $model.model) {
                     Text("轻快").tag("asr-small")
                     Text("高精度").tag("asr-large")
-                }.frame(width: 160)
+                }.frame(width: 160).disabled(model.live.flags.needsMicrophone)
                 Toggle("中文翻译", isOn: $model.translate).toggleStyle(.checkbox)
                 Button("转写整堂课") {
                     tab = "transcript"

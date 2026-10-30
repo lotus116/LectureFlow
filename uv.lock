@@ -210,6 +210,8 @@ dependencies = [
 
 [package.optional-dependencies]
 dev = [
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
+    { name = "numpy", version = "2.5.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "pytest" },
     { name = "ruff" },
 ]
@@ -223,6 +225,7 @@ requires-dist = [
     { name = "imageio-ffmpeg", specifier = "==0.6.0" },
     { name = "mlx-lm", marker = "extra == 'models'", specifier = ">=0.30,<0.32" },
     { name = "mlx-qwen3-asr", marker = "extra == 'models'", specifier = "==0.4.4" },
+    { name = "numpy", marker = "extra == 'dev'", specifier = ">=2,<3" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8,<9" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.14,<0.15" },
 ]

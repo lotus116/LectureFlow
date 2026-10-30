@@ -10,11 +10,12 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from .adapters import HyMTTranslator, QwenASR
-from .audio import extract_clip
 from .exporting import export_version
 from .library import Library, now
+from .model_lease import live_requested
 from .models import CATALOG, resolve
-from .runtime import configure, mlx_memory, sha256
+from .recordings import extract_source, verify_source
+from .runtime import configure, mlx_memory
 
 
 def process_task(
@@ -32,12 +33,11 @@ def process_task(
         item = snapshot[sequence]
         source = library.segment_path(item["segment_id"])
         if item["segment_id"] not in verified:
-            if sha256(source) != item["sha256"]:
-                raise ValueError("录音内容已在 Finder 中变更，请重新导入后创建处理版本")
+            verify_source(source, item["sha256"])
             verified.add(item["segment_id"])
         with TemporaryDirectory(prefix="lf-unit-") as directory:
             audio = Path(directory) / "input.wav"
-            duration = extract_clip(
+            duration = extract_source(
                 source, audio, item["source_start"], item["source_end"] - item["source_start"],
             )
             started = time.perf_counter()
@@ -87,6 +87,14 @@ def run_worker(root: Path, model_root: Path) -> dict:
             fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError:
             return {"status": "already_running"}
+        if live_requested(root):
+            return {"status": "waiting_for_live"}
+        model_lock = (root / ".model.lock").open("a+")
+        try:
+            fcntl.flock(model_lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            model_lock.close()
+            return {"status": "model_busy"}
         stopped = False
 
         def stop(_signum, _frame):
@@ -99,7 +107,7 @@ def run_worker(root: Path, model_root: Path) -> dict:
         try:
             with Library(root) as library:
                 library.recover_worker_tasks()
-                while not stopped and (task := library.claim()):
+                while not stopped and not live_requested(root) and (task := library.claim()):
                     try:
                         config = json.loads(library.row("versions", task["version_id"])["config"])
                         expected = {
@@ -115,7 +123,10 @@ def run_worker(root: Path, model_root: Path) -> dict:
                                    if config["translate"] else None)
                         engine = QwenASR(Path(asr_spec["path"]))
                         translator = HyMTTranslator(Path(mt_spec["path"])) if mt_spec else None
-                        process_task(library, task, engine, translator, lambda: stopped)
+                        process_task(
+                            library, task, engine, translator,
+                            lambda: stopped or live_requested(root),
+                        )
                     except Exception as error:
                         library.finish(task["id"], f"{type(error).__name__}: {error}")
                     finally:
@@ -126,7 +137,14 @@ def run_worker(root: Path, model_root: Path) -> dict:
                         if mx := sys.modules.get("mlx.core"):
                             mx.clear_cache()
                     processed.append(library.row("tasks", task["id"]))
+                    if live_requested(root):
+                        library.db.execute(
+                            "UPDATE tasks SET state='queued',updated_at=? "
+                            "WHERE id=? AND state='running'", (now(), task["id"]),
+                        )
+                        break
             return {"status": "stopped" if stopped else "idle", "tasks": processed}
         finally:
+            model_lock.close()
             signal.signal(signal.SIGTERM, old_term)
             signal.signal(signal.SIGINT, old_int)

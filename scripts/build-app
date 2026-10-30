@@ -19,6 +19,7 @@ info={
     'CFBundleVersion':'1',
     'LSMinimumSystemVersion':'26.0',
     'NSHighResolutionCapable':True,
+    'NSMicrophoneUsageDescription':'在你开启课堂录音或实时字幕时采集麦克风音频；仅在本机处理。',
     'LectureFlowProjectRoot':str(Path.cwd()),
 }
 with Path('dist/LectureFlow.app/Contents/Info.plist').open('wb') as f:

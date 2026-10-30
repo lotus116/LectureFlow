@@ -30,13 +30,18 @@ class HyMTTranslator:
             str(path), tokenizer_config={"trust_remote_code": False},
         )
 
-    def translate(self, text: str, glossary: str = "", context: str = "") -> dict:
+    def translate(
+        self, text: str, glossary: str = "", context: str = "", following: str = "",
+    ) -> dict:
         from mlx_lm import stream_generate
         from mlx_lm.sample_utils import make_sampler
 
         if not text.strip():
             return {"text": "", "first_token_s": None, "total_s": 0, "truncated": False}
         prompt = (
+            (f"后续讲话（仅作消歧参考，不要翻译或补写）：\n{following[-1000:]}\n"
+             if following else "")
+            +
             (f"前文（仅供理解，不要翻译或重复前文）：\n{context[-1000:]}\n" if context else "")
             +
             (f"参考术语（仅在原文涉及这些词时使用）：\n{glossary}\n" if glossary else "")

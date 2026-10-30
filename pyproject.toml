@@ -11,7 +11,7 @@ dependencies = ["imageio-ffmpeg==0.6.0"]
 
 [project.optional-dependencies]
 models = ["mlx-qwen3-asr==0.4.4", "mlx-lm>=0.30,<0.32"]
-dev = ["pytest>=8,<9", "ruff>=0.14,<0.15"]
+dev = ["pytest>=8,<9", "ruff>=0.14,<0.15", "numpy>=2,<3"]
 
 [project.scripts]
 lectureflow = "lectureflow.cli:main"

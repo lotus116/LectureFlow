@@ -66,6 +66,24 @@ def parser() -> argparse.ArgumentParser:
     content.add_argument("version_id")
     export = actions.add_parser("export")
     export.add_argument("version_id")
+    recorded = actions.add_parser("register-recording")
+    recorded.add_argument("lecture_id")
+    recorded.add_argument("directory", type=Path)
+    recovered = actions.add_parser("recover-recordings")
+    recovered.add_argument("lecture_id")
+    live = commands.add_parser("live", help="本地实时字幕")
+    live_actions = live.add_subparsers(dest="live_action", required=True)
+    create = live_actions.add_parser("create")
+    create.add_argument("lecture_id")
+    create.add_argument("--id", dest="capture_id")
+    history = live_actions.add_parser("history")
+    history.add_argument("lecture_id")
+    live_export = live_actions.add_parser("export")
+    live_export.add_argument("lecture_id")
+    run = live_actions.add_parser("run")
+    run.add_argument("lecture_id")
+    run.add_argument("session_id")
+    run.add_argument("--asr", choices=["asr-small", "asr-large"], default="asr-small")
     commands.add_parser("worker", help="处理队列；关闭界面不会取消任务")
     return root
 
@@ -143,7 +161,35 @@ def main() -> int:
                     from .exporting import export_version
 
                     result = export_version(library, args.version_id)
+                elif args.action == "register-recording":
+                    from .recordings import register
+
+                    result = register(library, args.lecture_id, args.directory)
+                elif args.action == "recover-recordings":
+                    from .recordings import recover_all
+
+                    result = recover_all(library, args.lecture_id)
                 print(json.dumps(result, ensure_ascii=False))
+        elif args.command == "live":
+            from .library import Library
+
+            if args.live_action == "run":
+                from .live import run_live
+
+                run_live(
+                    args.library_root, args.model_root, args.lecture_id, args.session_id, args.asr,
+                )
+            else:
+                from . import live_store
+
+                with Library(args.library_root) as library:
+                    if args.live_action == "create":
+                        result = live_store.create(library, args.lecture_id, args.capture_id)
+                    elif args.live_action == "export":
+                        result = live_store.export(library, args.lecture_id)
+                    else:
+                        result = live_store.history(library, args.lecture_id)
+                    print(json.dumps(result, ensure_ascii=False))
         elif args.command == "worker":
             from .worker import run_worker
 

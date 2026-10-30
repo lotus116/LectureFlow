@@ -8,6 +8,9 @@
 | `src/lectureflow/library.py` | SQLite、受管录音副本、排序、版本与任务检查点 |
 | `src/lectureflow/worker.py` | 独占后台 worker、分段处理、恢复和取消检查 |
 | `src/lectureflow/adapters.py` | 本地 ASR 与翻译适配 |
+| `src/lectureflow/live.py` / `live_store.py` | 有界实时推理、输出约束、字幕与修订持久化 |
+| `src/lectureflow/recordings.py` | CAF 录音登记、恢复、校验与跨块解码 |
+| `native/Sources/LectureFlowCore/` | 可测试的采集路由、录音器及推理管道保护 |
 | `src/lectureflow/exporting.py` | 双语转写和总结 Prompt 导出 |
 | `src/lectureflow/benchmark.py` / `stream_probe.py` | 离线基准与真实节奏短测 |
 | `tests/` | 文件保护、任务状态、恢复、时间映射和导出测试 |
@@ -20,6 +23,7 @@
 ```sh
 zsh scripts/dev          # 固定依赖、代码检查与 Python 行为测试
 zsh scripts/build-app    # 构建并本地签名 macOS 应用
+zsh scripts/test-native  # 原生合成采集与故障测试，不打开麦克风
 zsh scripts/run          # 构建并启动应用
 ```
 
@@ -27,7 +31,7 @@ zsh scripts/run          # 构建并启动应用
 
 ```sh
 uv sync --frozen --extra dev
-uv run --frozen --extra dev ruff check src tests
+uv run --frozen --extra dev ruff check src tests scripts/smoke-live.py
 uv run --frozen --extra dev pytest -q
 ```
 
@@ -61,5 +65,7 @@ JSON 保存原始识别、源片段与源时间、课堂逻辑时间、模型提
 原生界面可在较早 SDK 上编译，但固定的 MLX 0.32.4 发行包要求 macOS 26，因此完整应用按 macOS 26 以上声明支持。无模型的 CI 不受该推理依赖限制。
 
 ## 提交与审查
+
+实时模式的数据流、8 种开关组合及设备验收边界见 [LIVE.md](LIVE.md)。`scripts/smoke-live.py` 可用已有音频验证真正的实时子进程，不读取麦克风。实时首次使用需用户在系统弹窗中授权，构建检查和文件回放不能替代硬件验收。
 
 按小范围功能提交；同时更新实际状态。推送前检查已暂存文件，确认没有录音、模型、用户课件、转写、密钥或个人路径。代码和原生构建检查通过后再推送；模型准确率和长时实时可靠性需要独立实测，CI 通过不能代替产品验收。

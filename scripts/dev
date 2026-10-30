@@ -7,5 +7,5 @@ if [[ ! -x .tools/bin/uv ]]; then
     python3 -m pip install --disable-pip-version-check --target .tools uv==0.9.7
 fi
 .tools/bin/uv sync --frozen --extra models --extra dev --python 3.12
-.venv/bin/ruff check src tests
+.venv/bin/ruff check src tests scripts/smoke-live.py
 .venv/bin/pytest -q

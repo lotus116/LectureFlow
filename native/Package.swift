@@ -5,5 +5,9 @@ let package = Package(
     name: "LectureFlow",
     platforms: [.macOS(.v14)],
     products: [.executable(name: "LectureFlow", targets: ["LectureFlow"])],
-    targets: [.executableTarget(name: "LectureFlow")]
+    targets: [
+        .target(name: "LectureFlowCore"),
+        .executableTarget(name: "LectureFlow", dependencies: ["LectureFlowCore"]),
+        .testTarget(name: "LectureFlowCoreTests", dependencies: ["LectureFlowCore"])
+    ]
 )
