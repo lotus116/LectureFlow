@@ -16,13 +16,16 @@ struct LibrarySplitLayout<Sidebar: View, Detail: View>: View {
             if sidebarVisible {
                 sidebar
                     .frame(minWidth: 220, idealWidth: LFChrome.sidebarIdeal, maxWidth: 300)
-                    .background(Color(nsColor: .controlBackgroundColor).opacity(0.55))
-                Divider()
+                    .background(LFChrome.sidebar)
+                Rectangle()
+                    .fill(LFChrome.hairline)
+                    .frame(width: 1)
             }
             detail
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .background(LFChrome.canvas)
         }
-        .background(Color(nsColor: .windowBackgroundColor))
+        .background(LFChrome.canvas)
         .animation(LFChrome.motion, value: sidebarVisible)
     }
 }

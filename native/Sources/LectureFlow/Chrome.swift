@@ -1,10 +1,32 @@
+import AppKit
 import SwiftUI
 
-/// Shared visual tokens for a quiet macOS study workspace.
-/// Ice-blue accent only; surfaces stay flat; no dashboard chrome.
+/// Quiet Cirno ice-blue study chrome — atmosphere without dashboard noise.
 enum LFChrome {
-    /// Cirno ice-blue — sparse accent, not a theme wash.
-    static let accent = Color(red: 0.16, green: 0.44, blue: 0.62)
+    /// Cirno ice — cyan-leaning, light / dark adaptive.
+    static let accent = Color(nsColor: NSColor(name: nil) { appearance in
+        appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
+            ? NSColor(calibratedRed: 0.48, green: 0.74, blue: 0.88, alpha: 1)
+            : NSColor(calibratedRed: 0.30, green: 0.64, blue: 0.80, alpha: 1)
+    })
+
+    static let canvas = Color(nsColor: NSColor(name: nil) { appearance in
+        appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
+            ? NSColor(calibratedRed: 0.10, green: 0.12, blue: 0.15, alpha: 1)
+            : NSColor(calibratedRed: 0.93, green: 0.96, blue: 0.985, alpha: 1)
+    })
+
+    static let sidebar = Color(nsColor: NSColor(name: nil) { appearance in
+        appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
+            ? NSColor(calibratedRed: 0.08, green: 0.10, blue: 0.13, alpha: 1)
+            : NSColor(calibratedRed: 0.88, green: 0.93, blue: 0.97, alpha: 1)
+    })
+
+    static let panel = Color(nsColor: NSColor(name: nil) { appearance in
+        appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
+            ? NSColor(calibratedRed: 0.14, green: 0.17, blue: 0.21, alpha: 1)
+            : NSColor(calibratedRed: 0.98, green: 0.99, blue: 1.0, alpha: 1)
+    })
 
     static let space4: CGFloat = 4
     static let space8: CGFloat = 8
@@ -13,42 +35,54 @@ enum LFChrome {
     static let space24: CGFloat = 24
     static let space32: CGFloat = 32
 
-    static let radiusS: CGFloat = 6
-    static let radiusM: CGFloat = 10
-    static let radiusL: CGFloat = 14
+    static let radiusS: CGFloat = 8
+    static let radiusM: CGFloat = 12
+    static let radiusL: CGFloat = 16
 
-    static let contentInset: CGFloat = 24
-    static let sidebarIdeal: CGFloat = 248
+    static let contentInset: CGFloat = 28
+    static let sidebarIdeal: CGFloat = 252
+    static let readingMeasure: CGFloat = 720
 
-    static let titleSize: CGFloat = 24
+    static let titleSize: CGFloat = 23
     static let sectionSize: CGFloat = 13
     static let bodySize: CGFloat = 14
-    static let captionSize: CGFloat = 11
+    static let captionSize: CGFloat = 12
     static let transcriptEN: CGFloat = 15
     static let transcriptZH: CGFloat = 17
 
-    static let dropHighlight = accent.opacity(0.12)
-    static let dropStroke = accent.opacity(0.5)
-    static let hairline = Color.primary.opacity(0.08)
-    static let rowHover = Color.primary.opacity(0.04)
+    static let dropHighlight = accent.opacity(0.14)
+    static let dropStroke = accent.opacity(0.55)
+    static let hairline = Color.primary.opacity(0.07)
+    static let rowHover = accent.opacity(0.08)
+    static let iconWell = accent.opacity(0.12)
 
-    /// Soft panel only where a control cluster needs grouping (session bar).
-    static func softPanel() -> some View {
-        RoundedRectangle(cornerRadius: radiusM, style: .continuous)
-            .fill(Color(nsColor: .controlBackgroundColor))
-            .overlay(
-                RoundedRectangle(cornerRadius: radiusM, style: .continuous)
-                    .strokeBorder(hairline, lineWidth: 1)
-            )
-    }
-
-    /// Deprecated heavy card look — kept as alias for gradual migration.
     static let cardRadius = radiusM
-    static let cardFill = Color.primary.opacity(0.03)
+    static let cardFill = panel
     static let softStroke = hairline
-    static func cardBackground() -> some View { softPanel() }
 
     static let motion = Animation.easeInOut(duration: 0.16)
+
+    /// Soft ice panel — fill + faint ice wash, no hard web border.
+    static func softPanel() -> some View {
+        RoundedRectangle(cornerRadius: radiusM, style: .continuous)
+            .fill(panel)
+            .overlay(
+                RoundedRectangle(cornerRadius: radiusM, style: .continuous)
+                    .fill(accent.opacity(0.05))
+            )
+            .shadow(color: accent.opacity(0.08), radius: 10, y: 3)
+    }
+
+    static func cardBackground() -> some View { softPanel() }
+
+    /// Top wash for course / lecture headers — quiet atmosphere, not a landing hero.
+    static func iceMist() -> some View {
+        LinearGradient(
+            colors: [accent.opacity(0.16), accent.opacity(0.05), .clear],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
 }
 
 struct EmptyPanel: View {
@@ -57,32 +91,48 @@ struct EmptyPanel: View {
     let description: String
     var actionTitle: String? = nil
     var action: (() -> Void)? = nil
+    var useAppIcon: Bool = false
 
     var body: some View {
         ContentUnavailableView {
-            Label(title, systemImage: systemImage)
-                .symbolRenderingMode(.hierarchical)
+            Group {
+                if useAppIcon {
+                    Image(nsImage: NSApp.applicationIconImage)
+                        .resizable()
+                        .frame(width: 56, height: 56)
+                        .clipShape(RoundedRectangle(cornerRadius: LFChrome.radiusM, style: .continuous))
+                        .shadow(color: LFChrome.accent.opacity(0.25), radius: 12, y: 4)
+                } else {
+                    Image(systemName: systemImage)
+                        .symbolRenderingMode(.hierarchical)
+                        .font(.system(size: 28, weight: .medium))
+                        .foregroundStyle(LFChrome.accent)
+                        .frame(width: 52, height: 52)
+                        .background(LFChrome.iconWell, in: RoundedRectangle(cornerRadius: LFChrome.radiusM, style: .continuous))
+                }
+            }
+            Text(title)
                 .font(.system(size: 17, weight: .semibold))
-                .foregroundStyle(.secondary)
+                .padding(.top, LFChrome.space8)
         } description: {
             Text(description)
                 .font(.system(size: LFChrome.bodySize))
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
-                .frame(maxWidth: 300)
+                .frame(maxWidth: 320)
         } actions: {
             if let actionTitle, let action {
                 Button(actionTitle, action: action)
                     .buttonStyle(.borderedProminent)
                     .tint(LFChrome.accent)
-                    .controlSize(.regular)
+                    .controlSize(.large)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
-/// Flat list row for audio / lecture lists — no per-row card chrome.
+/// Lecture / audio row with ice icon well — flat, not a card.
 struct LFListRow<Leading: View, Trailing: View>: View {
     let title: String
     var subtitle: String? = nil
@@ -92,11 +142,12 @@ struct LFListRow<Leading: View, Trailing: View>: View {
     var body: some View {
         HStack(spacing: LFChrome.space12) {
             leading()
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text(title)
                     .font(.system(size: LFChrome.bodySize, weight: .medium))
-                    .lineLimit(1)
-                    .truncationMode(.middle)
+                    .foregroundStyle(.primary)
+                    .lineLimit(2)
+                    .truncationMode(.tail)
                     .help(title)
                 if let subtitle, !subtitle.isEmpty {
                     Text(subtitle)
@@ -108,9 +159,21 @@ struct LFListRow<Leading: View, Trailing: View>: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             trailing()
         }
-        .padding(.vertical, LFChrome.space8)
-        .padding(.horizontal, LFChrome.space4)
+        .padding(.vertical, 10)
+        .padding(.horizontal, LFChrome.space8)
         .contentShape(Rectangle())
+    }
+}
+
+struct LFIconWell: View {
+    let systemImage: String
+    var body: some View {
+        Image(systemName: systemImage)
+            .font(.system(size: 13, weight: .semibold))
+            .foregroundStyle(LFChrome.accent)
+            .frame(width: 28, height: 28)
+            .background(LFChrome.iconWell, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+            .accessibilityHidden(true)
     }
 }
 
@@ -120,6 +183,7 @@ struct LFSectionLabel: View {
         Text(text)
             .font(.system(size: LFChrome.sectionSize, weight: .semibold))
             .foregroundStyle(.secondary)
+            .tracking(0.2)
             .textCase(nil)
     }
 }
@@ -127,14 +191,18 @@ struct LFSectionLabel: View {
 extension View {
     func lfSoftPanelPadding() -> some View {
         padding(.horizontal, LFChrome.space16)
-            .padding(.vertical, LFChrome.space12)
+            .padding(.vertical, 14)
             .background(LFChrome.softPanel())
     }
 
-    /// Prefer soft panel; keep old name for call sites.
     func lfCardPadding() -> some View { lfSoftPanelPadding() }
 
     func lfContentPadding() -> some View {
         padding(LFChrome.contentInset)
+    }
+
+    func lfReadingColumn() -> some View {
+        frame(maxWidth: LFChrome.readingMeasure, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .leading)
     }
 }

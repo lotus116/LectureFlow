@@ -65,8 +65,8 @@ struct LiveTranscriptView: View {
                             ForEach(visible) { caption in
                                 VStack(alignment: .leading, spacing: LFChrome.space8) {
                                     Text(clock(caption.start))
-                                        .font(.system(size: LFChrome.captionSize).monospacedDigit())
-                                        .foregroundStyle(.secondary)
+                                        .font(.system(size: LFChrome.captionSize, weight: .medium).monospacedDigit())
+                                        .foregroundStyle(LFChrome.accent.opacity(0.85))
                                     // Main window: English above, Chinese below.
                                     if language != "zh", !caption.english.isEmpty {
                                         Text(caption.english)
@@ -83,10 +83,15 @@ struct LiveTranscriptView: View {
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .textSelection(.enabled)
                                 .id(caption.id)
-                                Divider().opacity(0.5)
+                                .padding(.bottom, LFChrome.space4)
+                                Rectangle()
+                                    .fill(LFChrome.hairline)
+                                    .frame(height: 1)
                             }
                             Color.clear.frame(height: 1).id("latest-caption")
-                        }.padding(.vertical, LFChrome.space8)
+                        }
+                        .lfReadingColumn()
+                        .padding(.vertical, LFChrome.space8)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(ScrollActivityObserver { follow = false })

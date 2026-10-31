@@ -8,60 +8,70 @@ struct SessionControlBar: View {
     private var active: Bool { workspace.session.state == .running || workspace.session.state == .preparing }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: LFChrome.space8) {
-            HStack(spacing: LFChrome.space12) {
-                statusDot
-                TimelineView(.periodic(from: .now, by: 0.5)) { _ in
-                    Text(clock(workspace.session.duration(at: ProcessInfo.processInfo.systemUptime)))
-                        .font(.system(size: 22, weight: .medium).monospacedDigit())
-                        .accessibilityLabel("采集计时")
-                }
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(status)
-                        .font(.system(size: LFChrome.bodySize, weight: .semibold))
-                    Text(audioHint)
-                        .font(.system(size: LFChrome.captionSize))
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                }
-                if live.isCapturing {
-                    ProgressView(value: Double(live.level))
-                        .frame(width: 48)
-                        .tint(.red)
-                        .help("麦克风实际输入音量")
-                        .accessibilityLabel("麦克风输入音量")
-                }
-                Spacer(minLength: LFChrome.space8)
-                Button(workspace.session.primaryTitle, systemImage: active ? "pause.fill" : "record.circle") {
-                    workspace.primarySessionAction()
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-                .tint(active ? .orange : .red)
-                .disabled(!active && (workspace.busy || workspace.lecture == nil))
-                .accessibilityIdentifier("session-primary")
-                if workspace.session.hasSession {
-                    Button {
-                        workspace.endSession()
-                    } label: {
-                        Image(systemName: "stop.fill")
+        VStack(alignment: .leading, spacing: LFChrome.space12) {
+            HStack(alignment: .center, spacing: LFChrome.space16) {
+                HStack(spacing: LFChrome.space12) {
+                    statusDot
+                    TimelineView(.periodic(from: .now, by: 0.5)) { _ in
+                        Text(clock(workspace.session.duration(at: ProcessInfo.processInfo.systemUptime)))
+                            .font(.system(size: 26, weight: .medium, design: .rounded).monospacedDigit())
+                            .foregroundStyle(.primary)
+                            .accessibilityLabel("采集计时")
                     }
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(status)
+                            .font(.system(size: LFChrome.bodySize, weight: .semibold))
+                        Text(audioHint)
+                            .font(.system(size: LFChrome.captionSize))
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
+                    if live.isCapturing {
+                        ProgressView(value: Double(live.level))
+                            .frame(width: 44)
+                            .tint(.red)
+                            .help("麦克风实际输入音量")
+                            .accessibilityLabel("麦克风输入音量")
+                    }
+                }
+
+                Spacer(minLength: LFChrome.space8)
+
+                HStack(spacing: LFChrome.space8) {
+                    Button(workspace.session.primaryTitle, systemImage: active ? "pause.fill" : "record.circle.fill") {
+                        workspace.primarySessionAction()
+                    }
+                    .buttonStyle(.borderedProminent)
                     .controlSize(.large)
-                    .help("结束 Lecture；不会删除已有内容")
-                    .accessibilityLabel("结束 Lecture")
-                    .accessibilityIdentifier("session-end")
+                    .tint(active ? .orange : .red)
+                    .disabled(!active && (workspace.busy || workspace.lecture == nil))
+                    .accessibilityIdentifier("session-primary")
+
+                    if workspace.session.hasSession {
+                        Button {
+                            workspace.endSession()
+                        } label: {
+                            Image(systemName: "stop.fill")
+                        }
+                        .controlSize(.large)
+                        .help("结束 Lecture；不会删除已有内容")
+                        .accessibilityLabel("结束 Lecture")
+                        .accessibilityIdentifier("session-end")
+                    }
+
+                    Button {
+                        options.toggle()
+                    } label: {
+                        Image(systemName: "slider.horizontal.3")
+                    }
+                    .help("记录方式")
+                    .accessibilityLabel("记录方式")
+                    .popover(isPresented: $options) {
+                        CaptureOptionsView(workspace: workspace)
+                    }
+
+                    ModelSelector(workspace: workspace, live: live)
                 }
-                Button {
-                    options.toggle()
-                } label: {
-                    Image(systemName: "slider.horizontal.3")
-                }
-                .help("记录方式")
-                .accessibilityLabel("记录方式")
-                .popover(isPresented: $options) {
-                    CaptureOptionsView(workspace: workspace)
-                }
-                ModelSelector(workspace: workspace, live: live)
             }
 
             if let notice = workspace.notice ?? secondaryDetail {
@@ -81,14 +91,16 @@ struct SessionControlBar: View {
                 HStack(spacing: LFChrome.space8) {
                     Label(
                         live.pendingSaves > 0 ? "正在写入资料库…" : "内容已保留",
-                        systemImage: "checkmark.circle"
+                        systemImage: "checkmark.circle.fill"
                     )
                     .font(.system(size: LFChrome.captionSize))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(LFChrome.accent)
                     Spacer()
                     Button("继续录制") { workspace.primarySessionAction() }
                     Button("查看录音") { workspace.requestedTab = "audio" }
                     Button("生成课后转写") { Task { await workspace.enqueue() } }
+                        .buttonStyle(.borderedProminent)
+                        .tint(LFChrome.accent)
                         .disabled(workspace.lecture?.segments.isEmpty != false || workspace.busy || live.pendingSaves > 0)
                 }
             }
@@ -98,8 +110,15 @@ struct SessionControlBar: View {
 
     private var statusDot: some View {
         Circle()
-            .fill(active ? Color.red : (workspace.session.state == .paused ? Color.orange : Color.secondary.opacity(0.35)))
-            .frame(width: 8, height: 8)
+            .fill(active ? Color.red : (workspace.session.state == .paused ? Color.orange : LFChrome.accent.opacity(0.45)))
+            .frame(width: 9, height: 9)
+            .overlay {
+                if active {
+                    Circle()
+                        .strokeBorder(Color.red.opacity(0.35), lineWidth: 3)
+                        .frame(width: 15, height: 15)
+                }
+            }
             .accessibilityHidden(true)
     }
 

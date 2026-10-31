@@ -1,6 +1,6 @@
 # LectureFlow 界面视觉改进任务书
 
-日期：2026-10-31。状态：代码与同场景改前/改后截图（光主题 · ~1180）已交付，见 `docs/assets/ui-redesign/`；暗色与其余尺寸待本机再核。
+日期：2026-10-31。状态：v2 已按 `ui-ux-pro-max` + Cirno 冰蓝重做；截图见 `docs/assets/ui-redesign/after-v2/`；规范见 `design-system/lectureflow/MASTER.md`。暗色与其余尺寸待本机再核。
 
 ## 1. 范围与目标
 

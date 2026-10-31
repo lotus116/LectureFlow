@@ -4,13 +4,17 @@
 
 产品行为以 [PRODUCT_DESIGN-2026-10-31](PRODUCT_DESIGN-2026-10-31.md) 为准；界面按 [UI_REDESIGN_BRIEF.md](UI_REDESIGN_BRIEF.md) 做了安静、冰蓝点缀的 macOS 工作区整理。功能追踪见 [SD_TRACKING.md](SD_TRACKING.md)。
 
-### UI 视觉（本轮）
+### UI 视觉（本轮 · v2）
+
+按 `ui-ux-pro-max` skill（Minimalism · variance 2）校准，并覆盖 skill 默认的青绿/橙 CTA / 网页字体：Cirno 冰蓝 + 系统字体 + macOS 工作区。
 
 | 项 | 状态 |
 |---|---|
-| 代码：Chrome token、侧栏、课程主页、采集条、录音列表、转写正文（英上中下）、资料/任务文案收敛 | 已改 |
-| 改前/改后截图（合成数据 · ~1180 光主题） | [assets/ui-redesign](assets/ui-redesign/README.md) 已检查 |
-| 暗色主题、920×610、1440×900、悬浮窗实机、键盘焦点全覆盖 | 待本机再核 |
+| 设计源：`design-system/lectureflow/MASTER.md`（冰蓝覆盖） | 已写 |
+| Chrome：冰蓝 canvas/sidebar/panel、软面板、冰雾顶洗、图标井 | 已改 |
+| 课程主页：主 CTA +「更多」菜单、Lecture 软面板列表 | 已改 |
+| 采集条 / 侧栏品牌 / 转写时间戳冰蓝点缀 | 已改 |
+| 截图（合成 · ~1180 光）：`after-v2/` | 已存；暗色与多尺寸待本机再核 |
 | 假波形/假进度/硬编码正文 | 未引入 |
 
 ### 功能验证证据
