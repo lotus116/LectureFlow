@@ -12,20 +12,36 @@ struct LibrarySplitLayout<Sidebar: View, Detail: View>: View {
         self.detail = detail()
     }
     var body: some View {
-        HStack(spacing: 0) {
-            if sidebarVisible {
-                sidebar
-                    .frame(width: LFChrome.sidebarIdeal)
-                    .background(LFChrome.sidebar)
-                Rectangle()
-                    .fill(LFChrome.hairline)
-                    .frame(width: 1)
+        GeometryReader { geo in
+            let compact = geo.size.width < 820
+            let sidebarWidth = compact ? LFChrome.sidebarCompact : LFChrome.sidebarIdeal
+            HStack(spacing: 0) {
+                if sidebarVisible {
+                    sidebar
+                        .frame(width: sidebarWidth)
+                        .background(LFChrome.sidebar)
+                    Rectangle()
+                        .fill(LFChrome.hairline)
+                        .frame(width: 1)
+                }
+                detail
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    .background(LFChrome.canvas)
+                    .environment(\.lfCompactChrome, compact)
             }
-            detail
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                .background(LFChrome.canvas)
+            .background(LFChrome.canvas)
         }
-        .background(LFChrome.canvas)
         .animation(LFChrome.motion, value: sidebarVisible)
+    }
+}
+
+private struct LFCompactChromeKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+extension EnvironmentValues {
+    var lfCompactChrome: Bool {
+        get { self[LFCompactChromeKey.self] }
+        set { self[LFCompactChromeKey.self] = newValue }
     }
 }

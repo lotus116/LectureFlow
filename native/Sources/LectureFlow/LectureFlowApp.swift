@@ -10,7 +10,7 @@ struct LectureFlowApp: App {
         // Single main window — WindowGroup can restore duplicates alongside AppKit reopen.
         Window("LectureFlow", id: "main") {
             LibraryView(model: workspace)
-                .frame(minWidth: 920, minHeight: 610)
+                .frame(minWidth: LFChrome.windowMinWidth, minHeight: LFChrome.windowMinHeight)
                 .background(WindowOpener(workspace: workspace, delegate: delegate))
         }
         .defaultSize(width: LFChrome.windowWidth, height: LFChrome.windowHeight)
@@ -133,57 +133,23 @@ struct LibraryView: View {
     @State private var editChinese = ""
     @State private var dropCourseID: String?
     @State private var importingForCourse: String?
+    @AppStorage("transcriptTextSize") private var transcriptTextSize = 15.0
     @StateObject private var playback = AudioPlayback()
     @Environment(\.openSettings) private var openSettings
 
     var body: some View {
+        GeometryReader { geo in
+            let compact = geo.size.width < 820
+            libraryBody(compact: compact)
+                .environment(\.lfCompactChrome, compact)
+        }
+    }
+
+    @ViewBuilder
+    private func libraryBody(compact: Bool) -> some View {
         LibrarySplitLayout(sidebarVisible: $sidebarVisible) {
-            List(selection: Binding(
-                get: { model.selectedLecture },
-                set: { model.selectLecture($0) }
-            )) {
-                ForEach(model.overview.courses) { course in
-                    Section {
-                        ForEach(course.lectures) { lecture in
-                            Label(lecture.title, systemImage: "waveform")
-                                .tag(lecture.id)
-                                .listRowBackground(lectureRowBackground(course.id, lectureID: lecture.id))
-                                .draggable("lectureflow-lecture:" + lecture.id)
-                                .dropDestination(for: String.self) { items, _ in
-                                    acceptSidebarDrop(items, course: course, lecture: lecture)
-                                } isTargeted: { targeted in
-                                    updateDropTarget(course.id, targeted: targeted)
-                                }
-                                .contextMenu {
-                                    Button("重命名") { recordID = lecture.id; newName = lecture.title; form = "rename-lecture" }
-                                    Menu("移动到课程") {
-                                        ForEach(model.overview.courses.filter { $0.id != course.id }) { target in
-                                            Button(target.name) { Task { await model.perform(["library", "move-lecture", lecture.id, target.id]) } }
-                                        }
-                                    }
-                                    Divider()
-                                    Button("移入废纸篓", role: .destructive) { archiving = ArchiveTarget(kind: "lecture", id: lecture.id, name: lecture.title) }
-                                }
-                        }
-                        Button {
-                            courseID = course.id
-                            Task { await model.createLecture(course.id) }
-                        } label: { Label("新建 Lecture", systemImage: "plus") }
-                        .buttonStyle(.plain).foregroundStyle(.secondary)
-                        .listRowBackground(courseDropBackground(course.id))
-                        .dropDestination(for: String.self) { items, _ in
-                            acceptSidebarDrop(items, course: course, lecture: nil)
-                        } isTargeted: { targeted in
-                            updateDropTarget(course.id, targeted: targeted)
-                        }
-                    } header: {
-                        courseHeader(course)
-                    }
-                }
-            }
-            .listStyle(.sidebar)
-            .background(SidebarSelectionStyle())
-            .safeAreaInset(edge: .top) {
+            // VStack chrome (not List safeAreaInset) — inset often fails to reserve space on macOS.
+            VStack(spacing: 0) {
                 HStack(spacing: LFChrome.space12) {
                     Image(nsImage: NSApp.applicationIconImage)
                         .resizable()
@@ -204,13 +170,72 @@ struct LibraryView: View {
                 .overlay(alignment: .bottom) {
                     Rectangle().fill(LFChrome.hairline).frame(height: 1)
                 }
-            }
-            .safeAreaInset(edge: .bottom) {
+
+                // No List(selection:) — system blue highlight cannot be recolored reliably on macOS.
+                List {
+                    ForEach(model.overview.courses) { course in
+                        Section {
+                            ForEach(course.lectures) { lecture in
+                                Button {
+                                    model.selectLecture(lecture.id)
+                                } label: {
+                                    Label(lecture.title, systemImage: "waveform")
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .contentShape(Rectangle())
+                                }
+                                .buttonStyle(.plain)
+                                .foregroundStyle(.primary)
+                                .listRowBackground(lectureRowBackground(course.id, lectureID: lecture.id))
+                                .draggable("lectureflow-lecture:" + lecture.id)
+                                .dropDestination(for: String.self) { items, _ in
+                                    acceptSidebarDrop(items, course: course, lecture: lecture)
+                                } isTargeted: { targeted in
+                                    updateDropTarget(course.id, targeted: targeted)
+                                }
+                                .contextMenu {
+                                    Button("重命名") { recordID = lecture.id; newName = lecture.title; form = "rename-lecture" }
+                                    Menu("移动到课程") {
+                                        ForEach(model.overview.courses.filter { $0.id != course.id }) { target in
+                                            Button(target.name) { Task { await model.perform(["library", "move-lecture", lecture.id, target.id]) } }
+                                        }
+                                    }
+                                    Divider()
+                                    Button("移入废纸篓", role: .destructive) { archiving = ArchiveTarget(kind: "lecture", id: lecture.id, name: lecture.title) }
+                                }
+                            }
+                            Button {
+                                courseID = course.id
+                                Task { await model.createLecture(course.id) }
+                            } label: { Label("新建 Lecture", systemImage: "plus") }
+                            .buttonStyle(.plain).foregroundStyle(.secondary)
+                            .listRowBackground(courseDropBackground(course.id))
+                            .dropDestination(for: String.self) { items, _ in
+                                acceptSidebarDrop(items, course: course, lecture: nil)
+                            } isTargeted: { targeted in
+                                updateDropTarget(course.id, targeted: targeted)
+                            }
+                        } header: {
+                            courseHeader(course)
+                        }
+                    }
+                }
+                .listStyle(.sidebar)
+                .scrollContentBackground(.hidden)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
                 HStack(spacing: LFChrome.space8) {
                     Button { newName = ""; form = "course" } label: {
-                        Label("新建课程", systemImage: "folder.badge.plus")
+                        ViewThatFits(in: .horizontal) {
+                            Label("新建课程", systemImage: "folder.badge.plus")
+                                .labelStyle(.titleAndIcon)
+                                .lineLimit(1)
+                                .fixedSize(horizontal: true, vertical: true)
+                            Image(systemName: "folder.badge.plus")
+                        }
                     }
-                    Spacer()
+                    .help("新建课程")
+                    .accessibilityLabel("新建课程")
+                    Spacer(minLength: 8)
                     Button { showTrash = true } label: { Image(systemName: "trash") }
                         .help("废纸篓")
                         .accessibilityLabel("废纸篓")
@@ -222,18 +247,20 @@ struct LibraryView: View {
                 .controlSize(.small)
                 .padding(.horizontal, LFChrome.space12)
                 .padding(.vertical, 10)
+                .frame(maxWidth: .infinity)
+                .background(LFChrome.sidebar)
                 .overlay(alignment: .top) {
                     Rectangle().fill(LFChrome.hairline).frame(height: 1)
                 }
             }
-            .scrollContentBackground(.hidden)
+            .background(LFChrome.sidebar)
         } detail: {
             if let lecture = model.lecture {
                 ZStack(alignment: .top) {
                     LFChrome.iceMist()
                         .frame(height: 120)
                         .allowsHitTesting(false)
-                    VStack(alignment: .leading, spacing: LFChrome.space12) {
+                    VStack(alignment: .leading, spacing: compact ? LFChrome.space8 : LFChrome.space12) {
                         header(lecture)
                         modelDownloadBanner
                         LiveControlView(workspace: model, live: model.live, lecture: lecture, showingAudio: tab == "audio")
@@ -243,7 +270,7 @@ struct LibraryView: View {
                             if tab == "audio" { audioList(lecture) }
                             else { unifiedTranscript(lecture) }
                         }
-                        .padding(LFChrome.space12)
+                        .padding(compact ? LFChrome.space8 : LFChrome.space12)
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                         .background(LFChrome.softPanel())
                     }
@@ -487,9 +514,10 @@ struct LibraryView: View {
         return RoundedRectangle(cornerRadius: 6, style: .continuous)
             .fill(
                 selected
-                    ? LFChrome.accent.opacity(0.22)
+                    ? LFChrome.accent.opacity(0.28)
                     : (dropCourseID == courseID ? LFChrome.dropHighlight : Color.clear)
             )
+            .padding(.horizontal, 2)
     }
 
     private func updateDropTarget(_ courseID: String, targeted: Bool) {
@@ -573,67 +601,83 @@ struct LibraryView: View {
                     .foregroundStyle(.secondary)
                     .monospacedDigit()
             }
-            Spacer(minLength: LFChrome.space8)
-            HStack(spacing: LFChrome.space12) {
-                if let course = model.course {
-                    Button {
-                        materialsCourse = course
-                    } label: {
-                        Label("课程资料", systemImage: "doc.richtext")
-                    }
-                    .buttonStyle(.borderless)
-                    .foregroundStyle(LFChrome.accent)
-                    .controlSize(.small)
-                }
+            .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
+            headerActions(lecture)
+                .layoutPriority(1)
+        }
+    }
+
+    private func headerActions(_ lecture: Lecture) -> some View {
+        HStack(spacing: LFChrome.space8) {
+            if let course = model.course {
                 Button {
-                    model.toggleSubtitles()
+                    materialsCourse = course
                 } label: {
-                    Label(
-                        model.floatingSubtitlesVisible ? "关闭字幕" : "悬浮字幕",
-                        systemImage: model.floatingSubtitlesVisible ? "captions.bubble.fill" : "captions.bubble"
-                    )
+                    headerActionLabel("课程资料", systemImage: "doc.richtext")
                 }
                 .buttonStyle(.borderless)
                 .foregroundStyle(LFChrome.accent)
                 .controlSize(.small)
-                .help(model.floatingSubtitlesVisible ? "隐藏悬浮字幕窗口" : "打开悬浮字幕窗口")
-                .accessibilityLabel(model.floatingSubtitlesVisible ? "关闭悬浮字幕" : "悬浮字幕")
-                .accessibilityAddTraits(model.floatingSubtitlesVisible ? .isSelected : [])
-
-                Menu {
-                    Button("仅显示字幕窗口", systemImage: "pip") {
-                        model.openSubtitles(hideMain: true)
-                    }
-                    Button("在 Finder 中打开", systemImage: "folder") {
-                        NSWorkspace.shared.open(URL(fileURLWithPath: lecture.path))
-                    }
-                    Button("恢复意外中断的录音", systemImage: "arrow.clockwise") {
-                        Task { await model.perform(["library", "recover-recordings", lecture.id]) }
-                    }
-                } label: {
-                    Image(systemName: "ellipsis")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(.secondary)
-                        .frame(width: 28, height: 28)
-                        .background(LFChrome.iconWell, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
-                        .contentShape(Rectangle())
-                }
-                .menuStyle(.borderlessButton)
-                .menuIndicator(.hidden)
-                .fixedSize()
-                .help("更多操作")
-                .accessibilityLabel("更多")
-
-                Button {
-                    importing = true
-                } label: {
-                    Label("导入", systemImage: "plus")
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(LFChrome.accent)
-                .controlSize(.small)
-                .disabled(model.busy)
+                .help("课程资料")
             }
+            Button {
+                model.toggleSubtitles()
+            } label: {
+                headerActionLabel(
+                    model.floatingSubtitlesVisible ? "关闭字幕" : "悬浮字幕",
+                    systemImage: model.floatingSubtitlesVisible ? "captions.bubble.fill" : "captions.bubble"
+                )
+            }
+            .buttonStyle(.borderless)
+            .foregroundStyle(LFChrome.accent)
+            .controlSize(.small)
+            .help(model.floatingSubtitlesVisible ? "隐藏悬浮字幕窗口" : "打开悬浮字幕窗口")
+            .accessibilityLabel(model.floatingSubtitlesVisible ? "关闭悬浮字幕" : "悬浮字幕")
+            .accessibilityAddTraits(model.floatingSubtitlesVisible ? .isSelected : [])
+
+            Menu {
+                Button("仅显示字幕窗口", systemImage: "pip") {
+                    model.openSubtitles(hideMain: true)
+                }
+                Button("在 Finder 中打开", systemImage: "folder") {
+                    NSWorkspace.shared.open(URL(fileURLWithPath: lecture.path))
+                }
+                Button("恢复意外中断的录音", systemImage: "arrow.clockwise") {
+                    Task { await model.perform(["library", "recover-recordings", lecture.id]) }
+                }
+            } label: {
+                Image(systemName: "ellipsis")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 28, height: 28)
+                    .background(LFChrome.iconWell, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+                    .contentShape(Rectangle())
+            }
+            .menuStyle(.borderlessButton)
+            .menuIndicator(.hidden)
+            .fixedSize()
+            .help("更多操作")
+            .accessibilityLabel("更多")
+
+            Button {
+                importing = true
+            } label: {
+                Label("导入", systemImage: "plus")
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(LFChrome.accent)
+            .controlSize(.small)
+            .disabled(model.busy)
+        }
+        .fixedSize(horizontal: true, vertical: false)
+    }
+
+    /// Prefer title+icon; fall back to icon-only when the header is cramped.
+    private func headerActionLabel(_ title: String, systemImage: String) -> some View {
+        ViewThatFits(in: .horizontal) {
+            Label(title, systemImage: systemImage)
+                .fixedSize(horizontal: true, vertical: true)
+            Image(systemName: systemImage)
         }
     }
 
@@ -859,6 +903,29 @@ struct LibraryView: View {
         }
     }
 
+    private var offlineTranscriptFilters: some View {
+        HStack(spacing: LFChrome.space8) {
+            Picker("显示", selection: $textLanguage) {
+                Text("双语").tag("both"); Text("中文").tag("zh"); Text("英文").tag("en")
+            }
+            .frame(width: 120)
+            Button("复制全文") {
+                let text = model.transcript?.units.map { unit in
+                    var parts = [clock(unit.logical_start)]
+                    if textLanguage != "zh" { parts.append(unit.english) }
+                    if textLanguage != "en", !unit.chinese.isEmpty { parts.append(unit.chinese) }
+                    return parts.joined(separator: "\n")
+                }.joined(separator: "\n\n") ?? ""
+                NSPasteboard.general.clearContents()
+                NSPasteboard.general.setString(text, forType: .string)
+            }
+            TextField("搜索", text: $search)
+                .textFieldStyle(.roundedBorder)
+                .frame(minWidth: 56, maxWidth: 160)
+            TranscriptFontControls(size: $transcriptTextSize)
+        }
+    }
+
     @ViewBuilder
     private func unifiedTranscript(_ lecture: Lecture) -> some View {
         VStack(alignment: .leading, spacing: LFChrome.space10) {
@@ -884,30 +951,26 @@ struct LibraryView: View {
                         .font(.system(size: LFChrome.captionSize))
                         .foregroundStyle(.orange)
                 }
-                HStack(spacing: LFChrome.space8) {
-                    Picker("显示", selection: $textLanguage) {
-                        Text("双语").tag("both"); Text("中文").tag("zh"); Text("英文").tag("en")
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: LFChrome.space8) {
+                        offlineTranscriptFilters
+                        Spacer(minLength: 8)
+                        Text("时间戳约 30 秒区间")
+                            .font(.system(size: LFChrome.captionSize))
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: true, vertical: true)
                     }
-                    .frame(width: 120)
-                    Button("复制全文") {
-                        let text = model.transcript?.units.map { unit in
-                            var parts = [clock(unit.logical_start)]
-                            if textLanguage != "zh" { parts.append(unit.english) }
-                            if textLanguage != "en", !unit.chinese.isEmpty { parts.append(unit.chinese) }
-                            return parts.joined(separator: "\n")
-                        }.joined(separator: "\n\n") ?? ""
-                        NSPasteboard.general.clearContents()
-                        NSPasteboard.general.setString(text, forType: .string)
+                    .frame(minWidth: 380)
+                    .controlSize(.small)
+
+                    VStack(alignment: .leading, spacing: 6) {
+                        offlineTranscriptFilters
+                        Text("时间戳约 30 秒区间")
+                            .font(.system(size: LFChrome.captionSize))
+                            .foregroundStyle(.secondary)
                     }
-                    TextField("搜索", text: $search)
-                        .textFieldStyle(.roundedBorder)
-                        .frame(maxWidth: 220)
-                    Spacer()
-                    Text("时间戳约 30 秒区间")
-                        .font(.system(size: LFChrome.captionSize))
-                        .foregroundStyle(.secondary)
+                    .controlSize(.small)
                 }
-                .controlSize(.small)
 
                 if let transcript = model.transcript, !transcript.units.isEmpty {
                     ScrollView {
@@ -981,15 +1044,15 @@ struct LibraryView: View {
                                     // Main window: English above, Chinese below (product design).
                                     if textLanguage != "zh" {
                                         Text(unit.english)
-                                            .font(.system(size: LFChrome.transcriptEN))
+                                            .font(.system(size: LFChrome.transcriptEnglish(transcriptTextSize)))
                                             .foregroundStyle(.primary)
-                                            .lineSpacing(5)
+                                            .lineSpacing(max(3, LFChrome.transcriptEnglish(transcriptTextSize) * 0.28))
                                     }
                                     if textLanguage != "en", !unit.chinese.isEmpty {
                                         Text(unit.chinese)
-                                            .font(.system(size: LFChrome.transcriptZH))
+                                            .font(.system(size: LFChrome.transcriptChinese(transcriptTextSize)))
                                             .foregroundStyle(.secondary)
-                                            .lineSpacing(5)
+                                            .lineSpacing(max(3, LFChrome.transcriptChinese(transcriptTextSize) * 0.28))
                                     }
                                 }
                                 .frame(maxWidth: .infinity, alignment: .leading)

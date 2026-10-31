@@ -14,6 +14,7 @@ struct LiveTranscriptView: View {
     @ObservedObject var live: LiveController
     let lecture: Lecture
     let backend: Backend
+    @AppStorage("transcriptTextSize") private var textSize = 15.0
     @State private var search = ""
     @State private var language = "both"
     @State private var follow = true
@@ -21,34 +22,24 @@ struct LiveTranscriptView: View {
         live.captions.filter { search.isEmpty || $0.english.localizedCaseInsensitiveContains(search) || $0.chinese.contains(search) }
     }
     private var updateKey: String { live.captions.last.map { "\($0.id):\($0.revision)" } ?? "" }
+    private var enSize: CGFloat { LFChrome.transcriptEnglish(textSize) }
+    private var zhSize: CGFloat { LFChrome.transcriptChinese(textSize) }
+
     var body: some View {
         ScrollViewReader { proxy in
             VStack(alignment: .leading, spacing: 12) {
-                HStack {
-                    Picker("显示", selection: $language) {
-                        Text("双语").tag("both"); Text("中文").tag("zh"); Text("英文").tag("en")
-                    }.frame(width: 115)
-                    TextField("搜索字幕", text: $search).textFieldStyle(.roundedBorder).frame(maxWidth: 190)
-                    Spacer()
-                    Button("复制") {
-                        let text = visible.map { caption in
-                            [clock(caption.start), language == "en" ? "" : caption.chinese,
-                             language == "zh" ? "" : caption.english].filter { !$0.isEmpty }.joined(separator: "\n")
-                        }.joined(separator: "\n\n")
-                        NSPasteboard.general.clearContents(); NSPasteboard.general.setString(text, forType: .string)
-                    }.disabled(visible.isEmpty)
-                    Button("导出实时字幕") {
-                        Task {
-                            do {
-                                let data = try await backend.call(["live", "export", lecture.id])
-                                let result = try JSONDecoder().decode(Exported.self, from: data)
-                                NSWorkspace.shared.open(URL(fileURLWithPath: result.directory))
-                            } catch { live.error = error.localizedDescription }
-                        }
-                    }.disabled(live.captions.isEmpty)
-                    Button("返回最新") {
-                        follow = true; search = ""
-                        DispatchQueue.main.async { withAnimation { proxy.scrollTo("latest-caption", anchor: .bottom) } }
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 8) {
+                        transcriptFilters
+                        Spacer(minLength: 8)
+                        transcriptActions(proxy: proxy)
+                    }
+                    .frame(minWidth: 460)
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        transcriptFilters
+                        transcriptActions(proxy: proxy)
+                            .frame(maxWidth: .infinity, alignment: .trailing)
                     }
                 }
                 Text(follow ? "跟随最新" : "已停止跟随 · 点“返回最新”继续")
@@ -66,19 +57,19 @@ struct LiveTranscriptView: View {
                             ForEach(visible) { caption in
                                 VStack(alignment: .leading, spacing: 6) {
                                     Text(clock(caption.start))
-                                        .font(.system(size: LFChrome.captionSize, weight: .medium).monospacedDigit())
+                                        .font(.system(size: max(11, LFChrome.captionSize * (textSize / 15)), weight: .medium).monospacedDigit())
                                         .foregroundStyle(LFChrome.accent.opacity(0.85))
                                     // Main window: English above, Chinese below.
                                     if language != "zh", !caption.english.isEmpty {
                                         Text(caption.english)
-                                            .font(.system(size: LFChrome.transcriptEN))
-                                            .lineSpacing(5)
+                                            .font(.system(size: enSize))
+                                            .lineSpacing(max(3, enSize * 0.28))
                                     }
                                     if language != "en", !caption.chinese.isEmpty {
                                         Text(caption.chinese)
-                                            .font(.system(size: LFChrome.transcriptZH))
+                                            .font(.system(size: zhSize))
                                             .foregroundStyle(.secondary)
-                                            .lineSpacing(5)
+                                            .lineSpacing(max(3, zhSize * 0.28))
                                     }
                                 }
                                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -105,6 +96,49 @@ struct LiveTranscriptView: View {
             .onChange(of: search) { _, text in if !text.isEmpty { follow = false } }
         }
     }
+    private var transcriptFilters: some View {
+        HStack(spacing: 8) {
+            Picker("显示", selection: $language) {
+                Text("双语").tag("both"); Text("中文").tag("zh"); Text("英文").tag("en")
+            }
+            .frame(width: 115)
+            .layoutPriority(1)
+            TextField("搜索字幕", text: $search)
+                .textFieldStyle(.roundedBorder)
+                .frame(minWidth: 56, maxWidth: 160)
+                .layoutPriority(0)
+            TranscriptFontControls(size: $textSize)
+        }
+    }
+
+    private func transcriptActions(proxy: ScrollViewProxy) -> some View {
+        HStack(spacing: 8) {
+            Button("复制") {
+                let text = visible.map { caption in
+                    [clock(caption.start), language == "en" ? "" : caption.chinese,
+                     language == "zh" ? "" : caption.english].filter { !$0.isEmpty }.joined(separator: "\n")
+                }.joined(separator: "\n\n")
+                NSPasteboard.general.clearContents(); NSPasteboard.general.setString(text, forType: .string)
+            }
+            .disabled(visible.isEmpty)
+            Button("导出实时字幕") {
+                Task {
+                    do {
+                        let data = try await backend.call(["live", "export", lecture.id])
+                        let result = try JSONDecoder().decode(Exported.self, from: data)
+                        NSWorkspace.shared.open(URL(fileURLWithPath: result.directory))
+                    } catch { live.error = error.localizedDescription }
+                }
+            }
+            .disabled(live.captions.isEmpty)
+            Button("返回最新") {
+                follow = true; search = ""
+                DispatchQueue.main.async { withAnimation { proxy.scrollTo("latest-caption", anchor: .bottom) } }
+            }
+        }
+        .fixedSize(horizontal: true, vertical: false)
+    }
+
     private func clock(_ seconds: Double) -> String {
         let time = Int(seconds)
         return String(format: "%02d:%02d:%02d", time / 3600, time / 60 % 60, time % 60)
@@ -116,6 +150,37 @@ struct LiveTranscriptView: View {
         case "revised": return "已修订"
         default: return "已锁定"
         }
+    }
+}
+
+/// Shared A/A controls for live and offline transcript reading size.
+struct TranscriptFontControls: View {
+    @Binding var size: Double
+    private let range: ClosedRange<Double> = 12...28
+
+    var body: some View {
+        HStack(spacing: 2) {
+            Button {
+                size = max(range.lowerBound, size - 1)
+            } label: {
+                Image(systemName: "textformat.size.smaller")
+            }
+            .disabled(size <= range.lowerBound)
+            .help("减小转写字号")
+
+            Button {
+                size = min(range.upperBound, size + 1)
+            } label: {
+                Image(systemName: "textformat.size.larger")
+            }
+            .disabled(size >= range.upperBound)
+            .help("增大转写字号")
+        }
+        .buttonStyle(.borderless)
+        .controlSize(.small)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("转写字号")
+        .accessibilityValue("\(Int(size))")
     }
 }
 

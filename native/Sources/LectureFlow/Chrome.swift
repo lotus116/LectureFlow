@@ -41,9 +41,13 @@ enum LFChrome {
     static let radiusL: CGFloat = 16
 
     static let contentInset: CGFloat = 24
-    static let sidebarIdeal: CGFloat = 240
+    static let contentInsetCompact: CGFloat = 14
+    static let sidebarIdeal: CGFloat = 200
+    static let sidebarCompact: CGFloat = 168
     static let windowWidth: CGFloat = 1080
     static let windowHeight: CGFloat = 700
+    static let windowMinWidth: CGFloat = 740
+    static let windowMinHeight: CGFloat = 520
     static let readingMeasure: CGFloat = 680
 
     static let titleSize: CGFloat = 23
@@ -52,6 +56,10 @@ enum LFChrome {
     static let captionSize: CGFloat = 12
     static let transcriptEN: CGFloat = 15
     static let transcriptZH: CGFloat = 17
+
+    /// English/Chinese sizes from the user-adjustable transcript base size.
+    static func transcriptEnglish(_ base: Double) -> CGFloat { CGFloat(base) }
+    static func transcriptChinese(_ base: Double) -> CGFloat { CGFloat(base) * (transcriptZH / transcriptEN) }
 
     static let dropHighlight = accent.opacity(0.14)
     static let dropStroke = accent.opacity(0.55)
@@ -201,11 +209,18 @@ extension View {
     func lfCardPadding() -> some View { lfSoftPanelPadding() }
 
     func lfContentPadding() -> some View {
-        padding(LFChrome.contentInset)
+        modifier(LFContentPaddingModifier())
     }
 
     func lfReadingColumn() -> some View {
         frame(maxWidth: LFChrome.readingMeasure, alignment: .leading)
             .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+private struct LFContentPaddingModifier: ViewModifier {
+    @Environment(\.lfCompactChrome) private var compact
+    func body(content: Content) -> some View {
+        content.padding(compact ? LFChrome.contentInsetCompact : LFChrome.contentInset)
     }
 }
