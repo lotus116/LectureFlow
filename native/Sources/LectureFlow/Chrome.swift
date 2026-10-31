@@ -41,7 +41,9 @@ enum LFChrome {
     static let radiusL: CGFloat = 16
 
     static let contentInset: CGFloat = 24
-    static let sidebarIdeal: CGFloat = 252
+    static let sidebarIdeal: CGFloat = 240
+    static let windowWidth: CGFloat = 1080
+    static let windowHeight: CGFloat = 700
     static let readingMeasure: CGFloat = 680
 
     static let titleSize: CGFloat = 23

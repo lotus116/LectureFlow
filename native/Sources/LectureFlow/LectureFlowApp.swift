@@ -15,7 +15,7 @@ struct LectureFlowApp: App {
                     workspace.revealMain = { [weak appDelegate = delegate] in appDelegate?.showMainWindow() }
                 }
         }
-        .defaultSize(width: 1120, height: 740)
+        .defaultSize(width: LFChrome.windowWidth, height: LFChrome.windowHeight)
         .commands {
             CommandMenu("Lecture") {
                 Button("显示悬浮字幕") { workspace.openSubtitles() }
@@ -76,12 +76,13 @@ final class LectureFlowDelegate: NSObject, NSApplicationDelegate {
             window.deminiaturize(nil); window.makeKeyAndOrderFront(nil); return
         }
         if let window = reopened?.window { window.makeKeyAndOrderFront(nil); return }
-        let window = NSWindow(contentRect: NSRect(x: 150, y: 120, width: 1180, height: 790),
+        let window = NSWindow(contentRect: NSRect(x: 150, y: 120, width: LFChrome.windowWidth, height: LFChrome.windowHeight),
                               styleMask: [.titled, .closable, .miniaturizable, .resizable],
                               backing: .buffered, defer: false)
         window.title = "LectureFlow"; window.isReleasedWhenClosed = false
         window.contentMinSize = NSSize(width: 920, height: 610)
         window.contentView = NSHostingView(rootView: LibraryView(model: workspace))
+        window.center()
         reopened = NSWindowController(window: window)
         window.makeKeyAndOrderFront(nil)
     }

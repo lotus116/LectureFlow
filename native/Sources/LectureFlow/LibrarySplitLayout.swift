@@ -15,7 +15,7 @@ struct LibrarySplitLayout<Sidebar: View, Detail: View>: View {
         HStack(spacing: 0) {
             if sidebarVisible {
                 sidebar
-                    .frame(minWidth: 220, idealWidth: LFChrome.sidebarIdeal, maxWidth: 300)
+                    .frame(width: LFChrome.sidebarIdeal)
                     .background(LFChrome.sidebar)
                 Rectangle()
                     .fill(LFChrome.hairline)
