@@ -1,31 +1,26 @@
 import AppKit
 import SwiftUI
 
-/// Warm, restrained study workspace with adaptive colors.
+/// Cirno ice-blue accents over neutral reading surfaces, with a separate dark palette.
 enum LFChrome {
-    static let accent = Color(nsColor: NSColor(name: nil) { appearance in
-        appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
-            ? NSColor(calibratedRed: 0.62, green: 0.77, blue: 0.67, alpha: 1)
-            : NSColor(calibratedRed: 0.25, green: 0.43, blue: 0.33, alpha: 1)
-    })
-
-    static let canvas = Color(nsColor: NSColor(name: nil) { appearance in
-        appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
-            ? NSColor(calibratedRed: 0.10, green: 0.12, blue: 0.11, alpha: 1)
-            : NSColor(calibratedRed: 0.98, green: 0.973, blue: 0.953, alpha: 1)
-    })
-
-    static let sidebar = Color(nsColor: NSColor(name: nil) { appearance in
-        appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
-            ? NSColor(calibratedRed: 0.08, green: 0.10, blue: 0.09, alpha: 1)
-            : NSColor(calibratedRed: 0.94, green: 0.93, blue: 0.90, alpha: 1)
-    })
-
-    static let panel = Color(nsColor: NSColor(name: nil) { appearance in
-        appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
-            ? NSColor(calibratedRed: 0.15, green: 0.17, blue: 0.16, alpha: 1)
-            : NSColor(calibratedRed: 1.0, green: 0.997, blue: 0.99, alpha: 1)
-    })
+    private static func adaptive(_ light: UInt32, _ dark: UInt32) -> Color {
+        Color(nsColor: NSColor(name: nil) { appearance in
+            let hex = appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua ? dark : light
+            return NSColor(srgbRed: Double((hex >> 16) & 255) / 255,
+                           green: Double((hex >> 8) & 255) / 255,
+                           blue: Double(hex & 255) / 255, alpha: 1)
+        })
+    }
+    static let accent = adaptive(0x2563EB, 0x3671DB)
+    static let accentInk = adaptive(0x1D4ED8, 0xB5D6FF)
+    static let ink = adaptive(0x17345C, 0xE5EEFF)
+    static let canvas = adaptive(0xF8FBFF, 0x101827)
+    static let sidebar = adaptive(0xEEF5FC, 0x0C1422)
+    static let panel = adaptive(0xFFFFFF, 0x172438)
+    static let selection = adaptive(0xDCEBFF, 0x203D66)
+    static let recorder = adaptive(0xEFF5FD, 0x192B43)
+    static let recordSignal = adaptive(0xE64D31, 0xFF8B69)
+    static let saved = adaptive(0x28724F, 0x92D3AC)
 
     static let space4: CGFloat = 4
     static let space8: CGFloat = 8
@@ -42,7 +37,7 @@ enum LFChrome {
 
     static let contentInset: CGFloat = 24
     static let contentInsetCompact: CGFloat = 14
-    static let sidebarIdeal: CGFloat = 200
+    static let sidebarIdeal: CGFloat = 220
     static let sidebarCompact: CGFloat = 168
     static let windowWidth: CGFloat = 1080
     static let windowHeight: CGFloat = 700
@@ -81,7 +76,7 @@ enum LFChrome {
                 RoundedRectangle(cornerRadius: radiusM, style: .continuous)
                     .stroke(hairline, lineWidth: 1)
             )
-            .shadow(color: .black.opacity(0.025), radius: 5, y: 2)
+
     }
 
     static func cardBackground() -> some View { softPanel() }
@@ -117,7 +112,7 @@ struct EmptyPanel: View {
                     Image(systemName: systemImage)
                         .symbolRenderingMode(.hierarchical)
                         .font(.system(size: 28, weight: .medium))
-                        .foregroundStyle(LFChrome.accent)
+                        .foregroundStyle(LFChrome.accentInk)
                         .frame(width: 52, height: 52)
                         .background(LFChrome.iconWell, in: RoundedRectangle(cornerRadius: LFChrome.radiusM, style: .continuous))
                 }
@@ -181,7 +176,7 @@ struct LFIconWell: View {
     var body: some View {
         Image(systemName: systemImage)
             .font(.system(size: 13, weight: .semibold))
-            .foregroundStyle(LFChrome.accent)
+            .foregroundStyle(LFChrome.accentInk)
             .frame(width: 28, height: 28)
             .background(LFChrome.iconWell, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
             .accessibilityHidden(true)

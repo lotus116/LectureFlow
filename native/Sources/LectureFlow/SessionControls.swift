@@ -8,6 +8,7 @@ struct SessionControlBar: View {
     let showingAudio: Bool
     var readingMode = false
     @State private var options = false
+    @Environment(\.lfCompactChrome) private var compact
 
     private var active: Bool {
         workspace.session.state == .running || workspace.session.state == .preparing
@@ -26,7 +27,14 @@ struct SessionControlBar: View {
                             .font(.system(size: LFChrome.bodySize, weight: .medium).monospacedDigit())
                     }
                     Spacer(minLength: 8)
-                    transportPrimary
+                    if workspace.session.state == .ended {
+                        Button(workspace.session.desired.recording ? "继续录制" : "继续字幕") {
+                            workspace.primarySessionAction()
+                        }
+                        .disabled(workspace.busy || workspace.lecture == nil)
+                    } else {
+                        transportPrimary
+                    }
                     if workspace.session.hasSession { transportStop }
                 }
                 if let notice = inlineNotice {
@@ -34,6 +42,9 @@ struct SessionControlBar: View {
                         .font(.system(size: LFChrome.captionSize))
                         .foregroundStyle(.secondary)
                 }
+            } else if workspace.session.state == .ended {
+                endedSummary
+                metaRow
             } else {
                 recordingIsland
                 metaRow
@@ -45,14 +56,20 @@ struct SessionControlBar: View {
                     .font(.system(size: LFChrome.captionSize))
             }
 
-            if workspace.session.state == .ended && !readingMode {
-                endedRow
-            }
         }
-        .lfSoftPanelPadding()
+        .padding(.horizontal, LFChrome.space16)
+        .padding(.vertical, readingMode ? 8 : 12)
+        .background {
+            RoundedRectangle(cornerRadius: active || paused ? 28 : LFChrome.radiusM, style: .continuous)
+                .fill(active || paused ? LFChrome.recorder : LFChrome.panel)
+                .overlay {
+                    RoundedRectangle(cornerRadius: active || paused ? 28 : LFChrome.radiusM, style: .continuous)
+                        .strokeBorder(LFChrome.hairline, lineWidth: 1)
+                }
+        }
     }
 
-    /// Waveform fills free width; timer and transport never wrap.
+    /// Compact live meter + large timer, followed by dedicated pause and finish controls.
     private var recordingIsland: some View {
         HStack(alignment: .center, spacing: 12) {
             RecordingWaveformStrip(
@@ -60,20 +77,20 @@ struct SessionControlBar: View {
                 active: live.isCapturing || active,
                 paused: paused
             )
-            .frame(minWidth: 64, maxWidth: .infinity)
-            .frame(height: 32)
+            .frame(width: compact ? 56 : 108, height: compact ? 38 : 48)
             .layoutPriority(0)
 
             TimelineView(.periodic(from: .now, by: 0.5)) { _ in
                 Text(clock(workspace.session.duration(at: ProcessInfo.processInfo.systemUptime)))
-                    .font(.system(size: 20, weight: .medium, design: .rounded).monospacedDigit())
+                    .font(.system(size: compact ? 26 : 34, weight: .semibold, design: .rounded).monospacedDigit())
                     .foregroundStyle(.primary)
                     .fixedSize(horizontal: true, vertical: true)
                     .accessibilityLabel("采集计时")
             }
             .layoutPriority(2)
 
-            HStack(spacing: 8) {
+            Spacer(minLength: 4)
+            HStack(spacing: compact ? 8 : 12) {
                 transportPrimary
                 if workspace.session.hasSession {
                     transportStop
@@ -82,17 +99,10 @@ struct SessionControlBar: View {
             .fixedSize(horizontal: true, vertical: false)
             .layoutPriority(3)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .background(
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .fill(Color.primary.opacity(0.04))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .strokeBorder(Color.primary.opacity(0.06), lineWidth: 1)
-        )
+        .padding(.vertical, 4)
     }
+
+    private var transportSize: CGFloat { readingMode ? 30 : (compact ? 40 : 48) }
 
     private var transportPrimary: some View {
         Button {
@@ -102,24 +112,24 @@ struct SessionControlBar: View {
             ZStack {
                 Circle()
                     .fill(Color.primary.opacity(0.07))
-                    .frame(width: 32, height: 32)
+                    .frame(width: transportSize, height: transportSize)
                 switch workspace.session.state {
                 case .idle, .ended:
                     Circle()
-                        .fill(Color.red)
-                        .frame(width: 12, height: 12)
+                        .fill(LFChrome.recordSignal)
+                        .frame(width: readingMode ? 11 : 16, height: readingMode ? 11 : 16)
                 case .running, .preparing:
                     Image(systemName: "pause.fill")
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(.system(size: readingMode ? 12 : 17, weight: .semibold))
                         .foregroundStyle(.primary)
                 case .paused:
                     Image(systemName: "play.fill")
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(.system(size: readingMode ? 12 : 17, weight: .semibold))
                         .foregroundStyle(.primary)
                         .offset(x: 1)
                 }
             }
-            .frame(width: 32, height: 32)
+            .frame(width: transportSize, height: transportSize)
         }
         .buttonStyle(.plain)
         .disabled(!active && !paused && (workspace.busy || workspace.lecture == nil))
@@ -135,12 +145,12 @@ struct SessionControlBar: View {
             ZStack {
                 Circle()
                     .strokeBorder(Color.primary.opacity(0.5), lineWidth: 2.5)
-                    .frame(width: 32, height: 32)
+                    .frame(width: transportSize, height: transportSize)
                 RoundedRectangle(cornerRadius: 3, style: .continuous)
-                    .fill(Color(red: 1.0, green: 0.42, blue: 0.18))
-                    .frame(width: 11, height: 11)
+                    .fill(LFChrome.recordSignal)
+                    .frame(width: readingMode ? 11 : 17, height: readingMode ? 11 : 17)
             }
-            .frame(width: 32, height: 32)
+            .frame(width: transportSize, height: transportSize)
         }
         .buttonStyle(.plain)
         .help("结束 Lecture；不会删除已有内容")
@@ -152,7 +162,9 @@ struct SessionControlBar: View {
     private var metaRow: some View {
         ViewThatFits(in: .horizontal) {
             HStack(alignment: .center, spacing: LFChrome.space8) {
-                statusCluster.fixedSize(horizontal: true, vertical: true)
+                if workspace.session.state != .ended {
+                    statusCluster.fixedSize(horizontal: true, vertical: true)
+                }
                 flexibleDetail
                 metaTools.layoutPriority(2)
             }
@@ -160,7 +172,9 @@ struct SessionControlBar: View {
 
             VStack(alignment: .leading, spacing: 6) {
                 HStack(alignment: .center, spacing: LFChrome.space8) {
+                    if workspace.session.state != .ended {
                     statusCluster.fixedSize(horizontal: true, vertical: true)
+                }
                     flexibleDetail
                 }
                 metaTools
@@ -184,9 +198,9 @@ struct SessionControlBar: View {
 
     private var flexibleDetail: some View {
         HStack(spacing: 6) {
-            Text("·")
-                .foregroundStyle(.tertiary)
-                .accessibilityHidden(true)
+            if workspace.session.state != .ended {
+                Text("·").foregroundStyle(.tertiary).accessibilityHidden(true)
+            }
             Text(audioHint)
                 .font(.system(size: LFChrome.captionSize))
                 .foregroundStyle(.secondary)
@@ -225,35 +239,44 @@ struct SessionControlBar: View {
         .fixedSize(horizontal: true, vertical: false)
     }
 
-    private var endedRow: some View {
+    private var endedSummary: some View {
         ViewThatFits(in: .horizontal) {
-            HStack(spacing: LFChrome.space8) {
-                endedStatusLabel
+            HStack(spacing: LFChrome.space12) {
+                savedSummary
                 Spacer(minLength: 8)
                 endedActions
             }
             VStack(alignment: .leading, spacing: LFChrome.space8) {
-                endedStatusLabel
-                endedActions
-                    .frame(maxWidth: .infinity, alignment: .trailing)
+                savedSummary
+                endedActions.frame(maxWidth: .infinity, alignment: .trailing)
             }
+        }
+    }
+
+    private var savedSummary: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            endedStatusLabel
+            Text("最近采集 " + clock(workspace.session.duration(at: ProcessInfo.processInfo.systemUptime)))
+                .font(.system(size: LFChrome.captionSize).monospacedDigit())
+                .foregroundStyle(.secondary)
         }
     }
 
     private var endedStatusLabel: some View {
         Label(
-            live.pendingSaves > 0 ? "正在写入资料库…" : "内容已保留",
-            systemImage: "checkmark.circle.fill"
+            live.pendingSaves > 0 ? "正在写入资料库…" : "采集已结束 · 内容已保留",
+            systemImage: live.pendingSaves > 0 ? "arrow.down.circle" : "checkmark.circle.fill"
         )
         .font(.system(size: LFChrome.captionSize))
-        .foregroundStyle(LFChrome.accent)
+        .foregroundStyle(live.pendingSaves > 0 ? LFChrome.accentInk : LFChrome.saved)
         .lineLimit(1)
         .fixedSize(horizontal: true, vertical: true)
     }
 
     private var endedActions: some View {
         HStack(spacing: LFChrome.space8) {
-            Button("继续录制") { workspace.primarySessionAction() }
+            Button(workspace.session.desired.recording ? "继续录制" : "继续字幕") { workspace.primarySessionAction() }
+                .disabled(workspace.busy || workspace.lecture == nil)
             if !showingAudio {
                 Button("查看录音") { workspace.requestedTab = "audio" }
                 Button("生成课后转写") { Task { await workspace.enqueue() } }
@@ -266,9 +289,9 @@ struct SessionControlBar: View {
     }
 
     private var statusColor: Color {
-        if active { return .red }
+        if active { return LFChrome.recordSignal }
         if paused { return .orange }
-        return LFChrome.accent.opacity(0.55)
+        return workspace.session.state == .ended ? LFChrome.saved : LFChrome.accentInk
     }
 
     private var status: String {
@@ -316,7 +339,7 @@ private struct RecordingWaveformStrip: View {
 
     var body: some View {
         GeometryReader { geo in
-            let count = max(16, Int((geo.size.width + barSpacing) / (barWidth + barSpacing)))
+            let count = max(16, min(128, Int((geo.size.width + barSpacing) / (barWidth + barSpacing))))
             let playheadX = geo.size.width * 0.78
             let heights = resampled(count: count)
 
@@ -334,7 +357,7 @@ private struct RecordingWaveformStrip: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
 
                 Capsule()
-                    .fill(Color(red: 1.0, green: 0.42, blue: 0.18))
+                    .fill(LFChrome.recordSignal)
                     .frame(width: 2, height: geo.size.height * 0.92)
                     .offset(x: playheadX - 1)
                     .accessibilityHidden(true)
@@ -342,7 +365,7 @@ private struct RecordingWaveformStrip: View {
             .onChange(of: count) { _, newCount in
                 resizeBuffer(to: newCount)
             }
-            .onAppear { resizeBuffer(to: count) }
+            .onAppear { latest = CGFloat(level); resizeBuffer(to: count) }
         }
         .clipped()
         .onChange(of: level) { _, newValue in
@@ -415,7 +438,7 @@ struct CaptureOptionsView: View {
                 Button { workspace.configureSession(preset.flags) } label: {
                     HStack {
                         Image(systemName: workspace.session.desired == preset.flags ? "checkmark.circle.fill" : "circle")
-                            .foregroundStyle(LFChrome.accent)
+                            .foregroundStyle(LFChrome.accentInk)
                         Text(preset.title)
                         Spacer()
                     }.padding(.vertical, 3)

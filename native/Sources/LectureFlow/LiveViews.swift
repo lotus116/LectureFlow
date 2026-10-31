@@ -61,7 +61,7 @@ struct LiveTranscriptView: View {
                                 VStack(alignment: .leading, spacing: 6) {
                                     Text(clock(caption.start))
                                         .font(.system(size: max(11, LFChrome.captionSize * (textSize / 15)), weight: .medium).monospacedDigit())
-                                        .foregroundStyle(LFChrome.accent.opacity(0.85))
+                                        .foregroundStyle(LFChrome.accentInk.opacity(0.85))
                                     // Main window: English above, Chinese below.
                                     if language != "zh", !caption.english.isEmpty {
                                         Text(caption.english)

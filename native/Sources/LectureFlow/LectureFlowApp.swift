@@ -1,4 +1,5 @@
 import AppKit
+import LectureFlowCore
 import SwiftUI
 import UniformTypeIdentifiers
 
@@ -129,6 +130,7 @@ struct LibraryView: View {
     @State private var textLanguage = "both"
     @State private var transcriptSource = "offline"
     @State private var captionsExpanded = false
+    @State private var collapsedCourses: Set<String> = []
     private var readingCaptions: Bool { captionsExpanded && tab == "transcript" && transcriptSource == "live" }
     @State private var editingUnit: Int?
     @State private var editEnglish = ""
@@ -163,7 +165,7 @@ struct LibraryView: View {
                             .font(.system(size: 13, weight: .semibold))
                         Text("本地课堂")
                             .font(.system(size: 10, weight: .medium))
-                            .foregroundStyle(LFChrome.accent)
+                            .foregroundStyle(LFChrome.accentInk)
                     }
                     Spacer(minLength: 0)
                 }
@@ -176,7 +178,13 @@ struct LibraryView: View {
                 // No List(selection:) — system blue highlight cannot be recolored reliably on macOS.
                 List {
                     ForEach(model.overview.courses) { course in
-                        Section {
+                        Section(isExpanded: Binding(
+                            get: { !collapsedCourses.contains(course.id) },
+                            set: { expanded in
+                                if expanded { collapsedCourses.remove(course.id) }
+                                else { collapsedCourses.insert(course.id) }
+                            }
+                        )) {
                             ForEach(course.lectures) { lecture in
                                 Button {
                                     model.selectLecture(lecture.id)
@@ -186,7 +194,7 @@ struct LibraryView: View {
                                         .contentShape(Rectangle())
                                 }
                                 .buttonStyle(.plain)
-                                .foregroundStyle(.primary)
+                                .foregroundStyle(model.selectedLecture == lecture.id ? LFChrome.accentInk : LFChrome.ink)
                                 .listRowBackground(lectureRowBackground(course.id, lectureID: lecture.id))
                                 .draggable("lectureflow-lecture:" + lecture.id)
                                 .dropDestination(for: String.self) { items, _ in
@@ -246,6 +254,7 @@ struct LibraryView: View {
                         .accessibilityLabel("设置")
                 }
                 .buttonStyle(.borderless)
+                .foregroundStyle(LFChrome.accentInk)
                 .controlSize(.small)
                 .padding(.horizontal, LFChrome.space12)
                 .padding(.vertical, 10)
@@ -480,12 +489,21 @@ struct LibraryView: View {
     @ViewBuilder
     private func courseHeader(_ course: Course) -> some View {
         HStack(spacing: LFChrome.space4) {
-            Label(course.name, systemImage: "folder.fill")
-                .font(.system(size: LFChrome.sectionSize, weight: .semibold))
-                .labelStyle(.titleAndIcon)
-                .symbolRenderingMode(.hierarchical)
-                .foregroundStyle(.primary)
-            Spacer(minLength: 0)
+            Button {
+                model.selectCourse(course.id)
+                model.selectLecture(nil)
+            } label: {
+                Label(course.name, systemImage: "folder.fill")
+                    .font(.system(size: LFChrome.sectionSize, weight: .semibold))
+                    .labelStyle(.titleAndIcon)
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(LFChrome.ink)
+                    .lineLimit(1)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .help(course.name)
         }
         .padding(.vertical, LFChrome.space4)
         .padding(.horizontal, LFChrome.space4)
@@ -499,10 +517,6 @@ struct LibraryView: View {
             RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .strokeBorder(dropCourseID == course.id ? LFChrome.dropStroke : .clear, lineWidth: 1.5)
         )
-        .onTapGesture {
-            model.selectCourse(course.id)
-            model.selectLecture(nil)
-        }
         .draggable("lectureflow-course:" + course.id)
         .dropDestination(for: String.self) { items, _ in
             acceptSidebarDrop(items, course: course, lecture: nil)
@@ -529,7 +543,7 @@ struct LibraryView: View {
         return RoundedRectangle(cornerRadius: 6, style: .continuous)
             .fill(
                 selected
-                    ? LFChrome.accent.opacity(0.28)
+                    ? LFChrome.selection
                     : (dropCourseID == courseID ? LFChrome.dropHighlight : Color.clear)
             )
             .padding(.horizontal, 2)
@@ -606,12 +620,18 @@ struct LibraryView: View {
     private func header(_ lecture: Lecture) -> some View {
         HStack(alignment: .center, spacing: LFChrome.space12) {
             VStack(alignment: .leading, spacing: 3) {
+                if let course = model.course {
+                    Text(course.name)
+                        .font(.system(size: LFChrome.captionSize))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
                 Text(lecture.title)
                     .font(.system(size: LFChrome.titleSize, weight: .semibold))
                     .lineLimit(1)
                     .truncationMode(.middle)
                     .help(lecture.title)
-                Text("\(lecture.segments.count) 段 · \(duration(lecture.segments.reduce(0) { $0 + $1.duration }))")
+                Text("\(lecture.segments.count) 段录音 · 共 \(duration(lecture.segments.reduce(0) { $0 + $1.duration }))")
                     .font(.system(size: LFChrome.captionSize))
                     .foregroundStyle(.secondary)
                     .monospacedDigit()
@@ -631,7 +651,7 @@ struct LibraryView: View {
                     headerActionLabel("课程资料", systemImage: "doc.richtext")
                 }
                 .buttonStyle(.borderless)
-                .foregroundStyle(LFChrome.accent)
+                .foregroundStyle(LFChrome.accentInk)
                 .controlSize(.small)
                 .help("课程资料")
             }
@@ -644,7 +664,7 @@ struct LibraryView: View {
                 )
             }
             .buttonStyle(.borderless)
-            .foregroundStyle(LFChrome.accent)
+            .foregroundStyle(LFChrome.accentInk)
             .controlSize(.small)
             .help(model.floatingSubtitlesVisible ? "隐藏悬浮字幕窗口" : "打开悬浮字幕窗口")
             .accessibilityLabel(model.floatingSubtitlesVisible ? "关闭悬浮字幕" : "悬浮字幕")
@@ -679,7 +699,7 @@ struct LibraryView: View {
             } label: {
                 Label("导入", systemImage: "plus")
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(.bordered)
             .tint(LFChrome.accent)
             .controlSize(.small)
             .disabled(model.busy)
@@ -756,7 +776,7 @@ struct LibraryView: View {
     private func audioList(_ lecture: Lecture) -> some View {
         VStack(alignment: .leading, spacing: LFChrome.space12) {
             HStack(spacing: LFChrome.space12) {
-                Text("录音段")
+                Text("录音段 · \(lecture.segments.count)")
                     .font(.system(size: LFChrome.sectionSize, weight: .semibold))
                     .foregroundStyle(.secondary)
                 Text("拖动可调整顺序")
@@ -787,9 +807,10 @@ struct LibraryView: View {
             } else {
                 List {
                     ForEach(Array(lecture.segments.enumerated()), id: \.element.id) { index, segment in
+                        let display = RecordingDisplay(originalName: segment.original_name, position: index)
                         LFListRow(
-                            title: displayName(segment.original_name),
-                            subtitle: duration(segment.duration)
+                            title: displayName(display.title),
+                            subtitle: display.subtitle(duration: duration(segment.duration))
                         ) {
                             HStack(spacing: LFChrome.space8) {
                                 Image(systemName: "line.3.horizontal")
@@ -804,7 +825,7 @@ struct LibraryView: View {
                                 Button { playback.play(segment) } label: {
                                     Image(systemName: playback.segmentID == segment.id ? "stop.fill" : "play.fill")
                                         .font(.system(size: 11, weight: .semibold))
-                                        .foregroundStyle(LFChrome.accent)
+                                        .foregroundStyle(LFChrome.accentInk)
                                         .frame(width: 28, height: 28)
                                         .background(LFChrome.iconWell, in: Circle())
                                 }
@@ -814,7 +835,7 @@ struct LibraryView: View {
                             }
                         } trailing: {
                             HStack(spacing: LFChrome.space8) {
-                                Button("仅转写此段") {
+                                Button("转写此段") {
                                     Task {
                                         await model.perform([
                                             "library", "enqueue", lecture.id, "--asr", model.model,
@@ -852,11 +873,11 @@ struct LibraryView: View {
                                 .accessibilityLabel("更多")
                             }
                         }
-                        .padding(.horizontal, LFChrome.space12)
-                        .padding(.vertical, LFChrome.space4)
-                        .background(LFChrome.cardBackground())
+                        .padding(.horizontal, LFChrome.space8)
                         .help(segment.original_name)
-                        .listRowInsets(EdgeInsets(top: 4, leading: 1, bottom: 4, trailing: 1))
+                        .listRowInsets(EdgeInsets(top: 2, leading: 1, bottom: 2, trailing: 1))
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.visible)
                         .draggable("lectureflow-segment:" + segment.id)
                         .dropDestination(for: String.self) { items, _ in
                             guard let item = items.first,
@@ -1015,7 +1036,7 @@ struct LibraryView: View {
                                     HStack(spacing: LFChrome.space8) {
                                         Text(clock(unit.logical_start))
                                             .font(.system(size: LFChrome.captionSize, weight: .medium).monospacedDigit())
-                                            .foregroundStyle(LFChrome.accent.opacity(0.85))
+                                            .foregroundStyle(LFChrome.accentInk.opacity(0.85))
                                         if unit.isEdited {
                                             Text(unit.englishEdited ? "英文已修改" : "已编辑")
                                                 .font(.system(size: LFChrome.captionSize))

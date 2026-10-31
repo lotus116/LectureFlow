@@ -34,7 +34,7 @@ struct CourseHomeView: View {
                         Label("课程资料", systemImage: "doc.richtext")
                     }
                     .buttonStyle(.borderless)
-                    .foregroundStyle(LFChrome.accent)
+                    .foregroundStyle(LFChrome.accentInk)
                     .help(termCount == 0 ? "管理课件与辅助术语" : "\(documentCount) 份资料 · \(termCount) 个术语")
                     .accessibilityLabel("课程资料，\(documentCount) 份")
                 }
