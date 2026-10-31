@@ -18,9 +18,13 @@ final class SubtitleWindow {
             panel.orderFrontRegardless()
             return
         }
-        let window = CaptionPanel(contentRect: NSRect(x: 260, y: 160, width: 680, height: 235),
+        // Compact default — grow vertically to reveal more recent captions.
+        let window = CaptionPanel(
+            contentRect: NSRect(x: 280, y: 180, width: 560, height: 108),
             styleMask: [.titled, .closable, .resizable, .nonactivatingPanel, .fullSizeContentView],
-            backing: .buffered, defer: false)
+            backing: .buffered,
+            defer: false
+        )
         window.title = "LectureFlow 字幕"
         window.level = .statusBar
         window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .ignoresCycle]
@@ -31,10 +35,16 @@ final class SubtitleWindow {
         window.isOpaque = false
         window.backgroundColor = .clear
         window.titlebarAppearsTransparent = true
-        window.contentMinSize = NSSize(width: 460, height: 150)
-        window.setFrameAutosaveName("LectureFlowSubtitles")
-        if !NSScreen.screens.contains(where: { $0.visibleFrame.intersects(window.frame) }) { window.center() }
-        window.contentView = NSHostingView(rootView: FloatingSubtitles(workspace: workspace, live: workspace.live))
+        window.contentMinSize = NSSize(width: 360, height: 88)
+        window.contentMaxSize = NSSize(width: 12_000, height: 900)
+        // v2 resets prior oversized autosave so the compact default applies once.
+        window.setFrameAutosaveName("LectureFlowSubtitles.v2")
+        if !NSScreen.screens.contains(where: { $0.visibleFrame.intersects(window.frame) }) {
+            window.center()
+        }
+        window.contentView = NSHostingView(
+            rootView: FloatingSubtitles(workspace: workspace, live: workspace.live)
+        )
         NotificationCenter.default.addObserver(
             forName: NSWindow.willCloseNotification, object: window, queue: .main
         ) { [weak self] _ in
@@ -56,109 +66,201 @@ final class SubtitleWindow {
 private struct FloatingSubtitles: View {
     @ObservedObject var workspace: Workspace
     @ObservedObject var live: LiveController
-    @AppStorage("subtitleSize") private var fontSize = 28.0
+    @AppStorage("subtitleSize") private var fontSize = 24.0
     @AppStorage("subtitleOpacity") private var opacity = 0.86
     @AppStorage("subtitleLanguage") private var language = "zh" // zh | both
     @AppStorage("autoFloatingSubtitles") private var automatic = true
     @State private var settings = false
     @State private var follow = true
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 10) {
-                Circle().fill(statusColor).frame(width: 6, height: 6)
-                Text(statusLabel).font(.caption.weight(.medium))
-                Spacer(minLength: 0)
-                if workspace.session.hasSession {
-                    Button(workspace.session.primaryTitle) {
-                        workspace.primarySessionAction()
-                    }
-                }
-                Button("返回主窗口") { workspace.showMainWindow() }
-                Button { settings.toggle() } label: { Image(systemName: "slider.horizontal.3") }
-                    .help("字号与显示")
-                    .popover(isPresented: $settings) {
-                        VStack(alignment: .leading, spacing: 14) {
-                            Picker("显示", selection: $language) {
-                                Text("仅中文").tag("zh")
-                                Text("双语").tag("both")
-                            }.pickerStyle(.segmented)
-                            Toggle("开始实时字幕时自动显示", isOn: $automatic)
-                            Text("字号 \(Int(fontSize))"); Slider(value: $fontSize, in: 18...64)
-                            Text("背景透明度"); Slider(value: $opacity, in: 0.2...1)
-                            Text("关闭本窗口只隐藏；结束 Lecture 请在主窗口操作。")
-                                .font(.caption).foregroundStyle(.secondary)
-                        }.padding(20).frame(width: 320)
-                    }
-                Button { workspace.hideSubtitles() } label: { Image(systemName: "eye.slash") }
-                    .help("隐藏悬浮字幕")
-            }.font(.caption).buttonStyle(.plain).foregroundStyle(.white.opacity(0.85))
+    private let chromeHeight: CGFloat = 28
+    private let maxVisibleCaptions = 6
 
-            ScrollViewReader { proxy in
-                ScrollView {
-                    if let caption = live.captions.last {
-                        VStack(alignment: .leading, spacing: 9) {
-                            if language != "en", !caption.chinese.isEmpty {
-                                Text(caption.chinese).font(.system(size: fontSize, weight: .medium)).lineSpacing(4)
-                            }
-                            if language == "both", !caption.english.isEmpty {
-                                Text(caption.english).font(.system(size: max(14, fontSize * 0.62)))
-                                    .foregroundStyle(.white.opacity(0.68))
-                            } else if language != "both", caption.chinese.isEmpty, !caption.english.isEmpty {
-                                Text(caption.english).font(.system(size: fontSize, weight: .medium))
-                            }
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .textSelection(.enabled)
-                        .id("latest")
-                        .animation(.easeOut(duration: 0.15), value: caption.revision)
-                    } else {
-                        Text(live.flags.needsASR ? "等待讲话…" : "字幕将显示在这里")
-                            .font(.system(size: fontSize, weight: .medium))
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .id("latest")
-                    }
-                }
-                .foregroundStyle(.white)
-                .simultaneousGesture(DragGesture().onChanged { _ in follow = false })
-                .onChange(of: live.captions.last?.revision) { _, _ in
-                    guard follow else { return }
-                    withAnimation { proxy.scrollTo("latest", anchor: .bottom) }
+    var body: some View {
+        GeometryReader { geo in
+            let visibleCount = captionCapacity(for: geo.size.height)
+            VStack(alignment: .leading, spacing: 4) {
+                toolbar
+                captionStack(visibleCount: visibleCount)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+            }
+            .padding(.horizontal, 12)
+            .padding(.top, 22)
+            .padding(.bottom, 6)
+            .frame(width: geo.size.width, height: geo.size.height, alignment: .topLeading)
+        }
+        .background(Color(red: 0.06, green: 0.08, blue: 0.12).opacity(opacity))
+        .preferredColorScheme(.dark)
+        .onChange(of: live.error) { _, value in if let value { workspace.error = value } }
+        .alert(
+            "操作未完成",
+            isPresented: Binding(
+                get: { workspace.error != nil },
+                set: { if !$0 { workspace.error = nil } }
+            )
+        ) {
+            Button("知道了") { workspace.error = nil; live.error = nil }
+        } message: {
+            Text(workspace.error ?? "")
+        }
+    }
+
+    private var toolbar: some View {
+        HStack(spacing: 8) {
+            Circle().fill(statusColor).frame(width: 5, height: 5)
+            Text(statusLabel)
+                .font(.system(size: 10, weight: .medium))
+                .lineLimit(1)
+            Text(footerLabel)
+                .font(.system(size: 10))
+                .foregroundStyle(.white.opacity(0.4))
+                .lineLimit(1)
+            Spacer(minLength: 4)
+            if workspace.session.hasSession {
+                Button(workspace.session.primaryTitle) {
+                    workspace.primarySessionAction()
                 }
             }
-
-            HStack {
-                Text(footerLabel)
-                Spacer()
-                if !follow {
-                    Button("返回最新") { follow = true }
+            if !follow {
+                Button("最新") { follow = true }
+            }
+            Button { settings.toggle() } label: {
+                Image(systemName: "slider.horizontal.3")
+            }
+            .help("字号与显示")
+            .popover(isPresented: $settings) {
+                VStack(alignment: .leading, spacing: 12) {
+                    Picker("显示", selection: $language) {
+                        Text("仅中文").tag("zh")
+                        Text("双语").tag("both")
+                    }.pickerStyle(.segmented)
+                    Toggle("开始实时字幕时自动显示", isOn: $automatic)
+                    Text("字号 \(Int(fontSize))")
+                    Slider(value: $fontSize, in: 16...56)
+                    Text("背景透明度")
+                    Slider(value: $opacity, in: 0.2...1)
+                    Text("拉高窗口可多看几句；默认约 1 句。")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
-            }.font(.system(size: 10)).foregroundStyle(.white.opacity(0.45))
-        }.padding(.horizontal, 20).padding(.top, 30).padding(.bottom, 12)
-            .background(Color(red: 0.06, green: 0.08, blue: 0.12).opacity(opacity))
-            .preferredColorScheme(.dark)
-            .onChange(of: live.error) { _, value in if let value { workspace.error = value } }
-            .alert("操作未完成", isPresented: Binding(get: { workspace.error != nil }, set: { if !$0 { workspace.error = nil } })) {
-                Button("知道了") { workspace.error = nil; live.error = nil }
-            } message: { Text(workspace.error ?? "") }
+                .padding(16)
+                .frame(width: 280)
+            }
+            Button("主窗口") { workspace.showMainWindow() }
+            Button { workspace.hideSubtitles() } label: {
+                Image(systemName: "eye.slash")
+            }
+            .help("隐藏悬浮字幕")
+        }
+        .font(.system(size: 10))
+        .buttonStyle(.plain)
+        .foregroundStyle(.white.opacity(0.88))
+        .frame(height: chromeHeight, alignment: .center)
     }
+
+    @ViewBuilder
+    private func captionStack(visibleCount: Int) -> some View {
+        let captions = Array(live.captions.suffix(visibleCount))
+        ScrollViewReader { proxy in
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: unitSpacing) {
+                    if captions.isEmpty {
+                        Text(live.flags.needsASR ? "等待讲话…" : "字幕将显示在这里")
+                            .font(.system(size: fontSize, weight: .medium))
+                            .foregroundStyle(.white.opacity(0.75))
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .id("latest")
+                    } else {
+                        ForEach(captions) { caption in
+                            captionBlock(caption)
+                                .id(caption.id)
+                        }
+                        Color.clear.frame(height: 1).id("latest")
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.vertical, 2)
+            }
+            .foregroundStyle(.white)
+            .scrollIndicators(.hidden)
+            .simultaneousGesture(DragGesture().onChanged { _ in follow = false })
+            .onChange(of: live.captions.last?.revision) { _, _ in
+                guard follow else { return }
+                withAnimation(.easeOut(duration: 0.12)) {
+                    proxy.scrollTo("latest", anchor: .bottom)
+                }
+            }
+            .onChange(of: visibleCount) { _, _ in
+                guard follow else { return }
+                proxy.scrollTo("latest", anchor: .bottom)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func captionBlock(_ caption: LiveCaption) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            if language != "en", !caption.chinese.isEmpty {
+                Text(caption.chinese)
+                    .font(.system(size: fontSize, weight: .medium))
+                    .lineSpacing(2)
+                    .lineLimit(language == "both" ? 3 : 4)
+            }
+            if language == "both", !caption.english.isEmpty {
+                Text(caption.english)
+                    .font(.system(size: max(12, fontSize * 0.58)))
+                    .foregroundStyle(.white.opacity(0.62))
+                    .lineSpacing(1)
+                    .lineLimit(2)
+            } else if language != "both", caption.chinese.isEmpty, !caption.english.isEmpty {
+                Text(caption.english)
+                    .font(.system(size: fontSize, weight: .medium))
+                    .lineSpacing(2)
+                    .lineLimit(4)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .textSelection(.enabled)
+        .opacity(caption.id == live.captions.last?.id ? 1 : 0.72)
+        .animation(.easeOut(duration: 0.12), value: caption.revision)
+    }
+
+    /// How many recent captions fit in the current panel height.
+    private func captionCapacity(for height: CGFloat) -> Int {
+        let usable = max(0, height - 22 - 6 - chromeHeight - 4)
+        let unit = estimatedUnitHeight
+        let count = Int(floor(usable / max(unit, 1)))
+        return min(maxVisibleCaptions, max(1, count))
+    }
+
+    private var estimatedUnitHeight: CGFloat {
+        let primary = fontSize * 1.28
+        if language == "both" {
+            return primary + max(12, fontSize * 0.58) * 1.15 + unitSpacing
+        }
+        return primary + unitSpacing
+    }
+
+    private var unitSpacing: CGFloat { 6 }
 
     private var statusColor: Color {
         if workspace.session.state == .paused { return .orange }
         if live.flags.needsMicrophone { return .mint }
         return .gray
     }
+
     private var statusLabel: String {
         if workspace.session.state == .paused { return "已暂停" }
         if live.flags.recording { return "录音中" }
-        if live.flags.needsASR { return "不保存音频" }
-        return "已隐藏采集"
+        if live.flags.needsASR { return "仅字幕" }
+        return "已停止"
     }
+
     private var footerLabel: String {
-        if live.flags.recording { return "● 录音保存中" }
+        if live.flags.recording { return "· 保存中" }
         if workspace.session.hasSession {
-            return workspace.session.desired.recording ? "录音已暂停，文件保留" : "不保存原始音频"
+            return workspace.session.desired.recording ? "· 已暂停" : "· 不保存音频"
         }
-        return "仅字幕模式不保存录音"
+        return "· 不保存录音"
     }
 }
