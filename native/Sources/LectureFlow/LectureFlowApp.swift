@@ -554,33 +554,55 @@ struct LibraryView: View {
                     .monospacedDigit()
             }
             Spacer(minLength: LFChrome.space8)
-            HStack(spacing: 6) {
+            HStack(spacing: LFChrome.space12) {
                 if let course = model.course {
-                    Button("课程资料") { materialsCourse = course }
-                        .buttonStyle(.borderless)
-                        .foregroundStyle(LFChrome.accent)
-                        .controlSize(.small)
+                    Button {
+                        materialsCourse = course
+                    } label: {
+                        Label("课程资料", systemImage: "doc.richtext")
+                    }
+                    .buttonStyle(.borderless)
+                    .foregroundStyle(LFChrome.accent)
+                    .controlSize(.small)
                 }
                 Button {
                     model.openSubtitles()
                 } label: {
-                    Image(systemName: "pip")
+                    Label("悬浮字幕", systemImage: "captions.bubble")
                 }
                 .buttonStyle(.borderless)
-                .help("悬浮字幕")
+                .foregroundStyle(LFChrome.accent)
+                .controlSize(.small)
+                .help("在独立窗口显示实时字幕")
                 .accessibilityLabel("悬浮字幕")
+
                 Menu {
-                    Button("仅显示字幕") { model.openSubtitles(hideMain: true) }
-                    Button("在 Finder 中打开") { NSWorkspace.shared.open(URL(fileURLWithPath: lecture.path)) }
-                    Button("恢复意外中断的录音") { Task { await model.perform(["library", "recover-recordings", lecture.id]) } }
-                } label: { Image(systemName: "ellipsis.circle") }
+                    Button("仅显示字幕窗口", systemImage: "pip") {
+                        model.openSubtitles(hideMain: true)
+                    }
+                    Button("在 Finder 中打开", systemImage: "folder") {
+                        NSWorkspace.shared.open(URL(fileURLWithPath: lecture.path))
+                    }
+                    Button("恢复意外中断的录音", systemImage: "arrow.clockwise") {
+                        Task { await model.perform(["library", "recover-recordings", lecture.id]) }
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                        .frame(width: 28, height: 28)
+                        .contentShape(Rectangle())
+                }
                 .menuStyle(.borderlessButton)
-                .frame(width: 22)
+                .help("更多操作")
                 .accessibilityLabel("更多")
-                Button { importing = true } label: {
+
+                Button {
+                    importing = true
+                } label: {
                     Label("导入", systemImage: "plus")
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(.borderedProminent)
                 .tint(LFChrome.accent)
                 .controlSize(.small)
                 .disabled(model.busy)
@@ -647,12 +669,17 @@ struct LibraryView: View {
 
     private func audioList(_ lecture: Lecture) -> some View {
         VStack(alignment: .leading, spacing: LFChrome.space12) {
-            HStack {
-                Text("拖动调整顺序")
-                    .font(.system(size: LFChrome.captionSize))
+            HStack(spacing: LFChrome.space12) {
+                Text("录音段")
+                    .font(.system(size: LFChrome.sectionSize, weight: .semibold))
                     .foregroundStyle(.secondary)
-                Spacer()
-                Toggle("中文翻译", isOn: $model.translate).toggleStyle(.checkbox)
+                Text("拖动可调整顺序")
+                    .font(.system(size: LFChrome.captionSize))
+                    .foregroundStyle(.tertiary)
+                Spacer(minLength: 0)
+                Toggle("中文翻译", isOn: $model.translate)
+                    .toggleStyle(.checkbox)
+                    .controlSize(.small)
                 Button("生成课后转写") {
                     tab = "transcript"
                     transcriptSource = "offline"
@@ -660,6 +687,7 @@ struct LibraryView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(LFChrome.accent)
+                .controlSize(.small)
                 .disabled(model.busy || lecture.segments.isEmpty)
             }
             if lecture.segments.isEmpty {
@@ -674,28 +702,32 @@ struct LibraryView: View {
                 List {
                     ForEach(Array(lecture.segments.enumerated()), id: \.element.id) { index, segment in
                         LFListRow(
-                            title: segment.original_name,
+                            title: displayName(segment.original_name),
                             subtitle: duration(segment.duration)
                         ) {
                             HStack(spacing: LFChrome.space8) {
                                 Image(systemName: "line.3.horizontal")
-                                    .foregroundStyle(.tertiary)
-                                    .font(.caption)
+                                    .font(.system(size: 11, weight: .medium))
+                                    .foregroundStyle(.quaternary)
+                                    .frame(width: 12)
+                                    .accessibilityHidden(true)
                                 Text(String(format: "%02d", index + 1))
-                                    .font(.system(size: LFChrome.captionSize).monospacedDigit())
+                                    .font(.system(size: LFChrome.captionSize, weight: .medium).monospacedDigit())
                                     .foregroundStyle(.secondary)
-                                    .frame(width: 22, alignment: .trailing)
+                                    .frame(width: 20, alignment: .trailing)
                                 Button { playback.play(segment) } label: {
-                                    Image(systemName: playback.segmentID == segment.id ? "stop.circle.fill" : "play.circle.fill")
-                                        .font(.title3)
+                                    Image(systemName: playback.segmentID == segment.id ? "stop.fill" : "play.fill")
+                                        .font(.system(size: 11, weight: .semibold))
                                         .foregroundStyle(LFChrome.accent)
+                                        .frame(width: 28, height: 28)
+                                        .background(LFChrome.iconWell, in: Circle())
                                 }
                                 .buttonStyle(.plain)
-                                .help("播放／停止")
+                                .help(segment.original_name)
                                 .accessibilityLabel(playback.segmentID == segment.id ? "停止播放" : "播放")
                             }
                         } trailing: {
-                            HStack(spacing: LFChrome.space4) {
+                            HStack(spacing: LFChrome.space8) {
                                 Button("仅转写此段") {
                                     Task {
                                         await model.perform([
@@ -707,25 +739,32 @@ struct LibraryView: View {
                                 .disabled(model.busy)
                                 .controlSize(.small)
                                 Menu {
-                                    Button("导出录音") {
+                                    Button("导出录音", systemImage: "square.and.arrow.up") {
                                         Task {
                                             do { try await playback.export(segment) }
                                             catch { model.error = error.localizedDescription }
                                         }
                                     }
                                     Divider()
-                                    Button("移入废纸篓", role: .destructive) {
+                                    Button("移入废纸篓", systemImage: "trash", role: .destructive) {
                                         archiving = ArchiveTarget(
                                             kind: "segment", id: segment.id, name: segment.original_name
                                         )
                                     }
-                                } label: { Image(systemName: "ellipsis.circle") }
+                                } label: {
+                                    Image(systemName: "ellipsis")
+                                        .font(.system(size: 12, weight: .semibold))
+                                        .foregroundStyle(.secondary)
+                                        .frame(width: 28, height: 28)
+                                        .contentShape(Rectangle())
+                                }
                                 .menuStyle(.borderlessButton)
-                                .frame(width: 22)
+                                .help("更多")
                                 .accessibilityLabel("更多")
                             }
                         }
-                        .listRowInsets(EdgeInsets(top: 4, leading: 4, bottom: 4, trailing: 4))
+                        .help(segment.original_name)
+                        .listRowInsets(EdgeInsets(top: 6, leading: 4, bottom: 6, trailing: 4))
                         .draggable("lectureflow-segment:" + segment.id)
                         .dropDestination(for: String.self) { items, _ in
                             guard let item = items.first,
@@ -870,9 +909,15 @@ struct LibraryView: View {
                                                     parts.joined(separator: "\n"), forType: .string
                                                 )
                                             }
-                                        } label: { Image(systemName: "ellipsis.circle") }
+                                        } label: {
+                                            Image(systemName: "ellipsis")
+                                                .font(.system(size: 12, weight: .semibold))
+                                                .foregroundStyle(.secondary)
+                                                .frame(width: 28, height: 28)
+                                                .contentShape(Rectangle())
+                                        }
                                         .menuStyle(.borderlessButton)
-                                        .frame(width: 22)
+                                        .help("段落操作")
                                         .accessibilityLabel("段落操作")
                                     }
                                     // Main window: English above, Chinese below (product design).
@@ -916,6 +961,18 @@ struct LibraryView: View {
                 transcriptSource = value == "live" ? "live" : "offline"
             }
         }
+    }
+
+    /// Soften UUID-heavy import names in the list; full name stays in help.
+    private func displayName(_ name: String) -> String {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.count > 42 else { return trimmed }
+        let ext = (trimmed as NSString).pathExtension
+        let stem = (trimmed as NSString).deletingPathExtension
+        let head = String(stem.prefix(12))
+        let tail = String(stem.suffix(10))
+        if ext.isEmpty { return "\(head)…\(tail)" }
+        return "\(head)…\(tail).\(ext)"
     }
 
     private func duration(_ seconds: Double) -> String {

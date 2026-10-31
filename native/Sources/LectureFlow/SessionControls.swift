@@ -38,8 +38,15 @@ struct SessionControlBar: View {
                 Spacer(minLength: LFChrome.space8)
 
                 HStack(spacing: LFChrome.space8) {
-                    Button(workspace.session.primaryTitle, systemImage: active ? "pause.fill" : "record.circle.fill") {
+                    Button {
                         workspace.primarySessionAction()
+                    } label: {
+                        Label {
+                            Text(workspace.session.primaryTitle)
+                        } icon: {
+                            Image(systemName: active ? "pause.fill" : "record.circle")
+                                .symbolRenderingMode(.monochrome)
+                        }
                     }
                     .buttonStyle(.borderedProminent)
                     .controlSize(.large)
