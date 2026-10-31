@@ -109,8 +109,9 @@ struct MaterialsView: View {
                 } label: { Image(systemName: "ellipsis") }.menuStyle(.borderlessButton).frame(width: 24)
                 Button("导入课件", systemImage: "plus") { importing = true }.disabled(working)
             }
-            Text("资料归属本课程，所有 Lecture 共享。自动提取并启用轻量术语，只在相关时辅助识别与翻译；人工修改优先。")
-                .font(.caption).foregroundStyle(.secondary)
+            Text("本课程共享 · 自动术语，相关时辅助识别与翻译")
+                .font(.system(size: LFChrome.captionSize))
+                .foregroundStyle(.secondary)
             if working { HStack { ProgressView().controlSize(.mini); Text(progress) }.font(.caption) }
             HSplitView {
                 VStack(spacing: 0) {
@@ -189,9 +190,9 @@ struct MaterialsView: View {
                     EmptyPanel(
                         title: "可选：导入课程资料",
                         systemImage: "doc.text.magnifyingglass",
-                        description: "不导入也能录音与转写。导入后自动维护轻量术语，辅助本课程识别与翻译。"
+                        description: "不导入也能录音与转写。导入后自动维护轻量术语。"
                     )
-                    .frame(minHeight: 280)
+                    .frame(minHeight: 240)
                 }
                 ForEach(scopedDocuments) { document in
                     VStack(alignment: .leading, spacing: 8) {
@@ -209,10 +210,10 @@ struct MaterialsView: View {
                         }
                         if document.outline.count > 80 { Text("其余页面可在提取文字中查看").font(.caption).foregroundStyle(.secondary) }
                     }
-                    .padding(12)
-                    .background(LFChrome.cardBackground())
+                    .padding(.vertical, LFChrome.space12)
+                    Divider().opacity(0.5)
                 }
-            }.padding(.vertical, 4)
+            }.padding(.vertical, LFChrome.space4)
         }
     }
 

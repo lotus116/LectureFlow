@@ -1,5 +1,4 @@
 import SwiftUI
-import UniformTypeIdentifiers
 
 struct CourseHomeView: View {
     @ObservedObject var workspace: Workspace
@@ -12,67 +11,89 @@ struct CourseHomeView: View {
     @State private var termCount = 0
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            HStack(alignment: .firstTextBaseline) {
-                VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: LFChrome.space24) {
+            HStack(alignment: .firstTextBaseline, spacing: LFChrome.space16) {
+                VStack(alignment: .leading, spacing: LFChrome.space4) {
                     Text(course.name)
-                        .font(.system(size: 26, weight: .semibold, design: .rounded))
+                        .font(.system(size: LFChrome.titleSize, weight: .semibold))
+                        .lineLimit(2)
+                        .help(course.name)
                     Text("\(course.lectures.count) 个 Lecture")
-                        .font(.caption)
+                        .font(.system(size: LFChrome.captionSize))
                         .foregroundStyle(.secondary)
                 }
-                Spacer()
+                Spacer(minLength: LFChrome.space8)
                 Button {
                     onOpenMaterials()
                 } label: {
-                    Label("课程资料 · \(documentCount) 份", systemImage: "doc.richtext")
+                    Label("课程资料 · \(documentCount)", systemImage: "doc.richtext")
                 }
                 .buttonStyle(.bordered)
+                .controlSize(.regular)
                 .help(termCount == 0 ? "管理课件与辅助术语" : "\(termCount) 个辅助术语")
+                .accessibilityLabel("课程资料，\(documentCount) 份")
             }
 
-            HStack(spacing: 10) {
+            HStack(spacing: LFChrome.space8) {
                 Button("开始新 Lecture", systemImage: "record.circle") { onStartNew() }
                     .buttonStyle(.borderedProminent)
+                    .tint(LFChrome.accent)
+                    .controlSize(.large)
+                    .accessibilityHint("创建 Lecture 并开始采集")
                 Button("新建 Lecture") { onCreateLecture() }
+                    .controlSize(.regular)
                 Button("导入已有录音") { onImportAudio() }
-                Spacer()
+                    .controlSize(.regular)
+                Spacer(minLength: 0)
             }
 
-            Text("记录方式：\(workspace.session.modeTitle)（开始前可在 Lecture 内更改）")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            Text(workspace.session.modeTitle)
+                .font(.system(size: LFChrome.captionSize))
+                .foregroundStyle(.tertiary)
+                .accessibilityLabel("记录方式：\(workspace.session.modeTitle)")
 
             if course.lectures.isEmpty {
                 EmptyPanel(
                     title: "还没有 Lecture",
                     systemImage: "waveform",
-                    description: "开始新 Lecture 会自动创建并启动采集；新建只建空 Lecture；导入录音不会在取消时留下空记录。"
+                    description: "开始新 Lecture 会创建并启动采集；新建只建空记录；取消导入不会留下空项。",
+                    actionTitle: "开始新 Lecture",
+                    action: onStartNew
                 )
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                List {
-                    ForEach(course.lectures) { lecture in
-                        Button {
-                            workspace.selectCourse(course.id)
-                            workspace.selectLecture(lecture.id)
-                        } label: {
-                            HStack {
-                                Label(lecture.title, systemImage: "waveform")
-                                Spacer()
-                                Text("\(lecture.segments.count) 段")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: LFChrome.space8) {
+                    LFSectionLabel(text: "Lecture")
+                    List {
+                        ForEach(course.lectures) { lecture in
+                            Button {
+                                workspace.selectCourse(course.id)
+                                workspace.selectLecture(lecture.id)
+                            } label: {
+                                LFListRow(
+                                    title: lecture.title,
+                                    subtitle: "\(lecture.segments.count) 段录音"
+                                ) {
+                                    Image(systemName: "waveform")
+                                        .foregroundStyle(LFChrome.accent)
+                                        .frame(width: 20)
+                                } trailing: {
+                                    Image(systemName: "chevron.right")
+                                        .font(.caption.weight(.semibold))
+                                        .foregroundStyle(.tertiary)
+                                }
                             }
+                            .buttonStyle(.plain)
+                            .listRowInsets(EdgeInsets(top: 2, leading: 4, bottom: 2, trailing: 4))
+                            .listRowSeparator(.visible, edges: .bottom)
                         }
-                        .buttonStyle(.plain)
                     }
+                    .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
-                .listStyle(.inset)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .padding(20)
+        .lfContentPadding()
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .task(id: course.id) { await loadCounts() }
         .onChange(of: workspace.overview.courses.map(\.id)) { _, _ in Task { await loadCounts() } }
@@ -80,7 +101,10 @@ struct CourseHomeView: View {
 
     private func loadCounts() async {
         do {
-            let loaded = try JSONDecoder().decode(MaterialList.self, from: await workspace.backend.call(["materials", "list", "course", course.id]))
+            let loaded = try JSONDecoder().decode(
+                MaterialList.self,
+                from: await workspace.backend.call(["materials", "list", "course", course.id])
+            )
             documentCount = loaded.documents.count
             termCount = loaded.terms.filter { $0.excluded == 0 }.count
         } catch {

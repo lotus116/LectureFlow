@@ -50,37 +50,43 @@ struct LiveTranscriptView: View {
                         DispatchQueue.main.async { withAnimation { proxy.scrollTo("latest-caption", anchor: .bottom) } }
                     }
                 }
-                Text(follow ? "跟随最新 · 临时字幕会更新，最近几句可修订" : "正在查看历史 · 点击“返回最新”继续跟随")
-                    .font(.caption).foregroundStyle(.secondary)
+                Text(follow ? "跟随最新" : "已停止跟随 · 点“返回最新”继续")
+                    .font(.system(size: LFChrome.captionSize))
+                    .foregroundStyle(.secondary)
                 if live.captions.isEmpty {
                     EmptyPanel(
-                        title: "等待课堂讲话",
+                        title: "等待讲话",
                         systemImage: "waveform",
-                        description: "开启英文转写或中文翻译后，字幕会出现在这里。"
+                        description: "开启字幕后，实时内容会出现在这里。"
                     )
                 } else {
                     ScrollView {
-                        LazyVStack(alignment: .leading, spacing: 20) {
+                        LazyVStack(alignment: .leading, spacing: LFChrome.space24) {
                             ForEach(visible) { caption in
-                                VStack(alignment: .leading, spacing: 8) {
-                                    HStack {
-                                        Text(clock(caption.start)).monospacedDigit()
-                                        Text(label(caption.status))
-                                    }.font(.caption).foregroundStyle(.secondary)
-                                    if language != "en" && !caption.chinese.isEmpty {
-                                        Text(caption.chinese).font(.title3).lineSpacing(4)
+                                VStack(alignment: .leading, spacing: LFChrome.space8) {
+                                    Text(clock(caption.start))
+                                        .font(.system(size: LFChrome.captionSize).monospacedDigit())
+                                        .foregroundStyle(.secondary)
+                                    // Main window: English above, Chinese below.
+                                    if language != "zh", !caption.english.isEmpty {
+                                        Text(caption.english)
+                                            .font(.system(size: LFChrome.transcriptEN))
+                                            .lineSpacing(5)
                                     }
-                                    if language != "zh" && !caption.english.isEmpty {
-                                        Text(caption.english).foregroundStyle(.secondary)
+                                    if language != "en", !caption.chinese.isEmpty {
+                                        Text(caption.chinese)
+                                            .font(.system(size: LFChrome.transcriptZH))
+                                            .foregroundStyle(.secondary)
+                                            .lineSpacing(5)
                                     }
                                 }
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .textSelection(.enabled)
                                 .id(caption.id)
-                                Divider()
+                                Divider().opacity(0.5)
                             }
                             Color.clear.frame(height: 1).id("latest-caption")
-                        }.padding(.vertical, 8)
+                        }.padding(.vertical, LFChrome.space8)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(ScrollActivityObserver { follow = false })

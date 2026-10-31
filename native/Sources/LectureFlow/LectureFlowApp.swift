@@ -165,43 +165,39 @@ struct LibraryView: View {
             }
             .listStyle(.sidebar)
             .safeAreaInset(edge: .top) {
-                HStack(spacing: 10) {
+                HStack(spacing: LFChrome.space8) {
                     Image(nsImage: NSApp.applicationIconImage)
                         .resizable()
-                        .frame(width: 34, height: 34)
-                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                        .shadow(color: .black.opacity(0.08), radius: 3, y: 1)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("LectureFlow")
-                            .font(.system(.headline, design: .rounded, weight: .semibold))
-                        Text("本地课程与 Lecture")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                    }
+                        .frame(width: 28, height: 28)
+                        .clipShape(RoundedRectangle(cornerRadius: LFChrome.radiusS, style: .continuous))
+                    Text("LectureFlow")
+                        .font(.system(size: 13, weight: .semibold))
                     Spacer(minLength: 0)
                 }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 12)
-                .background(.bar.opacity(0.65))
+                .padding(.horizontal, LFChrome.space12)
+                .padding(.vertical, LFChrome.space8)
             }
             .safeAreaInset(edge: .bottom) {
-                HStack(spacing: 8) {
+                HStack(spacing: LFChrome.space8) {
                     Button { newName = ""; form = "course" } label: {
                         Label("新建课程", systemImage: "folder.badge.plus")
                     }
                     Spacer()
                     Button { showTrash = true } label: { Image(systemName: "trash") }
                         .help("废纸篓")
+                        .accessibilityLabel("废纸篓")
                     Button { openSettings() } label: { Image(systemName: "gearshape") }
-                        .help("模型、麦克风与显示设置")
+                        .help("设置")
+                        .accessibilityLabel("设置")
                 }
                 .buttonStyle(.borderless)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 10)
+                .controlSize(.small)
+                .padding(.horizontal, LFChrome.space12)
+                .padding(.vertical, LFChrome.space8)
             }
         } detail: {
             if let lecture = model.lecture {
-                VStack(alignment: .leading, spacing: 14) {
+                VStack(alignment: .leading, spacing: LFChrome.space16) {
                     header(lecture)
                     modelDownloadBanner
                     LiveControlView(workspace: model, live: model.live, lecture: lecture)
@@ -212,6 +208,7 @@ struct LibraryView: View {
                     .pickerStyle(.segmented)
                     .labelsHidden()
                     .controlSize(.regular)
+                    .frame(maxWidth: 220)
                     if tab == "audio" || tab == "transcript", let task = model.activeTask { taskView(task) }
                     Group {
                         if tab == "audio" { audioList(lecture) }
@@ -220,7 +217,7 @@ struct LibraryView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                .padding(20)
+                .lfContentPadding()
                 .id(lecture.id)
                 .dropDestination(for: URL.self) { urls, _ in
                     let audio = urls.filter { ["m4a", "mp3", "wav", "flac"].contains($0.pathExtension.lowercased()) }
@@ -240,29 +237,28 @@ struct LibraryView: View {
                     )
                 }
             } else {
-                VStack(spacing: 18) {
-                    Image(systemName: "waveform.circle.fill")
-                        .font(.system(size: 56, weight: .light))
-                        .symbolRenderingMode(.hierarchical)
-                        .foregroundStyle(LFChrome.accent)
+                VStack(spacing: LFChrome.space16) {
+                    Image(nsImage: NSApp.applicationIconImage)
+                        .resizable()
+                        .frame(width: 72, height: 72)
+                        .clipShape(RoundedRectangle(cornerRadius: LFChrome.radiusL, style: .continuous))
                     Text("把每一堂课，留在本地")
-                        .font(.system(.largeTitle, design: .rounded, weight: .bold))
-                    Text("1. 新建课程\n2. 开始 Lecture 或导入录音\n3. 可选：加入课程资料辅助识别与翻译")
-                        .font(.body)
-                        .lineSpacing(8)
+                        .font(.system(size: LFChrome.titleSize, weight: .semibold))
+                    Text("新建课程后即可开始 Lecture，或导入已有录音。课件资料可选。")
+                        .font(.system(size: LFChrome.bodySize))
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
-                    HStack(spacing: 10) {
+                        .frame(maxWidth: 360)
+                    HStack(spacing: LFChrome.space8) {
                         Button("新建课程") { newName = ""; form = "course" }
                             .buttonStyle(.borderedProminent)
-                            .controlSize(.regular)
-                        Button("模型设置") { openSettings() }
-                            .controlSize(.regular)
+                            .tint(LFChrome.accent)
+                        Button("设置") { openSettings() }
                     }
-                    modelDownloadBanner.frame(maxWidth: 520)
+                    modelDownloadBanner.frame(maxWidth: 480)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .padding(28)
+                .lfContentPadding()
             }
         }
         .fileImporter(isPresented: $importing, allowedContentTypes: [.audio],
@@ -398,15 +394,16 @@ struct LibraryView: View {
 
     @ViewBuilder
     private func courseHeader(_ course: Course) -> some View {
-        HStack(spacing: 6) {
+        HStack(spacing: LFChrome.space4) {
             Label(course.name, systemImage: "folder.fill")
-                .font(.subheadline.weight(.semibold))
+                .font(.system(size: LFChrome.sectionSize, weight: .semibold))
                 .labelStyle(.titleAndIcon)
                 .symbolRenderingMode(.hierarchical)
+                .foregroundStyle(.primary)
             Spacer(minLength: 0)
         }
-        .padding(.vertical, 6)
-        .padding(.horizontal, 6)
+        .padding(.vertical, LFChrome.space4)
+        .padding(.horizontal, LFChrome.space4)
         .frame(maxWidth: .infinity, alignment: .leading)
         .contentShape(Rectangle())
         .background(
@@ -511,22 +508,27 @@ struct LibraryView: View {
     }
 
     private func header(_ lecture: Lecture) -> some View {
-        HStack(alignment: .center, spacing: 10) {
-            VStack(alignment: .leading, spacing: 4) {
+        HStack(alignment: .center, spacing: LFChrome.space8) {
+            VStack(alignment: .leading, spacing: 2) {
                 Text(lecture.title)
-                    .font(.system(size: 23, weight: .semibold, design: .rounded))
+                    .font(.system(size: 22, weight: .semibold))
                     .lineLimit(1)
-                Text("\(lecture.segments.count) 段录音 · \(duration(lecture.segments.reduce(0) { $0 + $1.duration }))")
-                    .font(.caption)
+                    .truncationMode(.middle)
+                    .help(lecture.title)
+                Text("\(lecture.segments.count) 段 · \(duration(lecture.segments.reduce(0) { $0 + $1.duration }))")
+                    .font(.system(size: LFChrome.captionSize))
                     .foregroundStyle(.secondary)
             }
-            Spacer(minLength: 8)
+            Spacer(minLength: LFChrome.space8)
             if let course = model.course {
                 Button("课程资料") { materialsCourse = course }
                     .buttonStyle(.bordered)
+                    .controlSize(.regular)
             }
             Button("悬浮字幕", systemImage: "pip") { model.openSubtitles() }
                 .buttonStyle(.bordered)
+                .controlSize(.regular)
+                .help("显示悬浮字幕")
             Menu {
                 Button("仅显示字幕") { model.openSubtitles(hideMain: true) }
                 Button("在 Finder 中打开") { NSWorkspace.shared.open(URL(fileURLWithPath: lecture.path)) }
@@ -534,36 +536,45 @@ struct LibraryView: View {
             } label: { Image(systemName: "ellipsis.circle") }
             .menuStyle(.borderlessButton)
             .frame(width: 24)
+            .accessibilityLabel("更多")
             Button { importing = true } label: {
                 Label("导入录音", systemImage: "plus")
             }
             .buttonStyle(.borderedProminent)
+            .tint(LFChrome.accent)
             .disabled(model.busy)
         }
     }
 
     private func taskView(_ task: WorkTask) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                Image(systemName: task.state == "completed" ? "checkmark.circle" : "waveform")
-                Text(task.label).fontWeight(.medium)
-                Text(task.scopeLabel).font(.caption).foregroundStyle(.secondary)
-                if let count = task.material_count, count > 0 {
-                    Text("参考课件 \(count) 份").font(.caption).foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: LFChrome.space4) {
+            HStack(spacing: LFChrome.space8) {
+                Image(systemName: task.state == "completed" ? "checkmark.circle.fill" : "waveform")
+                    .foregroundStyle(task.state == "completed" ? .secondary : LFChrome.accent)
+                Text(task.label)
+                    .font(.system(size: LFChrome.bodySize, weight: .medium))
+                Text(task.scopeLabel)
+                    .font(.system(size: LFChrome.captionSize))
+                    .foregroundStyle(.secondary)
+                if task.stale != 0 {
+                    Text("录音已变化")
+                        .font(.system(size: LFChrome.captionSize))
+                        .foregroundStyle(.orange)
                 }
-                if task.stale != 0 { Text("素材已变动，需要更新").foregroundStyle(.orange) }
                 Spacer()
-                Text("\(task.next_unit) / \(task.total_units)").monospacedDigit().foregroundStyle(.secondary)
+                Text("\(task.next_unit)/\(task.total_units)")
+                    .font(.system(size: LFChrome.captionSize).monospacedDigit())
+                    .foregroundStyle(.secondary)
                 if ["running", "queued"].contains(task.state) {
-                    Button("暂停") {
-                        Task { await model.perform(["library", "task", task.id, "pause"]) }
-                    }
+                    Button("暂停") { Task { await model.perform(["library", "task", task.id, "pause"]) } }
                 }
                 if task.state == "paused" || task.state == "failed" {
                     Button(task.state == "paused" ? "继续" : "重试") {
-                        Task { await model.perform([
-                            "library", "task", task.id, task.state == "paused" ? "resume" : "retry"
-                        ]) }
+                        Task {
+                            await model.perform([
+                                "library", "task", task.id, task.state == "paused" ? "resume" : "retry"
+                            ])
+                        }
                     }
                 }
                 if ["running", "queued", "paused", "failed"].contains(task.state) {
@@ -571,79 +582,108 @@ struct LibraryView: View {
                 }
                 Button("导出") { Task { await model.export() } }.disabled(task.next_unit == 0)
             }
+            .controlSize(.small)
             if task.state != "completed" { ProgressView(value: task.fraction).controlSize(.mini) }
-            if let error = task.error { Text(error).font(.caption).foregroundStyle(.red) }
+            if let error = task.error {
+                Text(error).font(.system(size: LFChrome.captionSize)).foregroundStyle(.red)
+            }
             if let tasks = model.lecture?.tasks, tasks.count > 1 {
                 Picker("转写版本", selection: Binding(
                     get: { model.selectedVersion ?? tasks[0].version_id },
                     set: { model.selectedVersion = $0; Task { await model.refresh() } }
                 )) {
                     ForEach(Array(tasks.enumerated()), id: \.element.id) { index, item in
-                        Text("版本 \(tasks.count - index) · \(item.scopeLabel) · \(item.modelLabel) · \(item.label)")
+                        Text("版本 \(tasks.count - index) · \(item.label)")
                             .tag(item.version_id)
                     }
-                }.frame(maxWidth: 330)
+                }
+                .frame(maxWidth: 280)
             }
         }
-        .font(.callout)
-        .lfCardPadding()
+        .padding(.vertical, LFChrome.space4)
     }
 
     private func audioList(_ lecture: Lecture) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: LFChrome.space12) {
             HStack {
-                Text("按下列顺序处理，可拖动调整")
-                    .font(.callout)
+                Text("拖动调整顺序")
+                    .font(.system(size: LFChrome.captionSize))
                     .foregroundStyle(.secondary)
                 Spacer()
                 Toggle("中文翻译", isOn: $model.translate).toggleStyle(.checkbox)
                 Button("生成课后转写") {
                     tab = "transcript"
+                    transcriptSource = "offline"
                     Task { await model.enqueue() }
                 }
                 .buttonStyle(.borderedProminent)
+                .tint(LFChrome.accent)
                 .disabled(model.busy || lecture.segments.isEmpty)
             }
-            ScrollView {
-                LazyVStack(spacing: 8) {
+            if lecture.segments.isEmpty {
+                EmptyPanel(
+                    title: "还没有录音",
+                    systemImage: "waveform",
+                    description: "开始采集，或导入已有音频文件。",
+                    actionTitle: "导入录音",
+                    action: { importing = true }
+                )
+            } else {
+                List {
                     ForEach(Array(lecture.segments.enumerated()), id: \.element.id) { index, segment in
-                        HStack(spacing: 14) {
-                            Image(systemName: "line.3.horizontal").foregroundStyle(.tertiary)
-                            Text(String(format: "%02d", index + 1)).monospacedDigit().foregroundStyle(.secondary)
-                            Button { playback.play(segment) } label: {
-                                Image(systemName: playback.segmentID == segment.id ? "stop.circle.fill" : "play.circle")
-                                    .font(.title2)
-                                    .foregroundStyle(LFChrome.accent)
+                        LFListRow(
+                            title: segment.original_name,
+                            subtitle: duration(segment.duration)
+                        ) {
+                            HStack(spacing: LFChrome.space8) {
+                                Image(systemName: "line.3.horizontal")
+                                    .foregroundStyle(.tertiary)
+                                    .font(.caption)
+                                Text(String(format: "%02d", index + 1))
+                                    .font(.system(size: LFChrome.captionSize).monospacedDigit())
+                                    .foregroundStyle(.secondary)
+                                    .frame(width: 22, alignment: .trailing)
+                                Button { playback.play(segment) } label: {
+                                    Image(systemName: playback.segmentID == segment.id ? "stop.circle.fill" : "play.circle.fill")
+                                        .font(.title3)
+                                        .foregroundStyle(LFChrome.accent)
+                                }
+                                .buttonStyle(.plain)
+                                .help("播放／停止")
+                                .accessibilityLabel(playback.segmentID == segment.id ? "停止播放" : "播放")
                             }
-                            .buttonStyle(.plain)
-                            .help("播放／停止录音")
-                            VStack(alignment: .leading, spacing: 5) {
-                                Text(segment.original_name).fontWeight(.medium)
-                                Text(duration(segment.duration)).font(.caption).foregroundStyle(.secondary)
+                        } trailing: {
+                            HStack(spacing: LFChrome.space4) {
+                                Button("仅转写此段") {
+                                    Task {
+                                        await model.perform([
+                                            "library", "enqueue", lecture.id, "--asr", model.model,
+                                            "--segment", segment.id
+                                        ] + (model.translate ? [] : ["--no-translation"]))
+                                    }
+                                }
+                                .disabled(model.busy)
+                                .controlSize(.small)
+                                Menu {
+                                    Button("导出录音") {
+                                        Task {
+                                            do { try await playback.export(segment) }
+                                            catch { model.error = error.localizedDescription }
+                                        }
+                                    }
+                                    Divider()
+                                    Button("移入废纸篓", role: .destructive) {
+                                        archiving = ArchiveTarget(
+                                            kind: "segment", id: segment.id, name: segment.original_name
+                                        )
+                                    }
+                                } label: { Image(systemName: "ellipsis.circle") }
+                                .menuStyle(.borderlessButton)
+                                .frame(width: 22)
+                                .accessibilityLabel("更多")
                             }
-                            Spacer()
-                            Button("仅转写此段") {
-                                Task {
-                                    await model.perform([
-                                        "library", "enqueue", lecture.id, "--asr", model.model,
-                                        "--segment", segment.id
-                                    ] + (model.translate ? [] : ["--no-translation"]))
-                                }
-                            }.disabled(model.busy)
-                            Menu {
-                                Button("导出录音") {
-                                    Task { do { try await playback.export(segment) } catch { model.error = error.localizedDescription } }
-                                }
-                                Divider()
-                                Button("移入废纸篓", role: .destructive) {
-                                    archiving = ArchiveTarget(kind: "segment", id: segment.id, name: segment.original_name)
-                                }
-                            } label: { Image(systemName: "ellipsis.circle") }
-                            .menuStyle(.borderlessButton)
-                            .frame(width: 25)
                         }
-                        .padding(12)
-                        .background(LFChrome.cardBackground())
+                        .listRowInsets(EdgeInsets(top: 4, leading: 4, bottom: 4, trailing: 4))
                         .draggable("lectureflow-segment:" + segment.id)
                         .dropDestination(for: String.self) { items, _ in
                             guard let item = items.first,
@@ -654,22 +694,8 @@ struct LibraryView: View {
                         }
                     }
                 }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .overlay {
-                if lecture.segments.isEmpty {
-                    ContentUnavailableView {
-                        Label("还没有录音", systemImage: "waveform")
-                            .font(.title2.weight(.semibold))
-                    } description: {
-                        Text("点击上方开始录音，或导入已有录音。多段文件导入后可拖动排序。")
-                            .frame(maxWidth: 320)
-                    } actions: {
-                        Button("导入已有录音") { importing = true }
-                            .buttonStyle(.borderedProminent)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                }
+                .listStyle(.plain)
+                .scrollContentBackground(.hidden)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -677,17 +703,22 @@ struct LibraryView: View {
 
     @ViewBuilder
     private func unifiedTranscript(_ lecture: Lecture) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Picker("来源", selection: $transcriptSource) {
-                Text("实时记录").tag("live")
-                Text("课后转写").tag("offline")
+        VStack(alignment: .leading, spacing: LFChrome.space12) {
+            HStack {
+                Picker("来源", selection: $transcriptSource) {
+                    Text("实时记录").tag("live")
+                    Text("课后转写").tag("offline")
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .frame(maxWidth: 260)
+                Spacer()
             }
-            .pickerStyle(.segmented)
-            .labelsHidden()
-            .frame(maxWidth: 280)
             .onAppear {
                 if model.session.hasSession || model.live.flags.needsMicrophone {
                     transcriptSource = "live"
+                } else if model.transcript?.units.isEmpty == false {
+                    transcriptSource = "offline"
                 }
             }
 
@@ -696,50 +727,64 @@ struct LibraryView: View {
             } else {
                 if model.transcript?.possible_context_bias == true {
                     HStack {
-                        Text("此版本使用过旧版课件识别提示。如出现词表混入，可从原音重新转写，旧版本会保留。")
-                            .font(.caption).foregroundStyle(.secondary)
+                        Text("此版本曾用旧版课件提示；可从原音重新转写，旧版本保留。")
+                            .font(.system(size: LFChrome.captionSize))
+                            .foregroundStyle(.secondary)
                         Spacer()
                         Button("重新转写") { Task { await model.enqueue() } }.disabled(model.busy)
                     }
                 }
                 if model.transcript?.source_missing == true {
-                    Label("部分关联录音已永久清空，已完成的转写文字仍保留。", systemImage: "waveform.slash")
-                        .font(.caption).foregroundStyle(.secondary)
+                    Label("部分录音已清空；已完成文字仍保留。", systemImage: "waveform.slash")
+                        .font(.system(size: LFChrome.captionSize))
+                        .foregroundStyle(.secondary)
                 }
                 if model.transcript?.stale == true {
-                    Label("录音已变化，可重新生成课后转写；旧结果仍保留。", systemImage: "arrow.triangle.2.circlepath")
-                        .font(.caption).foregroundStyle(.orange)
+                    Label("录音已变化，可重新生成课后转写。", systemImage: "arrow.triangle.2.circlepath")
+                        .font(.system(size: LFChrome.captionSize))
+                        .foregroundStyle(.orange)
                 }
-                HStack {
-                    Text("时间戳约 30 秒区间 · 不自动整堂重跑").font(.caption).foregroundStyle(.secondary)
-                    Spacer()
+                HStack(spacing: LFChrome.space8) {
                     Picker("显示", selection: $textLanguage) {
                         Text("双语").tag("both"); Text("中文").tag("zh"); Text("英文").tag("en")
-                    }.frame(width: 110)
+                    }
+                    .frame(width: 120)
                     Button("复制全文") {
                         let text = model.transcript?.units.map { unit in
-                            [clock(unit.logical_start), textLanguage == "en" ? "" : unit.chinese,
-                             textLanguage == "zh" ? "" : unit.english].filter { !$0.isEmpty }.joined(separator: "\n")
+                            var parts = [clock(unit.logical_start)]
+                            if textLanguage != "zh" { parts.append(unit.english) }
+                            if textLanguage != "en", !unit.chinese.isEmpty { parts.append(unit.chinese) }
+                            return parts.joined(separator: "\n")
                         }.joined(separator: "\n\n") ?? ""
-                        NSPasteboard.general.clearContents(); NSPasteboard.general.setString(text, forType: .string)
+                        NSPasteboard.general.clearContents()
+                        NSPasteboard.general.setString(text, forType: .string)
                     }
-                    TextField("搜索转写", text: $search).textFieldStyle(.roundedBorder).frame(width: 220)
+                    TextField("搜索", text: $search)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(maxWidth: 220)
+                    Spacer()
+                    Text("时间戳约 30 秒区间")
+                        .font(.system(size: LFChrome.captionSize))
+                        .foregroundStyle(.tertiary)
                 }
+                .controlSize(.small)
+
                 if let transcript = model.transcript, !transcript.units.isEmpty {
                     ScrollView {
-                        LazyVStack(alignment: .leading, spacing: 22) {
+                        LazyVStack(alignment: .leading, spacing: LFChrome.space24) {
                             ForEach(transcript.units.filter {
-                                search.isEmpty || $0.english.localizedCaseInsensitiveContains(search)
+                                search.isEmpty
+                                    || $0.english.localizedCaseInsensitiveContains(search)
                                     || $0.chinese.localizedCaseInsensitiveContains(search)
                             }) { unit in
-                                VStack(alignment: .leading, spacing: 8) {
-                                    HStack {
+                                VStack(alignment: .leading, spacing: LFChrome.space8) {
+                                    HStack(spacing: LFChrome.space8) {
                                         Text(clock(unit.logical_start))
-                                            .font(.caption.monospaced())
-                                            .foregroundStyle(LFChrome.accent)
+                                            .font(.system(size: LFChrome.captionSize).monospacedDigit())
+                                            .foregroundStyle(.secondary)
                                         if unit.isEdited {
                                             Text(unit.englishEdited ? "英文已修改" : "已编辑")
-                                                .font(.caption2)
+                                                .font(.system(size: LFChrome.captionSize))
                                                 .foregroundStyle(.orange)
                                         }
                                         Spacer()
@@ -772,42 +817,58 @@ struct LibraryView: View {
                                                 }
                                             }
                                             Button("复制本段") {
-                                                let text = [textLanguage == "en" ? "" : unit.chinese,
-                                                            textLanguage == "zh" ? "" : unit.english]
-                                                    .filter { !$0.isEmpty }.joined(separator: "\n")
+                                                var parts: [String] = []
+                                                if textLanguage != "zh" { parts.append(unit.english) }
+                                                if textLanguage != "en", !unit.chinese.isEmpty {
+                                                    parts.append(unit.chinese)
+                                                }
                                                 NSPasteboard.general.clearContents()
-                                                NSPasteboard.general.setString(text, forType: .string)
+                                                NSPasteboard.general.setString(
+                                                    parts.joined(separator: "\n"), forType: .string
+                                                )
                                             }
                                         } label: { Image(systemName: "ellipsis.circle") }
                                         .menuStyle(.borderlessButton)
                                         .frame(width: 22)
+                                        .accessibilityLabel("段落操作")
                                     }
-                                    if textLanguage != "en" && !unit.chinese.isEmpty {
-                                        Text(unit.chinese).font(.title3).lineSpacing(5)
-                                    }
+                                    // Main window: English above, Chinese below (product design).
                                     if textLanguage != "zh" {
-                                        Text(unit.english).foregroundStyle(.secondary).lineSpacing(4)
+                                        Text(unit.english)
+                                            .font(.system(size: LFChrome.transcriptEN))
+                                            .foregroundStyle(.primary)
+                                            .lineSpacing(5)
+                                    }
+                                    if textLanguage != "en", !unit.chinese.isEmpty {
+                                        Text(unit.chinese)
+                                            .font(.system(size: LFChrome.transcriptZH))
+                                            .foregroundStyle(.secondary)
+                                            .lineSpacing(5)
                                     }
                                 }
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .textSelection(.enabled)
-                                Divider()
+                                .padding(.bottom, LFChrome.space4)
+                                Divider().opacity(0.5)
                             }
-                        }.padding(.vertical, 8)
+                        }
+                        .padding(.vertical, LFChrome.space8)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     EmptyPanel(
                         title: "还没有课后转写",
-                        systemImage: "text.bubble",
-                        description: "保存录音后点击「生成课后转写」。实时记录与课后结果相互独立。"
+                        systemImage: "text.alignleft",
+                        description: "保存录音后生成课后转写。实时记录与课后结果相互独立。"
                     )
                 }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .onChange(of: model.requestedTab) { _, value in
-            if value == "transcript" || value == "live" { transcriptSource = value == "live" ? "live" : "offline" }
+            if value == "transcript" || value == "live" {
+                transcriptSource = value == "live" ? "live" : "offline"
+            }
         }
     }
 

@@ -49,7 +49,11 @@ struct TrashView: View {
                 }.padding(.vertical, 4)
             }.overlay {
                 if items.isEmpty {
-                    EmptyPanel(title: "废纸篓为空", systemImage: "trash", description: "删除的课程、Lecture 和录音会出现在这里。")
+                    EmptyPanel(
+                        title: "废纸篓为空",
+                        systemImage: "trash",
+                        description: "删除的课程、Lecture 和录音会出现在这里。"
+                    )
                 }
             }
             if working { ProgressView().controlSize(.small) }

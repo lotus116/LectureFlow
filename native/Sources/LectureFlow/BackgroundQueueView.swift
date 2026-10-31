@@ -58,8 +58,9 @@ struct BackgroundQueueView: View {
                     .disabled(working || !workspace.backgroundItems.contains { $0.active })
                 Button("完成") { dismiss() }
             }
-            Text("包含所有课程的后台任务。当前区间完成后暂停，已处理内容保留；不会停止录音。实时字幕优先时，冲突任务会安全让路并显示等待。")
-                .font(.caption).foregroundStyle(.secondary)
+            Text("暂停保留进度；实时字幕优先时冲突任务会让路。")
+                .font(.system(size: LFChrome.captionSize))
+                .foregroundStyle(.secondary)
             List(workspace.backgroundItems) { item in
                 HStack(spacing: 12) {
                     Image(systemName: item.kind == "audio" ? "waveform" : "character.book.closed")
