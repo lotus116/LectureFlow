@@ -8,13 +8,13 @@ struct SessionControlBar: View {
     private var active: Bool { workspace.session.state == .running || workspace.session.state == .preparing }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: LFChrome.space12) {
-            HStack(alignment: .center, spacing: LFChrome.space16) {
-                HStack(spacing: LFChrome.space12) {
+        VStack(alignment: .leading, spacing: LFChrome.space8) {
+            HStack(alignment: .center, spacing: LFChrome.space12) {
+                HStack(spacing: LFChrome.space10) {
                     statusDot
                     TimelineView(.periodic(from: .now, by: 0.5)) { _ in
                         Text(clock(workspace.session.duration(at: ProcessInfo.processInfo.systemUptime)))
-                            .font(.system(size: 26, weight: .medium, design: .rounded).monospacedDigit())
+                            .font(.system(size: 22, weight: .medium, design: .rounded).monospacedDigit())
                             .foregroundStyle(.primary)
                             .accessibilityLabel("采集计时")
                     }

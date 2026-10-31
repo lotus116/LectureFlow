@@ -61,9 +61,9 @@ struct LiveTranscriptView: View {
                     )
                 } else {
                     ScrollView {
-                        LazyVStack(alignment: .leading, spacing: LFChrome.space24) {
+                        LazyVStack(alignment: .leading, spacing: LFChrome.space16) {
                             ForEach(visible) { caption in
-                                VStack(alignment: .leading, spacing: LFChrome.space8) {
+                                VStack(alignment: .leading, spacing: 6) {
                                     Text(clock(caption.start))
                                         .font(.system(size: LFChrome.captionSize, weight: .medium).monospacedDigit())
                                         .foregroundStyle(LFChrome.accent.opacity(0.85))

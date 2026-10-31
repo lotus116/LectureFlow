@@ -214,18 +214,22 @@ struct LibraryView: View {
                     LFChrome.iceMist()
                         .frame(height: 120)
                         .allowsHitTesting(false)
-                    VStack(alignment: .leading, spacing: LFChrome.space16) {
+                    VStack(alignment: .leading, spacing: LFChrome.space12) {
                         header(lecture)
                         modelDownloadBanner
                         LiveControlView(workspace: model, live: model.live, lecture: lecture)
-                        Picker("内容", selection: $tab) {
-                            Text("录音").tag("audio")
-                            Text("转写").tag("transcript")
+                        HStack(alignment: .center) {
+                            Picker("内容", selection: $tab) {
+                                Text("录音").tag("audio")
+                                Text("转写").tag("transcript")
+                            }
+                            .pickerStyle(.segmented)
+                            .labelsHidden()
+                            .controlSize(.regular)
+                            .frame(maxWidth: 200)
+                            Spacer(minLength: 0)
                         }
-                        .pickerStyle(.segmented)
-                        .labelsHidden()
-                        .controlSize(.regular)
-                        .frame(maxWidth: 220)
+                        .padding(.top, 2)
                         if tab == "audio" || tab == "transcript", let task = model.activeTask { taskView(task) }
                         Group {
                             if tab == "audio" { audioList(lecture) }
@@ -538,9 +542,9 @@ struct LibraryView: View {
 
     private func header(_ lecture: Lecture) -> some View {
         HStack(alignment: .center, spacing: LFChrome.space12) {
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text(lecture.title)
-                    .font(.system(size: LFChrome.titleSize, weight: .semibold))
+                    .font(.system(size: 20, weight: .semibold))
                     .lineLimit(1)
                     .truncationMode(.middle)
                     .help(lecture.title)
@@ -550,29 +554,35 @@ struct LibraryView: View {
                     .monospacedDigit()
             }
             Spacer(minLength: LFChrome.space8)
-            HStack(spacing: LFChrome.space8) {
+            HStack(spacing: 6) {
                 if let course = model.course {
                     Button("课程资料") { materialsCourse = course }
                         .buttonStyle(.borderless)
                         .foregroundStyle(LFChrome.accent)
+                        .controlSize(.small)
                 }
-                Button("悬浮字幕", systemImage: "pip") { model.openSubtitles() }
-                    .buttonStyle(.borderless)
-                    .help("显示悬浮字幕")
+                Button {
+                    model.openSubtitles()
+                } label: {
+                    Image(systemName: "pip")
+                }
+                .buttonStyle(.borderless)
+                .help("悬浮字幕")
+                .accessibilityLabel("悬浮字幕")
                 Menu {
                     Button("仅显示字幕") { model.openSubtitles(hideMain: true) }
                     Button("在 Finder 中打开") { NSWorkspace.shared.open(URL(fileURLWithPath: lecture.path)) }
                     Button("恢复意外中断的录音") { Task { await model.perform(["library", "recover-recordings", lecture.id]) } }
                 } label: { Image(systemName: "ellipsis.circle") }
                 .menuStyle(.borderlessButton)
-                .frame(width: 24)
+                .frame(width: 22)
                 .accessibilityLabel("更多")
                 Button { importing = true } label: {
                     Label("导入", systemImage: "plus")
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.bordered)
                 .tint(LFChrome.accent)
-                .controlSize(.regular)
+                .controlSize(.small)
                 .disabled(model.busy)
             }
         }
@@ -735,7 +745,7 @@ struct LibraryView: View {
 
     @ViewBuilder
     private func unifiedTranscript(_ lecture: Lecture) -> some View {
-        VStack(alignment: .leading, spacing: LFChrome.space12) {
+        VStack(alignment: .leading, spacing: LFChrome.space10) {
             HStack {
                 Picker("来源", selection: $transcriptSource) {
                     Text("实时记录").tag("live")
@@ -743,7 +753,8 @@ struct LibraryView: View {
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
-                .frame(maxWidth: 260)
+                .controlSize(.small)
+                .frame(maxWidth: 220)
                 Spacer()
             }
             .onAppear {
@@ -803,13 +814,13 @@ struct LibraryView: View {
 
                 if let transcript = model.transcript, !transcript.units.isEmpty {
                     ScrollView {
-                        LazyVStack(alignment: .leading, spacing: LFChrome.space24) {
+                        LazyVStack(alignment: .leading, spacing: LFChrome.space16) {
                             ForEach(transcript.units.filter {
                                 search.isEmpty
                                     || $0.english.localizedCaseInsensitiveContains(search)
                                     || $0.chinese.localizedCaseInsensitiveContains(search)
                             }) { unit in
-                                VStack(alignment: .leading, spacing: LFChrome.space8) {
+                                VStack(alignment: .leading, spacing: 6) {
                                     HStack(spacing: LFChrome.space8) {
                                         Text(clock(unit.logical_start))
                                             .font(.system(size: LFChrome.captionSize, weight: .medium).monospacedDigit())

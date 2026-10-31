@@ -13,12 +13,12 @@ struct CourseHomeView: View {
     var body: some View {
         ZStack(alignment: .topLeading) {
             LFChrome.iceMist()
-                .frame(height: 160)
+                .frame(height: 120)
                 .allowsHitTesting(false)
 
-            VStack(alignment: .leading, spacing: LFChrome.space24) {
-                HStack(alignment: .top, spacing: LFChrome.space16) {
-                    VStack(alignment: .leading, spacing: LFChrome.space8) {
+            VStack(alignment: .leading, spacing: 0) {
+                HStack(alignment: .firstTextBaseline, spacing: LFChrome.space16) {
+                    VStack(alignment: .leading, spacing: 4) {
                         Text(course.name)
                             .font(.system(size: LFChrome.titleSize, weight: .semibold))
                             .lineLimit(2)
@@ -39,7 +39,7 @@ struct CourseHomeView: View {
                     .accessibilityLabel("课程资料，\(documentCount) 份")
                 }
 
-                HStack(spacing: LFChrome.space12) {
+                HStack(spacing: LFChrome.space8) {
                     Button {
                         onStartNew()
                     } label: {
@@ -60,14 +60,20 @@ struct CourseHomeView: View {
                         Button("新建空 Lecture", action: onCreateLecture)
                         Button("导入已有录音", action: onImportAudio)
                     } label: {
-                        Label("更多", systemImage: "ellipsis.circle")
+                        Image(systemName: "ellipsis.circle")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundStyle(.secondary)
+                            .frame(width: 28, height: 28)
+                            .contentShape(Rectangle())
                     }
                     .menuStyle(.borderlessButton)
-                    .fixedSize()
                     .help("新建空记录或导入录音")
+                    .accessibilityLabel("更多")
 
                     Spacer(minLength: 0)
                 }
+                .padding(.top, LFChrome.space16)
+                .padding(.bottom, LFChrome.space20)
 
                 if course.lectures.isEmpty {
                     EmptyPanel(
@@ -78,37 +84,48 @@ struct CourseHomeView: View {
                         action: onStartNew,
                         useAppIcon: true
                     )
-                    .padding(.top, LFChrome.space16)
                 } else {
-                    VStack(alignment: .leading, spacing: LFChrome.space12) {
+                    HStack(alignment: .firstTextBaseline) {
                         LFSectionLabel(text: "Lecture")
-                        ScrollView {
-                            LazyVStack(alignment: .leading, spacing: LFChrome.space4) {
-                                ForEach(course.lectures) { lecture in
-                                    Button {
-                                        workspace.selectCourse(course.id)
-                                        workspace.selectLecture(lecture.id)
-                                    } label: {
-                                        LFListRow(
-                                            title: lecture.title,
-                                            subtitle: "\(lecture.segments.count) 段录音"
-                                        ) {
-                                            LFIconWell(systemImage: "waveform")
-                                        } trailing: {
-                                            Image(systemName: "chevron.right")
-                                                .font(.caption.weight(.semibold))
-                                                .foregroundStyle(.tertiary)
-                                        }
-                                        .contentShape(RoundedRectangle(cornerRadius: LFChrome.radiusS, style: .continuous))
+                        Spacer(minLength: 0)
+                    }
+                    .padding(.bottom, LFChrome.space8)
+
+                    Rectangle()
+                        .fill(LFChrome.hairline)
+                        .frame(height: 1)
+
+                    ScrollView {
+                        LazyVStack(alignment: .leading, spacing: 0) {
+                            ForEach(Array(course.lectures.enumerated()), id: \.element.id) { index, lecture in
+                                Button {
+                                    workspace.selectCourse(course.id)
+                                    workspace.selectLecture(lecture.id)
+                                } label: {
+                                    LFListRow(
+                                        title: lecture.title,
+                                        subtitle: "\(lecture.segments.count) 段录音"
+                                    ) {
+                                        LFIconWell(systemImage: "waveform")
+                                    } trailing: {
+                                        Image(systemName: "chevron.right")
+                                            .font(.caption.weight(.semibold))
+                                            .foregroundStyle(.tertiary)
                                     }
-                                    .buttonStyle(LFQuietRowButtonStyle())
+                                    .contentShape(Rectangle())
+                                }
+                                .buttonStyle(LFQuietRowButtonStyle())
+
+                                if index < course.lectures.count - 1 {
+                                    Rectangle()
+                                        .fill(LFChrome.hairline)
+                                        .frame(height: 1)
+                                        .padding(.leading, 48)
                                 }
                             }
-                            .padding(LFChrome.space8)
                         }
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .background(LFChrome.softPanel())
                     }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 }
             }
             .lfContentPadding()

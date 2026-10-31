@@ -93,6 +93,8 @@ final class Workspace: ObservableObject {
     func startMonitoring() {
         guard monitoring == nil else { return }
         monitoring = Task { [weak self] in
+            // Library first so the sidebar isn't blocked behind a slow model probe.
+            await self?.refresh()
             await self?.refreshModels()
             while !Task.isCancelled {
                 guard let self else { return }

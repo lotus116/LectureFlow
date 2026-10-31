@@ -30,8 +30,10 @@ enum LFChrome {
 
     static let space4: CGFloat = 4
     static let space8: CGFloat = 8
+    static let space10: CGFloat = 10
     static let space12: CGFloat = 12
     static let space16: CGFloat = 16
+    static let space20: CGFloat = 20
     static let space24: CGFloat = 24
     static let space32: CGFloat = 32
 
@@ -39,9 +41,9 @@ enum LFChrome {
     static let radiusM: CGFloat = 12
     static let radiusL: CGFloat = 16
 
-    static let contentInset: CGFloat = 28
+    static let contentInset: CGFloat = 24
     static let sidebarIdeal: CGFloat = 252
-    static let readingMeasure: CGFloat = 720
+    static let readingMeasure: CGFloat = 680
 
     static let titleSize: CGFloat = 23
     static let sectionSize: CGFloat = 13
@@ -70,7 +72,7 @@ enum LFChrome {
                 RoundedRectangle(cornerRadius: radiusM, style: .continuous)
                     .fill(accent.opacity(0.05))
             )
-            .shadow(color: accent.opacity(0.08), radius: 10, y: 3)
+            .shadow(color: accent.opacity(0.06), radius: 6, y: 2)
     }
 
     static func cardBackground() -> some View { softPanel() }
@@ -159,8 +161,8 @@ struct LFListRow<Leading: View, Trailing: View>: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             trailing()
         }
-        .padding(.vertical, 10)
-        .padding(.horizontal, LFChrome.space8)
+        .padding(.vertical, 9)
+        .padding(.horizontal, 2)
         .contentShape(Rectangle())
     }
 }
@@ -191,7 +193,7 @@ struct LFSectionLabel: View {
 extension View {
     func lfSoftPanelPadding() -> some View {
         padding(.horizontal, LFChrome.space16)
-            .padding(.vertical, 14)
+            .padding(.vertical, 10)
             .background(LFChrome.softPanel())
     }
 
