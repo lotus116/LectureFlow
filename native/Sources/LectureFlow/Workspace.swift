@@ -104,13 +104,34 @@ final class Workspace: ObservableObject {
         }
     }
 
+    var floatingSubtitlesVisible: Bool { subtitles.isVisible }
+
     func openSubtitles(hideMain: Bool = false) {
         subtitles.show(workspace: self)
-        if hideMain {
-            for window in NSApp.windows where window.identifier?.rawValue == "LectureFlowMain" {
-                window.orderOut(nil)
-            }
+        if hideMain { hideMainWindow() }
+    }
+
+    /// Header control: show when hidden, hide when already visible.
+    func toggleSubtitles() {
+        subtitles.toggle(workspace: self)
+        objectWillChange.send()
+    }
+
+    func hideSubtitles() {
+        subtitles.hide()
+        objectWillChange.send()
+    }
+
+    private func hideMainWindow() {
+        for window in NSApp.windows where Self.isMainWindow(window) {
+            window.orderOut(nil)
         }
+    }
+
+    static func isMainWindow(_ window: NSWindow) -> Bool {
+        if window.identifier?.rawValue == "LectureFlowMain" { return true }
+        if window is NSPanel { return false }
+        return window.title == "LectureFlow"
     }
 
     private func persistSession() {

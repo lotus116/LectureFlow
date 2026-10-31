@@ -7,19 +7,19 @@ struct LectureFlowApp: App {
     @StateObject private var workspace = Workspace()
     @NSApplicationDelegateAdaptor(LectureFlowDelegate.self) private var delegate
     var body: some Scene {
-        WindowGroup {
+        // Single main window — WindowGroup can restore duplicates alongside AppKit reopen.
+        Window("LectureFlow", id: "main") {
             LibraryView(model: workspace)
                 .frame(minWidth: 920, minHeight: 610)
-                .onAppear {
-                    delegate.workspace = workspace
-                    workspace.revealMain = { [weak appDelegate = delegate] in appDelegate?.showMainWindow() }
-                }
+                .background(WindowOpener(workspace: workspace, delegate: delegate))
         }
         .defaultSize(width: LFChrome.windowWidth, height: LFChrome.windowHeight)
         .commands {
             CommandMenu("Lecture") {
-                Button("显示悬浮字幕") { workspace.openSubtitles() }
-                    .keyboardShortcut("l", modifiers: [.command, .option])
+                Button(workspace.floatingSubtitlesVisible ? "隐藏悬浮字幕" : "显示悬浮字幕") {
+                    workspace.toggleSubtitles()
+                }
+                .keyboardShortcut("l", modifiers: [.command, .option])
                 Button("仅显示悬浮字幕") { workspace.openSubtitles(hideMain: true) }
                 Button("开始／暂停") { workspace.primarySessionAction() }
                     .keyboardShortcut("r", modifiers: [.command, .shift])
@@ -32,7 +32,9 @@ struct LectureFlowApp: App {
         MenuBarExtra("LectureFlow", systemImage: "captions.bubble") {
             Text(workspace.lecture?.title ?? "LectureFlow")
             Button("打开主窗口") { delegate.showMainWindow() }
-            Button("显示悬浮字幕") { workspace.openSubtitles() }
+            Button(workspace.floatingSubtitlesVisible ? "隐藏悬浮字幕" : "显示悬浮字幕") {
+                workspace.toggleSubtitles()
+            }
             Button("仅显示悬浮字幕") { workspace.openSubtitles(hideMain: true) }
             Divider()
             Button(workspace.session.primaryTitle) { workspace.primarySessionAction() }.disabled(workspace.lecture == nil)
@@ -42,10 +44,33 @@ struct LectureFlowApp: App {
     }
 }
 
+/// Binds SwiftUI `openWindow` so menu-bar / dock reopen never spawn a second host.
+private struct WindowOpener: View {
+    let workspace: Workspace
+    let delegate: LectureFlowDelegate
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some View {
+        Color.clear
+            .frame(width: 0, height: 0)
+            .accessibilityHidden(true)
+            .onAppear {
+                delegate.workspace = workspace
+                let open = openWindow
+                workspace.revealMain = {
+                    open(id: "main")
+                    NSApp.activate(ignoringOtherApps: true)
+                    DispatchQueue.main.async {
+                        NSApp.windows.first(where: Workspace.isMainWindow)?.makeKeyAndOrderFront(nil)
+                    }
+                }
+            }
+    }
+}
+
 @MainActor
 final class LectureFlowDelegate: NSObject, NSApplicationDelegate {
     weak var workspace: Workspace?
-    private var reopened: NSWindowController?
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         guard let workspace else { return .terminateNow }
         if workspace.live.flags.needsMicrophone || workspace.session.state == .running
@@ -70,21 +95,13 @@ final class LectureFlowDelegate: NSObject, NSApplicationDelegate {
     }
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }
     func showMainWindow() {
-        guard let workspace else { return }
         NSApp.activate(ignoringOtherApps: true)
-        if let window = NSApp.windows.first(where: { $0.identifier?.rawValue == "LectureFlowMain" }) {
-            window.deminiaturize(nil); window.makeKeyAndOrderFront(nil); return
+        if let window = NSApp.windows.first(where: Workspace.isMainWindow) {
+            window.deminiaturize(nil)
+            window.makeKeyAndOrderFront(nil)
+            return
         }
-        if let window = reopened?.window { window.makeKeyAndOrderFront(nil); return }
-        let window = NSWindow(contentRect: NSRect(x: 150, y: 120, width: LFChrome.windowWidth, height: LFChrome.windowHeight),
-                              styleMask: [.titled, .closable, .miniaturizable, .resizable],
-                              backing: .buffered, defer: false)
-        window.title = "LectureFlow"; window.isReleasedWhenClosed = false
-        window.contentMinSize = NSSize(width: 920, height: 610)
-        window.contentView = NSHostingView(rootView: LibraryView(model: workspace))
-        window.center()
-        reopened = NSWindowController(window: window)
-        window.makeKeyAndOrderFront(nil)
+        workspace?.revealMain?()
     }
 }
 
@@ -219,24 +236,15 @@ struct LibraryView: View {
                         header(lecture)
                         modelDownloadBanner
                         LiveControlView(workspace: model, live: model.live, lecture: lecture, showingAudio: tab == "audio")
-                        HStack(alignment: .center) {
-                            Picker("内容", selection: $tab) {
-                                Text("录音").tag("audio")
-                                Text("转写").tag("transcript")
-                            }
-                            .pickerStyle(.segmented)
-                            .labelsHidden()
-                            .controlSize(.regular)
-                            .frame(maxWidth: 200)
-                            Spacer(minLength: 0)
-                        }
-                        .padding(.top, 2)
+                        contentChrome
                         if tab == "audio" || tab == "transcript", let task = model.activeTask { taskView(task) }
                         Group {
                             if tab == "audio" { audioList(lecture) }
                             else { unifiedTranscript(lecture) }
                         }
+                        .padding(LFChrome.space12)
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                        .background(LFChrome.softPanel())
                     }
                     .lfContentPadding()
                 }
@@ -567,15 +575,19 @@ struct LibraryView: View {
                     .controlSize(.small)
                 }
                 Button {
-                    model.openSubtitles()
+                    model.toggleSubtitles()
                 } label: {
-                    Label("悬浮字幕", systemImage: "captions.bubble")
+                    Label(
+                        model.floatingSubtitlesVisible ? "关闭字幕" : "悬浮字幕",
+                        systemImage: model.floatingSubtitlesVisible ? "captions.bubble.fill" : "captions.bubble"
+                    )
                 }
                 .buttonStyle(.borderless)
                 .foregroundStyle(LFChrome.accent)
                 .controlSize(.small)
-                .help("在独立窗口显示实时字幕")
-                .accessibilityLabel("悬浮字幕")
+                .help(model.floatingSubtitlesVisible ? "隐藏悬浮字幕窗口" : "打开悬浮字幕窗口")
+                .accessibilityLabel(model.floatingSubtitlesVisible ? "关闭悬浮字幕" : "悬浮字幕")
+                .accessibilityAddTraits(model.floatingSubtitlesVisible ? .isSelected : [])
 
                 Menu {
                     Button("仅显示字幕窗口", systemImage: "pip") {
@@ -792,28 +804,53 @@ struct LibraryView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 
-    @ViewBuilder
-    private func unifiedTranscript(_ lecture: Lecture) -> some View {
-        VStack(alignment: .leading, spacing: LFChrome.space10) {
-            HStack {
+    private var contentChrome: some View {
+        HStack(spacing: LFChrome.space12) {
+            Picker("内容", selection: $tab) {
+                Text("录音").tag("audio")
+                Text("转写").tag("transcript")
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .controlSize(.regular)
+            .frame(maxWidth: 180)
+            .accessibilityLabel("内容")
+
+            if tab == "transcript" {
+                Rectangle()
+                    .fill(LFChrome.hairline)
+                    .frame(width: 1, height: 18)
                 Picker("来源", selection: $transcriptSource) {
                     Text("实时记录").tag("live")
                     Text("课后转写").tag("offline")
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
-                .controlSize(.small)
-                .frame(maxWidth: 220)
-                Spacer()
-            }
-            .onAppear {
-                if model.session.hasSession || model.live.flags.needsMicrophone {
-                    transcriptSource = "live"
-                } else if model.transcript?.units.isEmpty == false {
-                    transcriptSource = "offline"
-                }
+                .controlSize(.regular)
+                .frame(maxWidth: 200)
+                .accessibilityLabel("转写来源")
             }
 
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 2)
+        .padding(.vertical, LFChrome.space8)
+        .overlay(alignment: .bottom) {
+            Rectangle().fill(LFChrome.hairline).frame(height: 1)
+        }
+        .onChange(of: tab) { _, value in
+            guard value == "transcript" else { return }
+            if model.session.hasSession || model.live.flags.needsMicrophone {
+                transcriptSource = "live"
+            } else if model.transcript?.units.isEmpty == false {
+                transcriptSource = "offline"
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func unifiedTranscript(_ lecture: Lecture) -> some View {
+        VStack(alignment: .leading, spacing: LFChrome.space10) {
             if transcriptSource == "live" {
                 LiveTranscriptView(live: model.live, lecture: lecture, backend: model.backend)
             } else {

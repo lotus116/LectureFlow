@@ -10,8 +10,14 @@ private final class CaptionPanel: NSPanel {
 @MainActor
 final class SubtitleWindow {
     private var panel: NSPanel?
+
+    var isVisible: Bool { panel?.isVisible == true }
+
     func show(workspace: Workspace) {
-        if let panel { panel.orderFrontRegardless(); return }
+        if let panel {
+            panel.orderFrontRegardless()
+            return
+        }
         let window = CaptionPanel(contentRect: NSRect(x: 260, y: 160, width: 680, height: 235),
             styleMask: [.titled, .closable, .resizable, .nonactivatingPanel, .fullSizeContentView],
             backing: .buffered, defer: false)
@@ -29,8 +35,21 @@ final class SubtitleWindow {
         window.setFrameAutosaveName("LectureFlowSubtitles")
         if !NSScreen.screens.contains(where: { $0.visibleFrame.intersects(window.frame) }) { window.center() }
         window.contentView = NSHostingView(rootView: FloatingSubtitles(workspace: workspace, live: workspace.live))
+        NotificationCenter.default.addObserver(
+            forName: NSWindow.willCloseNotification, object: window, queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in self?.panel = nil }
+        }
         panel = window
         window.orderFrontRegardless()
+    }
+
+    func hide() {
+        panel?.orderOut(nil)
+    }
+
+    func toggle(workspace: Workspace) {
+        if isVisible { hide() } else { show(workspace: workspace) }
     }
 }
 
@@ -71,7 +90,7 @@ private struct FloatingSubtitles: View {
                                 .font(.caption).foregroundStyle(.secondary)
                         }.padding(20).frame(width: 320)
                     }
-                Button { panelHide() } label: { Image(systemName: "eye.slash") }
+                Button { workspace.hideSubtitles() } label: { Image(systemName: "eye.slash") }
                     .help("隐藏悬浮字幕")
             }.font(.caption).buttonStyle(.plain).foregroundStyle(.white.opacity(0.85))
 
@@ -141,10 +160,5 @@ private struct FloatingSubtitles: View {
             return workspace.session.desired.recording ? "录音已暂停，文件保留" : "不保存原始音频"
         }
         return "仅字幕模式不保存录音"
-    }
-    private func panelHide() {
-        for window in NSApp.windows where window.title == "LectureFlow 字幕" {
-            window.orderOut(nil)
-        }
     }
 }
