@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="470" viewBox="0 0 1200 470" role="img" aria-labelledby="title desc">
+  <title id="title">一门课程，共享资料</title>
+  <desc id="desc">PDF 与 PPT 归属课程，所有 Lecture 共享。课前放资料，课中看字幕，课后编辑转写。</desc>
+  <defs>
+    <pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="#d9e8f3" stroke-width=".6"/></pattern>
+    <linearGradient id="paper" x2="0" y2="1"><stop stop-color="#f1f8ff"/><stop offset="1" stop-color="#f9fcff"/></linearGradient>
+    <linearGradient id="folder" x2="0" y2="1"><stop stop-color="#a9d0f5"/><stop offset="1" stop-color="#dbeafb"/></linearGradient>
+    <style>text{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;fill:#17364e}.label{font-size:24px;font-weight:650}.body{font-size:20px;fill:#446179}.small{font-size:17px;fill:#446179}.step{font-size:22px;font-weight:650}</style>
+  </defs>
+  <rect x="1" y="1" width="1198" height="468" rx="24" fill="url(#paper)" stroke="#d7e6f2"/>
+  <rect x="2" y="2" width="1196" height="320" rx="24" fill="url(#grid)" opacity=".65"/>
+  <text x="44" y="57" class="label">资料跟着课程，各次 Lecture 都能用</text>
+  <path d="M46 72q70-8 145-1" stroke="#92b97c" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <g fill="none" stroke="#71a5d7" stroke-width="2.5" stroke-dasharray="7 7"><path d="M465 203H356"/><path d="M735 203H844"/></g>
+  <g fill="#fff" stroke="#bed7ee"><rect x="76" y="141" width="280" height="123" rx="16"/><rect x="844" y="141" width="280" height="123" rx="16"/></g>
+  <g fill="#e9f3fd"><circle cx="112" cy="180" r="15"/><circle cx="880" cy="180" r="15"/></g>
+  <g fill="#376c91"><path d="m109 174 8 6-8 6Z"/><path d="m877 174 8 6-8 6Z"/></g>
+  <text x="142" y="188" class="label">Lecture 01</text><text x="106" y="233" class="body">录音与转写</text>
+  <text x="910" y="188" class="label">Lecture 02…</text><text x="874" y="233" class="body">录音与转写</text>
+  <path d="M474 129q0-12 12-12h74l20 21h134q12 0 12 12v104H474Z" fill="#8ebbe6" stroke="#7ba8cf"/>
+  <rect x="465" y="147" width="270" height="126" rx="15" fill="url(#folder)" stroke="#9cbedc"/>
+  <text x="600" y="188" text-anchor="middle" class="label">课程资料</text>
+  <g fill="#fff"><rect x="502" y="209" width="90" height="38" rx="8"/><rect x="608" y="209" width="90" height="38" rx="8"/></g>
+  <text x="547" y="235" text-anchor="middle" font-size="20" font-weight="650">PDF</text><text x="653" y="235" text-anchor="middle" font-size="20" font-weight="650">PPT</text>
+  <text x="600" y="311" text-anchor="middle" class="body">同一课程共享 · 相关拼写与术语辅助</text>
+  <rect x="25" y="342" width="1150" height="105" rx="18" fill="#fff" stroke="#e0eaf2"/>
+  <g fill="#e8f1e3"><circle cx="66" cy="377" r="17"/><circle cx="435" cy="377" r="17"/><circle cx="818" cy="377" r="17"/></g>
+  <g text-anchor="middle" font-size="20" font-weight="650"><text x="66" y="384">1</text><text x="435" y="384">2</text><text x="818" y="384">3</text></g>
+  <text x="96" y="385" class="step">课前放资料</text><text x="96" y="422" class="small">批量加入 PDF / PPT</text>
+  <text x="465" y="385" class="step">课中看字幕</text><text x="465" y="422" class="small">实时双语与悬浮阅读</text>
+  <text x="848" y="385" class="step">课后改转写</text><text x="848" y="422" class="small">编辑、复制或导出</text>
+  <g fill="none" stroke="#8baebf" stroke-width="2.5" stroke-linecap="round"><path d="M355 390h24m-8-8 8 8-8 8"/><path d="M739 390h24m-8-8 8 8-8 8"/></g>
+</svg>
