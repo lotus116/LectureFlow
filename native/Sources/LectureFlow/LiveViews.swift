@@ -6,7 +6,8 @@ struct LiveControlView: View {
     @ObservedObject var workspace: Workspace
     @ObservedObject var live: LiveController
     let lecture: Lecture
-    var body: some View { SessionControlBar(workspace: workspace, live: live) }
+    let showingAudio: Bool
+    var body: some View { SessionControlBar(workspace: workspace, live: live, showingAudio: showingAudio) }
 }
 
 struct LiveTranscriptView: View {

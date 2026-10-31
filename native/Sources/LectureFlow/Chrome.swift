@@ -1,31 +1,30 @@
 import AppKit
 import SwiftUI
 
-/// Quiet Cirno ice-blue study chrome — atmosphere without dashboard noise.
+/// Warm, restrained study workspace with adaptive colors.
 enum LFChrome {
-    /// Cirno ice — cyan-leaning, light / dark adaptive.
     static let accent = Color(nsColor: NSColor(name: nil) { appearance in
         appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
-            ? NSColor(calibratedRed: 0.48, green: 0.74, blue: 0.88, alpha: 1)
-            : NSColor(calibratedRed: 0.30, green: 0.64, blue: 0.80, alpha: 1)
+            ? NSColor(calibratedRed: 0.62, green: 0.77, blue: 0.67, alpha: 1)
+            : NSColor(calibratedRed: 0.25, green: 0.43, blue: 0.33, alpha: 1)
     })
 
     static let canvas = Color(nsColor: NSColor(name: nil) { appearance in
         appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
-            ? NSColor(calibratedRed: 0.10, green: 0.12, blue: 0.15, alpha: 1)
-            : NSColor(calibratedRed: 0.93, green: 0.96, blue: 0.985, alpha: 1)
+            ? NSColor(calibratedRed: 0.10, green: 0.12, blue: 0.11, alpha: 1)
+            : NSColor(calibratedRed: 0.98, green: 0.973, blue: 0.953, alpha: 1)
     })
 
     static let sidebar = Color(nsColor: NSColor(name: nil) { appearance in
         appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
-            ? NSColor(calibratedRed: 0.08, green: 0.10, blue: 0.13, alpha: 1)
-            : NSColor(calibratedRed: 0.88, green: 0.93, blue: 0.97, alpha: 1)
+            ? NSColor(calibratedRed: 0.08, green: 0.10, blue: 0.09, alpha: 1)
+            : NSColor(calibratedRed: 0.94, green: 0.93, blue: 0.90, alpha: 1)
     })
 
     static let panel = Color(nsColor: NSColor(name: nil) { appearance in
         appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
-            ? NSColor(calibratedRed: 0.14, green: 0.17, blue: 0.21, alpha: 1)
-            : NSColor(calibratedRed: 0.98, green: 0.99, blue: 1.0, alpha: 1)
+            ? NSColor(calibratedRed: 0.15, green: 0.17, blue: 0.16, alpha: 1)
+            : NSColor(calibratedRed: 1.0, green: 0.997, blue: 0.99, alpha: 1)
     })
 
     static let space4: CGFloat = 4
@@ -64,15 +63,15 @@ enum LFChrome {
 
     static let motion = Animation.easeInOut(duration: 0.16)
 
-    /// Soft ice panel — fill + faint ice wash, no hard web border.
+    /// Flat surface with a subtle edge to distinguish it from the canvas.
     static func softPanel() -> some View {
         RoundedRectangle(cornerRadius: radiusM, style: .continuous)
             .fill(panel)
             .overlay(
                 RoundedRectangle(cornerRadius: radiusM, style: .continuous)
-                    .fill(accent.opacity(0.05))
+                    .stroke(hairline, lineWidth: 1)
             )
-            .shadow(color: accent.opacity(0.06), radius: 6, y: 2)
+            .shadow(color: .black.opacity(0.025), radius: 5, y: 2)
     }
 
     static func cardBackground() -> some View { softPanel() }
@@ -80,7 +79,7 @@ enum LFChrome {
     /// Top wash for course / lecture headers — quiet atmosphere, not a landing hero.
     static func iceMist() -> some View {
         LinearGradient(
-            colors: [accent.opacity(0.16), accent.opacity(0.05), .clear],
+            colors: [accent.opacity(0.025), .clear],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )

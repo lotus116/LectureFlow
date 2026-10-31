@@ -4,6 +4,7 @@ import SwiftUI
 struct SessionControlBar: View {
     @ObservedObject var workspace: Workspace
     @ObservedObject var live: LiveController
+    let showingAudio: Bool
     @State private var options = false
     private var active: Bool { workspace.session.state == .running || workspace.session.state == .preparing }
 
@@ -104,11 +105,13 @@ struct SessionControlBar: View {
                     .foregroundStyle(LFChrome.accent)
                     Spacer()
                     Button("继续录制") { workspace.primarySessionAction() }
-                    Button("查看录音") { workspace.requestedTab = "audio" }
-                    Button("生成课后转写") { Task { await workspace.enqueue() } }
-                        .buttonStyle(.borderedProminent)
-                        .tint(LFChrome.accent)
-                        .disabled(workspace.lecture?.segments.isEmpty != false || workspace.busy || live.pendingSaves > 0)
+                    if !showingAudio {
+                        Button("查看录音") { workspace.requestedTab = "audio" }
+                        Button("生成课后转写") { Task { await workspace.enqueue() } }
+                            .buttonStyle(.borderedProminent)
+                            .tint(LFChrome.accent)
+                            .disabled(workspace.lecture?.segments.isEmpty != false || workspace.busy || live.pendingSaves > 0)
+                    }
                 }
             }
         }

@@ -217,7 +217,7 @@ struct LibraryView: View {
                     VStack(alignment: .leading, spacing: LFChrome.space12) {
                         header(lecture)
                         modelDownloadBanner
-                        LiveControlView(workspace: model, live: model.live, lecture: lecture)
+                        LiveControlView(workspace: model, live: model.live, lecture: lecture, showingAudio: tab == "audio")
                         HStack(alignment: .center) {
                             Picker("内容", selection: $tab) {
                                 Text("录音").tag("audio")
@@ -544,7 +544,7 @@ struct LibraryView: View {
         HStack(alignment: .center, spacing: LFChrome.space12) {
             VStack(alignment: .leading, spacing: 3) {
                 Text(lecture.title)
-                    .font(.system(size: 20, weight: .semibold))
+                    .font(.system(size: LFChrome.titleSize, weight: .semibold))
                     .lineLimit(1)
                     .truncationMode(.middle)
                     .help(lecture.title)
@@ -675,7 +675,7 @@ struct LibraryView: View {
                     .foregroundStyle(.secondary)
                 Text("拖动可调整顺序")
                     .font(.system(size: LFChrome.captionSize))
-                    .foregroundStyle(.tertiary)
+                    .foregroundStyle(.secondary)
                 Spacer(minLength: 0)
                 Toggle("中文翻译", isOn: $model.translate)
                     .toggleStyle(.checkbox)
@@ -688,7 +688,7 @@ struct LibraryView: View {
                 .buttonStyle(.borderedProminent)
                 .tint(LFChrome.accent)
                 .controlSize(.small)
-                .disabled(model.busy || lecture.segments.isEmpty)
+                .disabled(model.busy || lecture.segments.isEmpty || model.live.pendingSaves > 0)
             }
             if lecture.segments.isEmpty {
                 EmptyPanel(
@@ -708,7 +708,7 @@ struct LibraryView: View {
                             HStack(spacing: LFChrome.space8) {
                                 Image(systemName: "line.3.horizontal")
                                     .font(.system(size: 11, weight: .medium))
-                                    .foregroundStyle(.quaternary)
+                                    .foregroundStyle(.secondary)
                                     .frame(width: 12)
                                     .accessibilityHidden(true)
                                 Text(String(format: "%02d", index + 1))
@@ -763,8 +763,11 @@ struct LibraryView: View {
                                 .accessibilityLabel("更多")
                             }
                         }
+                        .padding(.horizontal, LFChrome.space12)
+                        .padding(.vertical, LFChrome.space4)
+                        .background(LFChrome.cardBackground())
                         .help(segment.original_name)
-                        .listRowInsets(EdgeInsets(top: 6, leading: 4, bottom: 6, trailing: 4))
+                        .listRowInsets(EdgeInsets(top: 4, leading: 1, bottom: 4, trailing: 1))
                         .draggable("lectureflow-segment:" + segment.id)
                         .dropDestination(for: String.self) { items, _ in
                             guard let item = items.first,
@@ -847,7 +850,7 @@ struct LibraryView: View {
                     Spacer()
                     Text("时间戳约 30 秒区间")
                         .font(.system(size: LFChrome.captionSize))
-                        .foregroundStyle(.tertiary)
+                        .foregroundStyle(.secondary)
                 }
                 .controlSize(.small)
 
