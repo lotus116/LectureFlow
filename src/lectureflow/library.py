@@ -312,6 +312,7 @@ class Library:
             config["context"] = ""
             config["asr_input_policy"] = "guided_rerecognize_v1"
             config["glossary"] = glossary or materials["glossary"]
+            config["glossary_policy"] = materials["glossary_policy"]
             config["documents"] = materials["documents"]
             config["hint_terms"] = materials["hint_terms"]
             config["models"] = {

@@ -18,6 +18,7 @@ from .library import Library, identity
 from .live_store import save, validate_session
 from .models import resolve
 from .runtime import configure, mlx_memory
+from .terminology import GLOSSARY_POLICY
 
 
 class InputBuffer:
@@ -61,6 +62,7 @@ class CaptionEngine:
         glossary="",
         documents=None,
         hint_terms=None,
+        glossary_policy=GLOSSARY_POLICY,
     ):
         self.session, self.translator, self.publish = session, translator, publish
         self.english, self.translate = english, translate
@@ -72,6 +74,8 @@ class CaptionEngine:
         self.last_end = None
         self.pre_roll = None
         self.context, self.glossary, self.documents = context, glossary, documents or []
+        if glossary_policy != GLOSSARY_POLICY:
+            self.glossary = ""
         self.hint_terms = hint_terms or []
         self.utterance_pcm = None
         # At most one pending polish; newer finishes replace older to avoid backlog.

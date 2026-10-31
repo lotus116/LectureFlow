@@ -12,6 +12,7 @@ from xml.etree import ElementTree as ET
 from .files import metadata_edit
 from .library import identity, now
 from .runtime import sha256, write_json
+from .terminology import GLOSSARY_POLICY, spelling_candidate, translation_pair
 
 
 def migrate(db) -> None:
@@ -273,29 +274,6 @@ def import_document(
                     now(),
                 ),
             )
-            for term in terms:
-                old = library.db.execute(
-                    "SELECT * FROM terms WHERE kind=? AND owner_id=? AND english=?",
-                    (kind, owner_id, term["english"]),
-                ).fetchone()
-                if old:
-                    combined = json.loads(old["sources"]) + term["sources"]
-                    library.db.execute(
-                        "UPDATE terms SET sources=? WHERE id=?",
-                        (json.dumps(combined[:40]), old["id"]),
-                    )
-                else:
-                    library.db.execute(
-                        "INSERT INTO terms VALUES(?,?,?,?,?,1,?)",
-                        (
-                            identity(),
-                            kind,
-                            owner_id,
-                            term["english"],
-                            term["chinese"],
-                            json.dumps(term["sources"]),
-                        ),
-                    )
             from .knowledge import enqueue, index_document
 
             index_document(library, key, pages)
@@ -377,7 +355,7 @@ def save_term(
         ).fetchone()[0]
         library.db.execute("INSERT OR IGNORE INTO term_metadata(term_id) VALUES(?)", (key,))
         library.db.execute(
-            "UPDATE term_metadata SET origin='manual',excluded=0 WHERE term_id=?", (key,)
+            "UPDATE term_metadata SET origin='manual',excluded=0,retired=0 WHERE term_id=?", (key,)
         )
         invalidate(library, kind, owner_id)
     return {"id": key}
@@ -414,6 +392,12 @@ def remove(library, document_id: str, *, confirmed: bool = False) -> None:
                 library.db.execute(
                     "UPDATE terms SET sources=? WHERE id=?", (json.dumps(remaining), term["id"])
                 )
+        # Recompute surviving bilingual evidence (including conflicts) on the next refresh.
+        library.db.execute(
+            "UPDATE knowledge_indexes SET policy_version=0 WHERE document_id IN "
+            "(SELECT id FROM documents WHERE kind=? AND owner_id=? AND removed=0)",
+            (row["kind"], row["owner_id"]),
+        )
         invalidate(library, row["kind"], row["owner_id"])
 
 
@@ -439,14 +423,17 @@ def context(library, lecture_id: str) -> dict:
             hint_terms.pop(key, None)
             terms.pop(key, None)
             continue
-        if row["confirmed"] or (valid_source and row["score"] >= 4):
+        if (row["origin"] == "manual" and row["confirmed"]) or (
+            valid_source and row["confirmed"] and spelling_candidate(row["english"])
+        ):
             hint_terms[key] = {
                 "english": row["english"],
                 "score": row["score"],
                 "confirmed": bool(row["confirmed"]),
                 "sources": json.loads(row["sources"]),
             }
-        if row["confirmed"] or (valid_source and row["origin"] == "courseware"):
+        trusted = row["origin"] == "manual" or (valid_source and row["origin"] == "courseware")
+        if row["confirmed"] and trusted and translation_pair(row["english"], row["chinese"]):
             terms[key] = (row["english"], row["chinese"])
     for row in library.db.execute(
         "SELECT id,original_name,pages FROM documents "
@@ -457,6 +444,7 @@ def context(library, lecture_id: str) -> dict:
             {"id": row["id"], "name": row["original_name"], "pages": json.loads(row["pages"])}
         )
     snapshot = {
+        "glossary_policy": GLOSSARY_POLICY,
         "hint_terms": list(hint_terms.values())[:2000],
         "glossary": "\n".join(f"{a}: {b}" for a, b in terms.values() if b)[:8000],
         "documents": documents,

@@ -131,7 +131,7 @@ def test_edit_during_model_call_wins_and_local_suggestion_needs_review(coursewar
     knowledge.process_job(lib, job, Translator())
     terms = knowledge.terms(lib, "course", course)
     assert next(t for t in terms if t["id"] == first["id"])["chinese"] == "人工优先"
-    suggestions = [t for t in terms if t["origin"] == "local-model"]
+    suggestions = [t for t in terms if t["origin"] == "local-suggestion"]
     assert suggestions and next(t for t in terms if t["id"] == first["id"])["chinese"] == "人工优先"
 
 

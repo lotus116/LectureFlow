@@ -216,7 +216,10 @@ def main() -> int:
                         raise ValueError("本地翻译模型尚未就绪") from error
                     translator = HyMTTranslator(Path(spec["path"]))
                     config = library.version_content(args.version_id)["config"]
-                    glossary = config.get("glossary", "")
+                    from .inference_policy import matching_glossary
+                    from .terminology import snapshot_glossary
+
+                    glossary = matching_glossary(snapshot_glossary(config), target["english"])
                     translated = translator.translate(target["english"], glossary=glossary)
                     result = library.edit_unit(
                         args.version_id,

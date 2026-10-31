@@ -8,6 +8,12 @@ from collections import Counter
 
 from .files import metadata_edit
 from .library import identity, now
+from .terminology import (
+    INDEX_POLICY_VERSION,
+    needs_translation,
+    spelling_candidate,
+    translation_pair,
+)
 
 
 def migrate(db):
@@ -22,6 +28,11 @@ def migrate(db):
         snapshot TEXT NOT NULL, state TEXT NOT NULL, next_unit INTEGER NOT NULL,
         total_units INTEGER NOT NULL, error TEXT, updated_at TEXT NOT NULL)""")
 
+    for table, column in [("knowledge_indexes", "policy_version"), ("term_metadata", "retired")]:
+        columns = {row[1] for row in db.execute(f"PRAGMA table_info({table})")}
+        if column not in columns:
+            db.execute(f"ALTER TABLE {table} ADD COLUMN {column} INTEGER NOT NULL DEFAULT 0")
+
 
 def analyze(pages, document_id):
     from .documents import STOP
@@ -30,7 +41,14 @@ def analyze(pages, document_id):
 
     def add(english, page, *, chinese="", definition="", boost=0):
         english = " ".join(english.strip().split())
-        if not 2 <= len(english) <= 100 or english.casefold() in STOP:
+        if (
+            not 2 <= len(english) <= 100
+            or english.casefold() in STOP
+            or any(
+                word.casefold() in {"introduction", "overview", "lecture", "chapter"}
+                for word in english.split()
+            )
+        ):
             return
         key = english.casefold()
         counts[key] += 1
@@ -48,32 +66,43 @@ def analyze(pages, document_id):
 
     for page in pages:
         text, number = page["text"], page["page"]
-        title = next((line.strip() for line in text.splitlines() if line.strip()), "")[:140]
+        lines = [line.strip() for line in text.splitlines() if line.strip()]
+        title = (lines[0] if lines else "")[:140]
         outline.append({"page": number, "title": title, "characters": len(text)})
-        words = re.findall(r"\b[A-Za-z][A-Za-z0-9_-]{2,35}\b", text)
-        phrases = re.findall(r"\b[A-Z][a-z]+(?: [A-Z][a-z]+){1,3}\b", text)
-        for word in words + phrases:
-            if len(word) >= 7 or word.isupper() or " " in word or "_" in word:
-                boost = 5 if word.isupper() or "_" in word else 1
-                if re.search(r"[a-z][A-Z]", word):
-                    boost = 5
-                add(word, number, boost=boost)
-        for line in text.splitlines():
+        for line in lines:
+            if re.search(r"https?://|@|copyright|©|all rights reserved", line, re.I):
+                continue
+            for word in re.findall(r"(?<![\w])[A-Za-z][A-Za-z0-9_.+#-]{1,63}(?![\w])", line):
+                if spelling_candidate(word):
+                    add(word, number, boost=5)
+            # Title-case multiword terms, not all long words from running prose.
+            for phrase in re.findall(r"\b[A-Z][a-z]+(?: [A-Z][a-z]+){1,3}\b", line):
+                if spelling_candidate(phrase):
+                    add(phrase, number, boost=4)
+            # A short heading is useful spelling evidence, never evidence of a Chinese name.
+            if line == title and len(line.split()) <= 4 and len(line) <= 64:
+                if spelling_candidate(line) or re.fullmatch(r"[A-Z][a-z]{5,30}", line):
+                    add(line, number, boost=4)
             for match in re.finditer(
-                r"([A-Za-z][A-Za-z -]{3,80})\s*\(([A-Z][A-Z0-9_-]{1,14})\)", line
+                r"^([A-Z][A-Za-z -]{2,70})\s*\(([A-Z][A-Z0-9_-]{1,14})\)", line
             ):
                 expanded, acronym = match.groups()
-                add(acronym, number, definition=expanded.strip(), boost=9)
-                add(expanded, number, definition=f"Abbreviation: {acronym}", boost=8)
+                if spelling_candidate(expanded.strip()):
+                    add(acronym, number, definition=expanded.strip(), boost=9)
+                    add(expanded, number, boost=8)
             for match in re.finditer(
-                r"([A-Za-z][A-Za-z0-9 _/-]{1,80})\s*[(（]([\u4e00-\u9fff][^()（）\n]{0,60})[)）]",
+                r"^([A-Za-z][A-Za-z0-9 _/+-]{1,70})\s*[(（]"
+                r"([\u4e00-\u9fff][^()（）\n]{0,40})[)）]",
                 line,
             ):
-                add(match[1], number, chinese=match[2].strip(), boost=9)
-            for match in re.finditer(
-                r"([A-Za-z][A-Za-z0-9 _-]{1,60})\s+(?:is|refers to|means)\s+([^\n.]{5,220})", line
-            ):
-                add(match[1], number, definition=match[2], boost=6)
+                english, chinese = (value.strip() for value in match.groups())
+                if len(english.split()) <= 5 and translation_pair(english, chinese):
+                    add(english, number, chinese=chinese, boost=9)
+        # Store a bounded source excerpt for disambiguation, not a generated definition.
+        for item in entries.values():
+            if not item["definition"] and any(s["page"] == number for s in item["sources"]):
+                relevant = next((line for line in lines if item["english"] in line), title)
+                item["definition"] = relevant[:180]
     for key, item in entries.items():
         item["score"] += min(4, max(0, counts[key] - 1))
     terms = sorted(entries.values(), key=lambda item: (-item["score"], item["english"].casefold()))[
@@ -85,11 +114,13 @@ def analyze(pages, document_id):
 def index_document(library, document_id, pages):
     result = analyze(pages, document_id)
     library.db.execute(
-        "INSERT OR REPLACE INTO knowledge_indexes VALUES(?,?,?)",
+        "INSERT OR REPLACE INTO knowledge_indexes(document_id,outline,concepts,policy_version) "
+        "VALUES(?,?,?,?)",
         (
             document_id,
             json.dumps(result["outline"], ensure_ascii=False),
             json.dumps(result["terms"], ensure_ascii=False),
+            INDEX_POLICY_VERSION,
         ),
     )
     document = library.db.execute(
@@ -97,12 +128,13 @@ def index_document(library, document_id, pages):
     ).fetchone()
     for item in result["terms"]:
         term = library.db.execute(
-            "SELECT * FROM terms WHERE kind=? AND owner_id=? AND english=?",
+            "SELECT t.*,COALESCE(m.origin,'extracted') AS origin FROM terms t "
+            "LEFT JOIN term_metadata m ON m.term_id=t.id "
+            "WHERE kind=? AND owner_id=? AND english=? COLLATE NOCASE",
             (document["kind"], document["owner_id"], item["english"]),
         ).fetchone()
         if term is None:
             key = identity()
-            # Auto-enable course terms; users may later disable or edit manually.
             library.db.execute(
                 "INSERT INTO terms VALUES(?,?,?,?,?,1,?)",
                 (
@@ -114,41 +146,60 @@ def index_document(library, document_id, pages):
                     json.dumps(item["sources"]),
                 ),
             )
-            term = library.db.execute("SELECT * FROM terms WHERE id=?", (key,)).fetchone()
-        origin = "courseware" if item["chinese"] else "extracted"
+            origin = "courseware" if item["chinese"] else "extracted"
+        else:
+            key, origin = term["id"], term["origin"]
+            sources = json.loads(term["sources"])
+            for source in item["sources"]:
+                if source not in sources:
+                    sources.append(source)
+            library.db.execute("UPDATE terms SET sources=? WHERE id=?", (json.dumps(sources), key))
+            if origin != "manual" and item["chinese"]:
+                conflict = origin == "conflict" or (
+                    origin == "courseware" and term["chinese"] != item["chinese"]
+                )
+                library.db.execute(
+                    "UPDATE terms SET chinese=? WHERE id=?",
+                    ("" if conflict else item["chinese"], key),
+                )
+                origin = "conflict" if conflict else "courseware"
         library.db.execute(
-            "INSERT INTO term_metadata(term_id,definition,score,origin) VALUES(?,?,?,?) "
-            "ON CONFLICT(term_id) DO UPDATE SET score=MAX(score,excluded.score),"
-            "definition=CASE WHEN definition='' THEN excluded.definition ELSE definition END",
-            (term["id"], item["definition"], item["score"], origin),
+            "INSERT INTO term_metadata(term_id,definition,score,origin,retired) VALUES(?,?,?,?,0) "
+            "ON CONFLICT(term_id) DO UPDATE SET retired=0,score=MAX(score,excluded.score),"
+            "definition=excluded.definition,origin=excluded.origin",
+            (key, item["definition"], item["score"], origin),
         )
-        if item["chinese"] and not term["chinese"]:
-            library.db.execute(
-                "UPDATE terms SET chinese=? WHERE id=?", (item["chinese"], term["id"])
-            )
-            library.db.execute(
-                "UPDATE term_metadata SET origin='courseware' WHERE term_id=?", (term["id"],)
-            )
 
 
 def ensure_indexes(library, kind, owner_id):
-    # Upgrade existing imports lazily; originals and historical snapshots are untouched.
-    missing = list(
+    rows = list(
         library.db.execute(
-            "SELECT d.* FROM documents d LEFT JOIN knowledge_indexes k "
-            "ON d.id=k.document_id WHERE d.kind=? AND d.owner_id=? AND d.removed=0 "
-            "AND k.document_id IS NULL",
+            "SELECT d.*,COALESCE(k.policy_version,0) AS policy_version FROM documents d "
+            "LEFT JOIN knowledge_indexes k ON d.id=k.document_id "
+            "WHERE d.kind=? AND d.owner_id=? AND d.removed=0",
             (kind, owner_id),
         )
     )
-    if missing:
-        from .documents import invalidate
-
-        with library.transaction():
-            for document in missing:
-                index_document(library, document["id"], json.loads(document["pages"]))
-            enqueue(library, kind, owner_id)
-            invalidate(library, kind, owner_id)
+    if not any(row["policy_version"] != INDEX_POLICY_VERSION for row in rows):
+        return
+    # Rebuild derived candidates atomically. Manual edits/exclusions and history survive.
+    with library.transaction():
+        automatic = list(
+            library.db.execute(
+                "SELECT t.id FROM terms t LEFT JOIN term_metadata m ON m.term_id=t.id "
+                "WHERE t.kind=? AND t.owner_id=? AND COALESCE(m.origin,'extracted')!='manual'",
+                (kind, owner_id),
+            )
+        )
+        for row in automatic:
+            library.db.execute("INSERT OR IGNORE INTO term_metadata(term_id) VALUES(?)", (row[0],))
+            library.db.execute(
+                "UPDATE term_metadata SET retired=1,origin='extracted' WHERE term_id=?", (row[0],)
+            )
+            library.db.execute("UPDATE terms SET chinese='',sources='[]' WHERE id=?", (row[0],))
+        for document in rows:
+            index_document(library, document["id"], json.loads(document["pages"]))
+        enqueue(library, kind, owner_id)
 
 
 def terms(library, kind, owner_id):
@@ -158,7 +209,7 @@ def terms(library, kind, owner_id):
             "SELECT t.*,COALESCE(m.definition,'') AS definition,COALESCE(m.score,0) AS score,"
             "COALESCE(m.origin,'extracted') AS origin,COALESCE(m.excluded,0) AS excluded "
             "FROM terms t LEFT JOIN term_metadata m ON m.term_id=t.id "
-            "WHERE kind=? AND owner_id=? "
+            "WHERE kind=? AND owner_id=? AND COALESCE(m.retired,0)=0 "
             "ORDER BY t.confirmed DESC,score DESC,t.english COLLATE NOCASE",
             (kind, owner_id),
         )
@@ -221,6 +272,7 @@ def enqueue(library, kind, owner_id, selected=None):
     from .documents import owner_path
 
     owner_path(library, kind, owner_id)
+    retry_untranslated = selected is not None
     selected = selected if selected is not None else terms(library, kind, owner_id)
     pending = set()
     for row in library.db.execute(
@@ -228,23 +280,48 @@ def enqueue(library, kind, owner_id, selected=None):
         "AND state IN ('queued','running','paused')",
         (kind, owner_id),
     ):
-        pending.update(item["id"] for item in json.loads(row[0]))
+        pending.update(
+            item["id"]
+            for item in json.loads(row[0])
+            if item.get("term_policy") == INDEX_POLICY_VERSION
+        )
     snapshot = [
         {
             "id": item["id"],
             "english": item["english"],
             "chinese": item["chinese"],
             "definition": item.get("definition", ""),
+            "term_policy": INDEX_POLICY_VERSION,
         }
         for item in selected
-        if not item["chinese"] and not item.get("excluded") and item["id"] not in pending
+        if not item["chinese"]
+        and not item.get("excluded")
+        and item.get("origin") not in {"manual", "conflict"}
+        and (retry_untranslated or item.get("origin") != "untranslated")
+        and item["id"] not in pending
     ]
     if not snapshot:
         return {"queued": 0}
     key = identity()
+    # A policy rebuild must not silently restart a course the user paused.
+    paused = (
+        not retry_untranslated
+        and library.db.execute(
+            "SELECT 1 FROM knowledge_jobs WHERE kind=? AND owner_id=? AND state='paused' LIMIT 1",
+            (kind, owner_id),
+        ).fetchone()
+    )
     library.db.execute(
-        "INSERT INTO knowledge_jobs VALUES(?,?,?,?,'queued',0,?,NULL,?)",
-        (key, kind, owner_id, json.dumps(snapshot, ensure_ascii=False), len(snapshot), now()),
+        "INSERT INTO knowledge_jobs VALUES(?,?,?,?,?,0,?,NULL,?)",
+        (
+            key,
+            kind,
+            owner_id,
+            json.dumps(snapshot, ensure_ascii=False),
+            "paused" if paused else "queued",
+            len(snapshot),
+            now(),
+        ),
     )
     return {"id": key, "queued": len(snapshot)}
 
@@ -282,7 +359,7 @@ def control(library, key, action):
 
 
 def process_job(library, job, translator, should_stop=lambda: False):
-    from .documents import invalidate, owner_path
+    from .documents import owner_path
 
     owner_path(library, job["kind"], job["owner_id"])
     snapshot = json.loads(job["snapshot"])
@@ -297,32 +374,41 @@ def process_job(library, job, translator, should_stop=lambda: False):
             return
         item = snapshot[index]
         term = library.db.execute(
-            "SELECT t.*,COALESCE(m.excluded,0) AS excluded FROM terms t "
+            "SELECT t.*,COALESCE(m.excluded,0) AS excluded,COALESCE(m.retired,0) AS retired,"
+            "COALESCE(m.origin,'extracted') AS origin FROM terms t "
             "LEFT JOIN term_metadata m ON m.term_id=t.id WHERE t.id=?",
             (item["id"],),
         ).fetchone()
         value = ""
+        attempted = False
         if (
             term
+            and item.get("term_policy") == INDEX_POLICY_VERSION
+            and not term["retired"]
+            and term["origin"] not in {"manual", "conflict", "courseware"}
             and not term["excluded"]
             and term["english"] == item["english"]
             and term["chinese"] == item["chinese"]
         ):
-            result = translator.translate(item["english"], context=item["definition"][:300])
-            value = result["text"].strip()
-            if result.get("truncated") or not value or len(value) > 300:
-                raise ValueError("术语译文为空或过长，请重试或手动填写")
+            attempted = True
+            if needs_translation(item["english"], item["definition"]):
+                translate_term = getattr(translator, "translate_term", translator.translate)
+                result = translate_term(item["english"], context=item["definition"][:180])
+                suggestion = result["text"].strip()
+                if not result.get("truncated") and translation_pair(item["english"], suggestion):
+                    value = suggestion
         with library.transaction():
             state = library.db.execute(
                 "SELECT state FROM knowledge_jobs WHERE id=?", (job["id"],)
             ).fetchone()
             if not state or state[0] not in {"running", "paused"}:
                 return
-            if value:
+            if attempted:
                 # A user edit or exclusion while the model ran takes precedence.
                 cursor = library.db.execute(
                     "UPDATE terms SET chinese=? WHERE id=? AND english=? AND chinese=? "
-                    "AND NOT EXISTS(SELECT 1 FROM term_metadata WHERE term_id=? AND excluded=1)",
+                    "AND NOT EXISTS(SELECT 1 FROM term_metadata WHERE term_id=? "
+                    "AND (excluded=1 OR retired=1 OR origin='manual'))",
                     (value, item["id"], item["english"], item["chinese"], item["id"]),
                 )
                 if cursor.rowcount:
@@ -330,14 +416,9 @@ def process_job(library, job, translator, should_stop=lambda: False):
                         "INSERT OR IGNORE INTO term_metadata(term_id) VALUES(?)", (item["id"],)
                     )
                     library.db.execute(
-                        "UPDATE term_metadata SET origin='local-model' WHERE term_id=?",
-                        (item["id"],),
+                        "UPDATE term_metadata SET origin=? WHERE term_id=?",
+                        ("local-suggestion" if value else "untranslated", item["id"]),
                     )
-                    confirmed = library.db.execute(
-                        "SELECT confirmed FROM terms WHERE id=?", (item["id"],)
-                    ).fetchone()
-                    if confirmed and confirmed[0]:
-                        invalidate(library, job["kind"], job["owner_id"])
             library.db.execute(
                 "UPDATE knowledge_jobs SET next_unit=?,updated_at=? WHERE id=?",
                 (index + 1, now(), job["id"]),

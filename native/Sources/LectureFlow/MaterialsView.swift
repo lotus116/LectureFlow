@@ -39,9 +39,13 @@ struct GlossaryTerm: Decodable, Identifiable {
     var references: [TermSource] { (try? JSONDecoder().decode([TermSource].self, from: Data(sources.utf8))) ?? [] }
     var status: String {
         if excluded == 1 { return "已停用" }
-        if chinese.isEmpty { return "待补全中文" }
-        if origin == "manual" { return "人工" }
-        return "已启用"
+        if origin == "manual" { return "人工校正" }
+        if origin == "courseware" && !chinese.isEmpty { return "课件对照" }
+        if origin == "conflict" { return "译名冲突" }
+        if origin == "local-suggestion" { return "译名建议" }
+        if origin == "local-model" { return "旧建议不采用" }
+        if chinese.isEmpty { return "仅拼写辅助" }
+        return "仅拼写辅助"
     }
 }
 struct KnowledgeJob: Decodable, Identifiable, Sendable {
@@ -57,7 +61,7 @@ struct KnowledgeJob: Decodable, Identifiable, Sendable {
         case "running": return "正在本机补全中文"
         case "queued": return "等待本地中文补全"
         case "paused": return "中文补全已暂停"
-        case "completed": return "中文补全完成"
+        case "completed": return "译名建议整理完成"
         case "cancelled": return "中文补全已取消"
         default: return "中文补全未完成"
         }
@@ -251,7 +255,7 @@ struct MaterialsView: View {
                 }.width(90)
                 TableColumn("出处") { term in Text(source(term)).font(.caption).foregroundStyle(.secondary).help(source(term)) }.width(min: 70, ideal: 120)
             }
-            Text("术语默认自动启用。双击编辑；人工修改不会被重新解析覆盖。停用后不再参与识别与翻译。")
+            Text("英文按相关性辅助拼写；自动译名仅供参考，不约束翻译。课件中英对照及人工校正才参与翻译。双击编辑，停用后不再参与。")
                 .font(.caption2).foregroundStyle(.secondary)
         }
     }

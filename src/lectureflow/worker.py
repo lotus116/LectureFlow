@@ -23,6 +23,7 @@ from .model_lease import live_requested
 from .models import CATALOG, resolve
 from .recordings import extract_source, verify_source
 from .runtime import configure, mlx_memory
+from .terminology import snapshot_glossary
 
 
 def recognize_unit(asr, audio: Path, config: dict) -> tuple[str, dict]:
@@ -110,7 +111,7 @@ def process_task(
                     raise ValueError("翻译模型未加载")
                 translated = translator.translate(
                     english,
-                    matching_glossary(config.get("glossary", ""), english),
+                    matching_glossary(snapshot_glossary(config), english),
                 )
                 if translated.get("truncated"):
                     raise ValueError("翻译结果达到长度上限，本区间未提交")

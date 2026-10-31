@@ -33,9 +33,6 @@ class HyMTTranslator:
     def translate(
         self, text: str, glossary: str = "", context: str = "", following: str = "",
     ) -> dict:
-        from mlx_lm import stream_generate
-        from mlx_lm.sample_utils import make_sampler
-
         if not text.strip():
             return {"text": "", "first_token_s": None, "total_s": 0, "truncated": False}
         prompt = (
@@ -48,6 +45,22 @@ class HyMTTranslator:
             + "将以下文本翻译为简体中文，注意只需要输出翻译后的结果，不要额外解释：\n"
             + text
         )
+        return self._generate(prompt)
+
+    def translate_term(self, text: str, context: str = "") -> dict:
+        # Separate from sentence translation: a source excerpt is not the target.
+        prompt = (
+            "任务：给出待译术语的简体中文短译名，只输出译名。不要翻译背景、解释或造句。"
+            "无法确定译名、代码、组织名或产品名可保留原文。\n"
+            + (f"背景（仅作消歧）：{context[:180]}\n" if context else "")
+            + f"待译术语：{text}"
+        )
+        return self._generate(prompt, max_tokens=64)
+
+    def _generate(self, prompt: str, *, max_tokens: int = 512) -> dict:
+        from mlx_lm import stream_generate
+        from mlx_lm.sample_utils import make_sampler
+
         formatted = self.tokenizer.apply_chat_template(
             [{"role": "user", "content": prompt}], tokenize=False, add_generation_prompt=True,
         )
@@ -57,7 +70,7 @@ class HyMTTranslator:
         final_reason = None
         for response in stream_generate(
             self.model, self.tokenizer, prompt=formatted,
-            max_tokens=512, sampler=make_sampler(temp=0),
+            max_tokens=max_tokens, sampler=make_sampler(temp=0),
         ):
             if response.text and first is None:
                 first = time.perf_counter() - started

@@ -10,6 +10,8 @@ import difflib
 import re
 from dataclasses import dataclass
 
+from .terminology import spelling_candidate, translation_pair
+
 ASR_INPUT_POLICY = "audio_only_v1"
 GUIDED_POLICY = "guided_rerecognize_v1"
 SAFE_ASR_POLICIES = frozenset({ASR_INPUT_POLICY, GUIDED_POLICY})
@@ -17,7 +19,7 @@ SAFE_ASR_POLICIES = frozenset({ASR_INPUT_POLICY, GUIDED_POLICY})
 # Starting tunable budgets — adjust with evidence; do not treat as hard safety.
 ASR_HINT_TERM_LIMIT = 12
 ASR_HINT_CHAR_LIMIT = 240
-ASR_HINT_MIN_SCORE = 0.6
+ASR_HINT_MIN_SCORE = 0.8
 SUMMARY_PAGE_LIMIT = 4
 SUMMARY_PAGE_CHAR_LIMIT = 3500
 SUMMARY_GLOSSARY_LIMIT = 1200
@@ -72,7 +74,7 @@ def matching_glossary(glossary: str, speech: str) -> str:
     matches = []
     for line in glossary.splitlines():
         english, separator, chinese = line.rpartition(": ")
-        if not separator or not english.strip() or not chinese.strip():
+        if not separator or not translation_pair(english.strip(), chinese.strip()):
             continue
         pattern = r"(?<![\w])" + re.escape(english.strip()) + r"(?![\w])"
         if re.search(pattern, speech, re.IGNORECASE):
@@ -156,8 +158,12 @@ def term_draft_score(english: str, draft_tokens: list[str]) -> float:
     for token in folded:
         if whole == token:
             return 1.0
-        if len(whole) >= 4 and (whole.startswith(token) or token.startswith(whole)):
-            best = max(best, 0.9)
+        if (
+            min(len(whole), len(token)) >= 4
+            and min(len(whole), len(token)) / max(len(whole), len(token)) >= 0.8
+            and (whole.startswith(token) or token.startswith(whole))
+        ):
+            best = max(best, _ratio(whole, token))
         elif len(whole) >= 5 and len(token) >= 5:
             best = max(best, _ratio(whole, token))
     parts = [_fold(p) for p in _term_parts(english)]
@@ -255,7 +261,10 @@ def select_asr_hints(
     for item in hint_terms or []:
         english = (item.get("english") or "").strip()
         key = english.casefold()
-        if not english or key in seen or len(english) > 80 or not _distinctive_term(english):
+        if (
+            not english or key in seen or len(english) > 80
+            or not _distinctive_term(english) or not spelling_candidate(english)
+        ):
             continue
         seen.add(key)
         score = term_draft_score(english, draft_tokens)
@@ -263,8 +272,6 @@ def select_asr_hints(
             page_terms
             and any(_fold(part) in page_terms for part in _term_parts(english))
         )
-        if on_related_page and score >= 0.45:
-            score = max(score, 0.65)
         # Near-exact draft support may stand alone; softer fuzzy needs a related page.
         if score < min_score:
             continue
