@@ -6,7 +6,7 @@
 <p align="center">macOS 原生课堂助手 · 本地识别与翻译 · 悬浮双语字幕</p>
 
 <p align="center">
-  <a href="https://github.com/lotus116/LectureFlow/releases/latest"><img src="https://img.shields.io/badge/%E4%BD%93%E9%AA%8C%E7%89%88-0.6.1-376C91?style=flat-square" alt="体验版 0.6.1"></a>
+  <a href="https://github.com/lotus116/LectureFlow/releases/latest"><img src="https://img.shields.io/badge/%E4%BD%93%E9%AA%8C%E7%89%88-0.6.2-376C91?style=flat-square" alt="体验版 0.6.2"></a>
   <img src="https://img.shields.io/badge/macOS-26%2B-376C91?style=flat-square&logo=apple&logoColor=white" alt="macOS 26 及以上">
   <img src="https://img.shields.io/badge/芯片-Apple_Silicon-376C91?style=flat-square" alt="Apple Silicon">
   <img src="https://img.shields.io/badge/数据处理-本机完成-467967?style=flat-square" alt="录音、识别、翻译和资料解析均在本机处理">
@@ -15,7 +15,7 @@
 <p align="center">
   <a href="https://github.com/lotus116/LectureFlow/releases/latest"><strong>下载 macOS 体验版 →</strong></a>
   &nbsp; · &nbsp; <a href="docs/USER_GUIDE.md">使用指南</a>
-  &nbsp; · &nbsp; <a href="docs/RELEASE-0.6.1.md">0.6.1 更新说明</a>
+  &nbsp; · &nbsp; <a href="docs/RELEASE-0.6.2.md">0.6.2 更新说明</a>
   &nbsp; · &nbsp; <a href="https://github.com/lotus116/LectureFlow/issues">反馈问题</a>
 </p>
 
@@ -31,15 +31,15 @@
 
 **资料放一次，各次 Lecture 共享。** PDF/PPT 统一归属课程，后台整理相关拼写提示。课件明确中英对照和人工校正辅助翻译；自动生成的译名仅作建议，不强行替换原话。
 
-## 0.6.1 · 本轮成果
+## 0.6.2 · 字幕阅读阶段体验版
 
-本版汇总简化课程流程、原生界面整理及 **课程词表污染修复**。移除笔记与云端总结 API，聚焦录音、转写和翻译。
+本版在 0.6.1 基础上加入可展开的实时字幕阅读区，整理录音控制、悬浮窗口和自适应布局。
 
-- 区分英文拼写证据与中文译名，拦截解释句、原文回填和冲突译名。
-- 旧派生词表自动重新整理，人工修改、停用记录和历史转写保留。
-- 统一实时、课后及单段重新翻译的词表筛选，避免整份词表干扰当前语句。
+- “展开字幕 / 恢复布局”切换，保留搜索、字号、导出和精简采集控制。
+- 改善录音控制、侧栏空间、悬浮字幕标题栏及主窗口切换。
+- 保留课程共享资料、历史版本与人工修改；准确率和长时评估仍待反馈。
 
-[完整发布说明](docs/RELEASE-0.6.1.md) · [修复细节与验证证据](docs/TERMINOLOGY_QUALITY_FIX.md)
+[完整发布说明](docs/RELEASE-0.6.2.md) · [词表修复细节与验证证据](docs/TERMINOLOGY_QUALITY_FIX.md)
 
 ## 开始使用
 
