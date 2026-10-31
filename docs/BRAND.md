@@ -1,5 +1,7 @@
 # 视觉资源
 
+应用界面改进方向与 Cursor 实施提示见 [界面视觉改进任务书](UI_REDESIGN_BRIEF.md)。品牌横幅用于仓库展示，日常应用正文以阅读和操作为主；该任务书尚未代表实际 UI 已完成。
+
 - `assets/logo.png`：应用图标与项目 Logo，琪露诺 fumo 在课桌前听讲的半身构图。
 - `assets/hero.png`：README 发布页横幅，统一 fumo 形象和冰蓝色背景。
 - 使用内置 imagegen 生成。用户参考图仅用于角色外观指导，不随仓库发布。
