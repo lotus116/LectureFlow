@@ -128,6 +128,8 @@ struct LibraryView: View {
     @State private var materialsCourse: Course?
     @State private var textLanguage = "both"
     @State private var transcriptSource = "offline"
+    @State private var captionsExpanded = false
+    private var readingCaptions: Bool { captionsExpanded && tab == "transcript" && transcriptSource == "live" }
     @State private var editingUnit: Int?
     @State private var editEnglish = ""
     @State private var editChinese = ""
@@ -261,11 +263,23 @@ struct LibraryView: View {
                         .frame(height: 120)
                         .allowsHitTesting(false)
                     VStack(alignment: .leading, spacing: compact ? LFChrome.space8 : LFChrome.space12) {
-                        header(lecture)
+                        if readingCaptions {
+                            HStack(spacing: LFChrome.space12) {
+                                Text(lecture.title)
+                                    .font(.headline)
+                                    .lineLimit(1)
+                                Text("实时字幕").font(.caption).foregroundStyle(.secondary)
+                                Spacer(minLength: 8)
+                                captionLayoutButton
+                            }
+                        } else {
+                            header(lecture)
+                        }
                         modelDownloadBanner
-                        LiveControlView(workspace: model, live: model.live, lecture: lecture, showingAudio: tab == "audio")
-                        contentChrome
-                        if tab == "audio" || tab == "transcript", let task = model.activeTask { taskView(task) }
+                        LiveControlView(workspace: model, live: model.live, lecture: lecture,
+                                        showingAudio: tab == "audio", readingMode: readingCaptions)
+                        if !readingCaptions { contentChrome }
+                        if !readingCaptions, let task = model.activeTask { taskView(task) }
                         Group {
                             if tab == "audio" { audioList(lecture) }
                             else { unifiedTranscript(lecture) }
@@ -423,6 +437,7 @@ struct LibraryView: View {
         }
         .onChange(of: model.selectedLecture) { _, next in
             playback.stop()
+            captionsExpanded = false
         }
         .onChange(of: model.requestedTab) { _, value in
             if let value {
@@ -887,6 +902,9 @@ struct LibraryView: View {
             }
 
             Spacer(minLength: 0)
+            if tab == "transcript" && transcriptSource == "live" {
+                captionLayoutButton
+            }
         }
         .padding(.horizontal, 2)
         .padding(.vertical, LFChrome.space8)
@@ -901,6 +919,19 @@ struct LibraryView: View {
                 transcriptSource = "offline"
             }
         }
+    }
+
+    private var captionLayoutButton: some View {
+        Button {
+            captionsExpanded.toggle()
+        } label: {
+            Label(readingCaptions ? "恢复布局" : "展开字幕",
+                  systemImage: readingCaptions ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right")
+        }
+        .controlSize(.small)
+        .fixedSize()
+        .help(readingCaptions ? "恢复课程操作和完整录音控制" : "收起顶部工具，扩大实时字幕阅读区域")
+        .accessibilityIdentifier("caption-layout-toggle")
     }
 
     private var offlineTranscriptFilters: some View {

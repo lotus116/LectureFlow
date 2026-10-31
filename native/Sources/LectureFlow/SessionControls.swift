@@ -6,6 +6,7 @@ struct SessionControlBar: View {
     @ObservedObject var workspace: Workspace
     @ObservedObject var live: LiveController
     let showingAudio: Bool
+    var readingMode = false
     @State private var options = false
 
     private var active: Bool {
@@ -17,8 +18,26 @@ struct SessionControlBar: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: LFChrome.space10) {
-            recordingIsland
-            metaRow
+            if readingMode {
+                HStack(spacing: LFChrome.space12) {
+                    statusCluster
+                    TimelineView(.periodic(from: .now, by: 0.5)) { _ in
+                        Text(clock(workspace.session.duration(at: ProcessInfo.processInfo.systemUptime)))
+                            .font(.system(size: LFChrome.bodySize, weight: .medium).monospacedDigit())
+                    }
+                    Spacer(minLength: 8)
+                    transportPrimary
+                    if workspace.session.hasSession { transportStop }
+                }
+                if let notice = inlineNotice {
+                    Text(notice)
+                        .font(.system(size: LFChrome.captionSize))
+                        .foregroundStyle(.secondary)
+                }
+            } else {
+                recordingIsland
+                metaRow
+            }
 
             if workspace.session.state == .running && workspace.session.desired.needsASR
                 && !live.flags.needsASR && !workspace.captionsWaiting {
@@ -26,7 +45,7 @@ struct SessionControlBar: View {
                     .font(.system(size: LFChrome.captionSize))
             }
 
-            if workspace.session.state == .ended {
+            if workspace.session.state == .ended && !readingMode {
                 endedRow
             }
         }

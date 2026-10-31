@@ -7,7 +7,10 @@ struct LiveControlView: View {
     @ObservedObject var live: LiveController
     let lecture: Lecture
     let showingAudio: Bool
-    var body: some View { SessionControlBar(workspace: workspace, live: live, showingAudio: showingAudio) }
+    var readingMode = false
+    var body: some View {
+        SessionControlBar(workspace: workspace, live: live, showingAudio: showingAudio, readingMode: readingMode)
+    }
 }
 
 struct LiveTranscriptView: View {
