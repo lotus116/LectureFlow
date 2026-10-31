@@ -18,14 +18,15 @@ final class SubtitleWindow {
             panel.orderFrontRegardless()
             return
         }
-        // Compact default — grow vertically to reveal more recent captions.
+        // One titlebar row with traffic lights + controls; grow taller for more captions.
         let window = CaptionPanel(
-            contentRect: NSRect(x: 280, y: 180, width: 560, height: 108),
+            contentRect: NSRect(x: 280, y: 200, width: 560, height: 92),
             styleMask: [.titled, .closable, .resizable, .nonactivatingPanel, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )
         window.title = "LectureFlow 字幕"
+        window.titleVisibility = .hidden
         window.level = .statusBar
         window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .ignoresCycle]
         window.hidesOnDeactivate = false
@@ -35,10 +36,10 @@ final class SubtitleWindow {
         window.isOpaque = false
         window.backgroundColor = .clear
         window.titlebarAppearsTransparent = true
-        window.contentMinSize = NSSize(width: 360, height: 88)
+        window.toolbarStyle = .unifiedCompact
+        window.contentMinSize = NSSize(width: 360, height: 72)
         window.contentMaxSize = NSSize(width: 12_000, height: 900)
-        // v2 resets prior oversized autosave so the compact default applies once.
-        window.setFrameAutosaveName("LectureFlowSubtitles.v2")
+        window.setFrameAutosaveName("LectureFlowSubtitles.v3")
         if !NSScreen.screens.contains(where: { $0.visibleFrame.intersects(window.frame) }) {
             window.center()
         }
@@ -66,27 +67,30 @@ final class SubtitleWindow {
 private struct FloatingSubtitles: View {
     @ObservedObject var workspace: Workspace
     @ObservedObject var live: LiveController
-    @AppStorage("subtitleSize") private var fontSize = 24.0
+    @AppStorage("subtitleSize") private var fontSize = 22.0
     @AppStorage("subtitleOpacity") private var opacity = 0.86
     @AppStorage("subtitleLanguage") private var language = "zh" // zh | both
     @AppStorage("autoFloatingSubtitles") private var automatic = true
     @State private var settings = false
     @State private var follow = true
 
-    private let chromeHeight: CGFloat = 28
+    /// Same row as macOS traffic lights (leading inset clears the buttons).
+    private let titlebarRow: CGFloat = 28
+    private let trafficLightInset: CGFloat = 72
     private let maxVisibleCaptions = 6
 
     var body: some View {
         GeometryReader { geo in
             let visibleCount = captionCapacity(for: geo.size.height)
-            VStack(alignment: .leading, spacing: 4) {
-                toolbar
+            VStack(alignment: .leading, spacing: 0) {
+                titlebar
+                    .frame(height: titlebarRow)
                 captionStack(visibleCount: visibleCount)
+                    .padding(.horizontal, 12)
+                    .padding(.top, 4)
+                    .padding(.bottom, 6)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
             }
-            .padding(.horizontal, 12)
-            .padding(.top, 22)
-            .padding(.bottom, 6)
             .frame(width: geo.size.width, height: geo.size.height, alignment: .topLeading)
         }
         .background(Color(red: 0.06, green: 0.08, blue: 0.12).opacity(opacity))
@@ -105,17 +109,16 @@ private struct FloatingSubtitles: View {
         }
     }
 
-    private var toolbar: some View {
-        HStack(spacing: 8) {
-            Circle().fill(statusColor).frame(width: 5, height: 5)
-            Text(statusLabel)
+    private var titlebar: some View {
+        HStack(spacing: 6) {
+            Circle()
+                .fill(statusColor)
+                .frame(width: 5, height: 5)
+            Text(compactStatus)
                 .font(.system(size: 10, weight: .medium))
+                .foregroundStyle(.white.opacity(0.9))
                 .lineLimit(1)
-            Text(footerLabel)
-                .font(.system(size: 10))
-                .foregroundStyle(.white.opacity(0.4))
-                .lineLimit(1)
-            Spacer(minLength: 4)
+            Spacer(minLength: 6)
             if workspace.session.hasSession {
                 Button(workspace.session.primaryTitle) {
                     workspace.primarySessionAction()
@@ -146,16 +149,26 @@ private struct FloatingSubtitles: View {
                 .padding(16)
                 .frame(width: 280)
             }
-            Button("主窗口") { workspace.showMainWindow() }
-            Button { workspace.hideSubtitles() } label: {
+            Button {
+                workspace.showMainWindow()
+            } label: {
+                Image(systemName: "macwindow")
+            }
+            .help("返回主窗口")
+            .accessibilityLabel("主窗口")
+            Button {
+                workspace.hideSubtitles()
+            } label: {
                 Image(systemName: "eye.slash")
             }
             .help("隐藏悬浮字幕")
         }
-        .font(.system(size: 10))
+        .font(.system(size: 10, weight: .medium))
         .buttonStyle(.plain)
         .foregroundStyle(.white.opacity(0.88))
-        .frame(height: chromeHeight, alignment: .center)
+        .padding(.leading, trafficLightInset)
+        .padding(.trailing, 10)
+        .contentShape(Rectangle())
     }
 
     @ViewBuilder
@@ -179,7 +192,6 @@ private struct FloatingSubtitles: View {
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.vertical, 2)
             }
             .foregroundStyle(.white)
             .scrollIndicators(.hidden)
@@ -225,11 +237,9 @@ private struct FloatingSubtitles: View {
         .animation(.easeOut(duration: 0.12), value: caption.revision)
     }
 
-    /// How many recent captions fit in the current panel height.
     private func captionCapacity(for height: CGFloat) -> Int {
-        let usable = max(0, height - 22 - 6 - chromeHeight - 4)
-        let unit = estimatedUnitHeight
-        let count = Int(floor(usable / max(unit, 1)))
+        let usable = max(0, height - titlebarRow - 10)
+        let count = Int(floor(usable / max(estimatedUnitHeight, 1)))
         return min(maxVisibleCaptions, max(1, count))
     }
 
@@ -249,18 +259,13 @@ private struct FloatingSubtitles: View {
         return .gray
     }
 
-    private var statusLabel: String {
+    private var compactStatus: String {
         if workspace.session.state == .paused { return "已暂停" }
-        if live.flags.recording { return "录音中" }
+        if live.flags.recording { return "录音中 · 保存中" }
         if live.flags.needsASR { return "仅字幕" }
-        return "已停止"
-    }
-
-    private var footerLabel: String {
-        if live.flags.recording { return "· 保存中" }
         if workspace.session.hasSession {
-            return workspace.session.desired.recording ? "· 已暂停" : "· 不保存音频"
+            return workspace.session.desired.recording ? "已暂停" : "不保存音频"
         }
-        return "· 不保存录音"
+        return "已停止"
     }
 }
