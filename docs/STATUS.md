@@ -3,8 +3,10 @@
 ## 0.6.2 阶段发布（LF-RELEASE，关联 SD-01 / SD-05 / SD-07）
 
 - 汇总字幕展开阅读、录音控制与悬浮窗调整，版本及发布说明已准备。未新增语音增强、多语种或模型候选。
-- 本地发布检查：ruff、107 项 Python 测试、19 项原生测试通过。独立分发包由 Release macOS app 工作流构建和校验，发布结果另行核对。
+- 本地发布检查：ruff、107 项 Python 测试、19 项原生测试通过。[发布工作流](https://github.com/lotus116/LectureFlow/actions/runs/41190652632) 已成功完成独立打包、签名、后端启动检查及公开发布；[v0.6.2](https://github.com/lotus116/LectureFlow/releases/tag/v0.6.2) 包含 ZIP 与 SHA256SUMS。
 - 质量、延迟、续航、三小时及跨设备视觉覆盖仍暂缓或待反馈，不因阶段发布标记通过。
+- 下一步讨论见 [NEXT_IMPROVEMENTS.md](NEXT_IMPROVEMENTS.md)：源／目标语言、可比较的识别与翻译模型、可选增强；均为建议，未计为已实现。
+- 已重新下载公开 ZIP 并通过 SHA256SUMS 校验；检查包内版本为 0.6.2，无开发项目路径配置、Models 或 data 目录。
 
 ## 实时字幕展开阅读（LF-UI，关联 SD-05 / SD-07）
 
