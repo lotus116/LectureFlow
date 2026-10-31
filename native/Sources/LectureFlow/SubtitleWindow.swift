@@ -10,7 +10,6 @@ private final class CaptionPanel: NSPanel {
 @MainActor
 final class SubtitleWindow {
     private var panel: NSPanel?
-    private var titleAccessory: NSTitlebarAccessoryViewController?
 
     var isVisible: Bool { panel?.isVisible == true }
 
@@ -34,28 +33,19 @@ final class SubtitleWindow {
         window.isMovableByWindowBackground = true
         window.isReleasedWhenClosed = false
         window.isOpaque = false
-        window.backgroundColor = NSColor(calibratedRed: 0.06, green: 0.08, blue: 0.12, alpha: 0.92)
+        window.backgroundColor = .clear
         window.titlebarAppearsTransparent = true
         window.appearance = NSAppearance(named: .darkAqua)
-        window.contentMinSize = NSSize(width: 360, height: 64)
+        window.contentMinSize = NSSize(width: 320, height: 64)
         window.contentMaxSize = NSSize(width: 12_000, height: 900)
-        window.setFrameAutosaveName("LectureFlowSubtitles.v4")
+        window.setFrameAutosaveName("LectureFlowSubtitles.v5")
 
-        // Put status + actions in the real titlebar (same row as traffic lights).
-        let chrome = FloatingTitleChrome(workspace: workspace, live: workspace.live)
-        let chromeHost = NSHostingView(rootView: chrome)
-        chromeHost.frame = NSRect(x: 0, y: 0, width: 560, height: 28)
-        let accessory = NSTitlebarAccessoryViewController()
-        accessory.layoutAttribute = .right
-        accessory.view = chromeHost
-        accessory.fullScreenMinHeight = 28
-        window.addTitlebarAccessoryViewController(accessory)
-        titleAccessory = accessory
-
-        // Content is captions only — no second toolbar row.
-        window.contentView = NSHostingView(
-            rootView: FloatingCaptionBody(workspace: workspace, live: workspace.live)
+        let host = NSHostingView(
+            rootView: FloatingSubtitlesRoot(workspace: workspace, live: workspace.live)
         )
+        host.wantsLayer = true
+        host.layer?.backgroundColor = NSColor.clear.cgColor
+        window.contentView = host
 
         if !NSScreen.screens.contains(where: { $0.visibleFrame.intersects(window.frame) }) {
             window.center()
@@ -63,10 +53,7 @@ final class SubtitleWindow {
         NotificationCenter.default.addObserver(
             forName: NSWindow.willCloseNotification, object: window, queue: .main
         ) { [weak self] _ in
-            Task { @MainActor in
-                self?.panel = nil
-                self?.titleAccessory = nil
-            }
+            Task { @MainActor in self?.panel = nil }
         }
         panel = window
         window.orderFrontRegardless()
@@ -81,9 +68,8 @@ final class SubtitleWindow {
     }
 }
 
-// MARK: - Titlebar (blue strip · traffic lights + this chrome)
-
-private struct FloatingTitleChrome: View {
+/// One translucent surface: traffic-light row chrome + captions (no second toolbar strip).
+private struct FloatingSubtitlesRoot: View {
     @ObservedObject var workspace: Workspace
     @ObservedObject var live: LiveController
     @AppStorage("subtitleSize") private var fontSize = 22.0
@@ -91,21 +77,64 @@ private struct FloatingTitleChrome: View {
     @AppStorage("subtitleLanguage") private var language = "zh"
     @AppStorage("autoFloatingSubtitles") private var automatic = true
     @State private var settings = false
+    @State private var follow = true
+
+    private let trafficLightInset: CGFloat = 78
+    private let titlebarRow: CGFloat = 28
+    private let maxVisibleCaptions = 6
+
+    private var panelFill: Color {
+        Color(red: 0.06, green: 0.08, blue: 0.12).opacity(opacity)
+    }
 
     var body: some View {
+        GeometryReader { geo in
+            let visibleCount = captionCapacity(for: geo.size.height)
+            VStack(alignment: .leading, spacing: 0) {
+                titlebar
+                    .frame(height: titlebarRow)
+                captionStack(visibleCount: visibleCount)
+                    .padding(.horizontal, 12)
+                    .padding(.top, 2)
+                    .padding(.bottom, 6)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+            }
+            .frame(width: geo.size.width, height: geo.size.height, alignment: .topLeading)
+        }
+        .background(panelFill)
+        .preferredColorScheme(.dark)
+        // Draw under the system titlebar so chrome shares the traffic-light row.
+        .ignoresSafeArea(.container, edges: .top)
+        .onChange(of: live.error) { _, value in if let value { workspace.error = value } }
+        .alert(
+            "操作未完成",
+            isPresented: Binding(
+                get: { workspace.error != nil },
+                set: { if !$0 { workspace.error = nil } }
+            )
+        ) {
+            Button("知道了") { workspace.error = nil; live.error = nil }
+        } message: {
+            Text(workspace.error ?? "")
+        }
+    }
+
+    private var titlebar: some View {
         HStack(spacing: 6) {
-            Circle()
-                .fill(statusColor)
-                .frame(width: 5, height: 5)
-            Text(compactStatus)
-                .font(.system(size: 10, weight: .medium))
-                .lineLimit(1)
-                .layoutPriority(1)
+            ViewThatFits(in: .horizontal) {
+                statusCluster(includeText: true)
+                statusCluster(includeText: false)
+                Color.clear.frame(width: 0, height: 1)
+            }
+            .layoutPriority(0)
+
             Spacer(minLength: 4)
+
             if workspace.session.hasSession {
                 Button(workspace.session.primaryTitle) {
                     workspace.primarySessionAction()
                 }
+                .layoutPriority(1)
             }
             Button { settings.toggle() } label: {
                 Image(systemName: "slider.horizontal.3")
@@ -129,75 +158,47 @@ private struct FloatingTitleChrome: View {
                 .padding(16)
                 .frame(width: 280)
             }
-            Button { workspace.showMainWindow() } label: {
-                Image(systemName: "macwindow")
+            .layoutPriority(1)
+
+            Button {
+                workspace.toggleMainWindow()
+            } label: {
+                Image(systemName: workspace.isMainWindowVisible ? "macwindow.fill" : "macwindow")
             }
-            .help("返回主窗口")
+            .help(workspace.isMainWindowVisible ? "隐藏主窗口" : "显示主窗口")
+            .accessibilityLabel(workspace.isMainWindowVisible ? "隐藏主窗口" : "显示主窗口")
+            .layoutPriority(1)
+
             Button { workspace.hideSubtitles() } label: {
                 Image(systemName: "eye.slash")
             }
             .help("隐藏悬浮字幕")
+            .layoutPriority(1)
         }
         .font(.system(size: 10, weight: .medium))
         .buttonStyle(.plain)
-        .foregroundStyle(.primary)
-        .padding(.leading, 8)
+        .foregroundStyle(.white.opacity(0.9))
+        .padding(.leading, trafficLightInset)
         .padding(.trailing, 8)
-        .frame(minWidth: 280, maxWidth: .infinity, minHeight: 28, maxHeight: 28)
+        .frame(maxWidth: .infinity, minHeight: titlebarRow, maxHeight: titlebarRow)
+        .contentShape(Rectangle())
     }
 
-    private var statusColor: Color {
-        if workspace.session.state == .paused { return .orange }
-        if live.flags.needsMicrophone { return .mint }
-        return .secondary
-    }
-
-    private var compactStatus: String {
-        if workspace.session.state == .paused { return "已暂停" }
-        if live.flags.recording { return "录音中 · 保存中" }
-        if live.flags.needsASR { return "仅字幕" }
-        if workspace.session.hasSession {
-            return workspace.session.desired.recording ? "已暂停" : "不保存音频"
+    @ViewBuilder
+    private func statusCluster(includeText: Bool) -> some View {
+        HStack(spacing: 5) {
+            Circle()
+                .fill(statusColor)
+                .frame(width: 5, height: 5)
+            if includeText {
+                Text(compactStatus)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
+                    .help(compactStatus)
+            }
         }
-        return "已停止"
-    }
-}
-
-// MARK: - Caption body (fills the rest of the panel)
-
-private struct FloatingCaptionBody: View {
-    @ObservedObject var workspace: Workspace
-    @ObservedObject var live: LiveController
-    @AppStorage("subtitleSize") private var fontSize = 22.0
-    @AppStorage("subtitleOpacity") private var opacity = 0.86
-    @AppStorage("subtitleLanguage") private var language = "zh"
-    @State private var follow = true
-
-    private let maxVisibleCaptions = 6
-
-    var body: some View {
-        GeometryReader { geo in
-            let visibleCount = captionCapacity(for: geo.size.height)
-            captionStack(visibleCount: visibleCount)
-                .padding(.horizontal, 12)
-                .padding(.top, 4)
-                .padding(.bottom, 6)
-                .frame(width: geo.size.width, height: geo.size.height, alignment: .bottomLeading)
-        }
-        .background(Color(red: 0.06, green: 0.08, blue: 0.12).opacity(opacity))
-        .preferredColorScheme(.dark)
-        .onChange(of: live.error) { _, value in if let value { workspace.error = value } }
-        .alert(
-            "操作未完成",
-            isPresented: Binding(
-                get: { workspace.error != nil },
-                set: { if !$0 { workspace.error = nil } }
-            )
-        ) {
-            Button("知道了") { workspace.error = nil; live.error = nil }
-        } message: {
-            Text(workspace.error ?? "")
-        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(compactStatus)
     }
 
     @ViewBuilder
@@ -278,7 +279,7 @@ private struct FloatingCaptionBody: View {
     }
 
     private func captionCapacity(for height: CGFloat) -> Int {
-        let usable = max(0, height - 10)
+        let usable = max(0, height - titlebarRow - 8)
         let count = Int(floor(usable / max(estimatedUnitHeight, 1)))
         return min(maxVisibleCaptions, max(1, count))
     }
@@ -292,4 +293,20 @@ private struct FloatingCaptionBody: View {
     }
 
     private var unitSpacing: CGFloat { 6 }
+
+    private var statusColor: Color {
+        if workspace.session.state == .paused { return .orange }
+        if live.flags.needsMicrophone { return .mint }
+        return .gray
+    }
+
+    private var compactStatus: String {
+        if workspace.session.state == .paused { return "已暂停" }
+        if live.flags.recording { return "录音中 · 保存中" }
+        if live.flags.needsASR { return "仅字幕" }
+        if workspace.session.hasSession {
+            return workspace.session.desired.recording ? "已暂停" : "不保存音频"
+        }
+        return "已停止"
+    }
 }

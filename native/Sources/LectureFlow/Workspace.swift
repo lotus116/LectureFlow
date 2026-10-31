@@ -63,6 +63,26 @@ final class Workspace: ObservableObject {
     var revealMain: (() -> Void)?
     func showMainWindow() { revealMain?() }
 
+    var isMainWindowVisible: Bool {
+        NSApp.windows.contains { Self.isMainWindow($0) && $0.isVisible && !$0.isMiniaturized }
+    }
+
+    /// Floating caption control: show or hide the main library window.
+    func toggleMainWindow() {
+        if isMainWindowVisible {
+            hideMainWindow()
+        } else if let window = NSApp.windows.first(where: Self.isMainWindow) {
+            // orderOut keeps the window in the list; bring it back without openWindow.
+            window.deminiaturize(nil)
+            window.makeKeyAndOrderFront(nil)
+            NSApp.activate(ignoringOtherApps: true)
+            objectWillChange.send()
+        } else {
+            showMainWindow()
+            objectWillChange.send()
+        }
+    }
+
     init() {
         // Meter updates redraw the recorder itself, not the entire library and task list.
         Publishers.MergeMany(
@@ -122,10 +142,11 @@ final class Workspace: ObservableObject {
         objectWillChange.send()
     }
 
-    private func hideMainWindow() {
+    func hideMainWindow() {
         for window in NSApp.windows where Self.isMainWindow(window) {
             window.orderOut(nil)
         }
+        objectWillChange.send()
     }
 
     static func isMainWindow(_ window: NSWindow) -> Bool {

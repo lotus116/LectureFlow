@@ -147,7 +147,7 @@ struct LibraryView: View {
                         ForEach(course.lectures) { lecture in
                             Label(lecture.title, systemImage: "waveform")
                                 .tag(lecture.id)
-                                .listRowBackground(courseDropBackground(course.id))
+                                .listRowBackground(lectureRowBackground(course.id, lectureID: lecture.id))
                                 .draggable("lectureflow-lecture:" + lecture.id)
                                 .dropDestination(for: String.self) { items, _ in
                                     acceptSidebarDrop(items, course: course, lecture: lecture)
@@ -182,6 +182,7 @@ struct LibraryView: View {
                 }
             }
             .listStyle(.sidebar)
+            .background(SidebarSelectionStyle())
             .safeAreaInset(edge: .top) {
                 HStack(spacing: LFChrome.space12) {
                     Image(nsImage: NSApp.applicationIconImage)
@@ -479,6 +480,16 @@ struct LibraryView: View {
     private func courseDropBackground(_ courseID: String) -> some View {
         RoundedRectangle(cornerRadius: 6, style: .continuous)
             .fill(dropCourseID == courseID ? LFChrome.dropHighlight : Color.clear)
+    }
+
+    private func lectureRowBackground(_ courseID: String, lectureID: String) -> some View {
+        let selected = model.selectedLecture == lectureID
+        return RoundedRectangle(cornerRadius: 6, style: .continuous)
+            .fill(
+                selected
+                    ? LFChrome.accent.opacity(0.22)
+                    : (dropCourseID == courseID ? LFChrome.dropHighlight : Color.clear)
+            )
     }
 
     private func updateDropTarget(_ courseID: String, targeted: Bool) {
