@@ -6,7 +6,7 @@
 <p align="center">macOS 原生课堂助手 · 本地识别与翻译 · 悬浮双语字幕</p>
 
 <p align="center">
-  <a href="https://github.com/lotus116/LectureFlow/releases/latest"><img src="https://img.shields.io/github/v/release/lotus116/LectureFlow?style=flat-square&label=体验版&color=376C91" alt="最新公开版本"></a>
+  <a href="https://github.com/lotus116/LectureFlow/releases/latest"><img src="https://img.shields.io/badge/%E4%BD%93%E9%AA%8C%E7%89%88-0.6.1-376C91?style=flat-square" alt="体验版 0.6.1"></a>
   <img src="https://img.shields.io/badge/macOS-26%2B-376C91?style=flat-square&logo=apple&logoColor=white" alt="macOS 26 及以上">
   <img src="https://img.shields.io/badge/芯片-Apple_Silicon-376C91?style=flat-square" alt="Apple Silicon">
   <img src="https://img.shields.io/badge/数据处理-本机完成-467967?style=flat-square" alt="录音、识别、翻译和资料解析均在本机处理">

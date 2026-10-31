@@ -24,6 +24,6 @@
 | SD-10 | 单资料库、四类设置、诊断脱敏 | `SettingsView` | UI 构建 | done |
 | SD-11 | 笔记/API/Prompt/Keychain 移除 | `summaries` stub；导出无 prompt | `test_summary_apis_are_removed` | done |
 
-阶段：A–C 代码已落地；D 文档与预览进行中。质量/延迟/续航/三小时评估仍暂缓，不标记通过。
+阶段：A–C 代码已落地；D 文档与阶段体验版 [v0.6.1](https://github.com/lotus116/LectureFlow/releases/tag/v0.6.1) 已发布。发布交付不代替上述待做的实际操作验收；质量/延迟/续航/三小时评估仍暂缓，不标记通过。
 
-验证（本轮）：`.venv/bin/ruff check` 通过；93 Python；19 原生。未测真实麦克风、睡眠与付费路径。
+验证（0.6.1）：ruff 通过；107 Python；19 原生；[正式发布工作流](https://github.com/lotus116/LectureFlow/actions/runs/41171342807) 成功，实际下载的 ZIP 校验一致。真实麦克风与睡眠等仍待使用反馈。
