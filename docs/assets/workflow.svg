@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="222" viewBox="0 0 1200 222" role="img" aria-labelledby="title desc">
+  <title id="title">LectureFlow 使用流程</title>
+  <desc id="desc">课前整理课程资料，课中录音并查看双语字幕，课后编辑和导出转写。资料可选，处理在本机完成。</desc>
+  <style>
+    .panel{fill:#f5f9fc;stroke:#dce6ef}.number{fill:#27618b}.heading{fill:#163852}.body{fill:#486174}.line{stroke:#c5d5e3}
+    @media(prefers-color-scheme:dark){.panel{fill:#18232d;stroke:#304151}.number{fill:#91c8ed}.heading{fill:#e7f0f7}.body{fill:#aec1d1}.line{stroke:#43596d}}
+    text{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}
+  </style>
+  <g>
+    <rect class="panel" x="1" y="1" width="1198" height="220" rx="20"/>
+    <path class="line" d="M400 38v146M800 38v146" fill="none"/>
+    <text class="number" x="34" y="48" font-size="13" font-weight="600" letter-spacing="2">01 / BEFORE CLASS</text>
+    <text class="heading" x="34" y="91" font-size="25" font-weight="600">把课程资料放进来</text>
+    <text class="body" x="34" y="130" font-size="16">PDF / PPT 统一管理</text>
+    <text class="body" x="34" y="158" font-size="16">辅助术语自动整理，各次 Lecture 共享</text>
+    <text class="number" x="434" y="48" font-size="13" font-weight="600" letter-spacing="2">02 / DURING CLASS</text>
+    <text class="heading" x="434" y="91" font-size="25" font-weight="600">开始，专注听课</text>
+    <text class="body" x="434" y="130" font-size="16">录音 · 英文识别 · 中文翻译</text>
+    <text class="body" x="434" y="158" font-size="16">悬浮字幕随时看，暂停后继续</text>
+    <text class="number" x="834" y="48" font-size="13" font-weight="600" letter-spacing="2">03 / AFTER CLASS</text>
+    <text class="heading" x="834" y="91" font-size="25" font-weight="600">把文字留在手边</text>
+    <text class="body" x="834" y="130" font-size="16">查看、搜索、逐段编辑</text>
+    <text class="body" x="834" y="158" font-size="16">复制或导出，回到自己的学习流程</text>
+    <text class="body" x="34" y="197" font-size="12">资料为可选辅助 · 模型准备完成后可离线处理 · 体验版，效果仍待实际使用反馈</text>
+  </g>
+</svg>

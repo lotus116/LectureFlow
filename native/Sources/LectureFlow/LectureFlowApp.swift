@@ -592,9 +592,12 @@ struct LibraryView: View {
                         .font(.system(size: 13, weight: .semibold))
                         .foregroundStyle(.secondary)
                         .frame(width: 28, height: 28)
+                        .background(LFChrome.iconWell, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
                         .contentShape(Rectangle())
                 }
                 .menuStyle(.borderlessButton)
+                .menuIndicator(.hidden)
+                .fixedSize()
                 .help("更多操作")
                 .accessibilityLabel("更多")
 
@@ -757,9 +760,12 @@ struct LibraryView: View {
                                         .font(.system(size: 12, weight: .semibold))
                                         .foregroundStyle(.secondary)
                                         .frame(width: 28, height: 28)
+                                        .background(LFChrome.iconWell, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
                                         .contentShape(Rectangle())
                                 }
                                 .menuStyle(.borderlessButton)
+                                .menuIndicator(.hidden)
+                                .fixedSize()
                                 .help("更多")
                                 .accessibilityLabel("更多")
                             }
