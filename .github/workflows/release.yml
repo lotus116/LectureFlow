@@ -40,14 +40,14 @@ jobs:
         run: |
           lectureflow_version="$(cat VERSION)"
           lectureflow_tag="v$lectureflow_version"
+          mkdir -p .build
           if gh release view "$lectureflow_tag" --json isDraft --jq '.isDraft' > .build/release-state 2>/dev/null; then
             if [[ "$(cat .build/release-state)" == false ]]; then
-              echo "This version is already published."
-              exit 0
+              echo "Refreshing published $lectureflow_tag assets from $GITHUB_SHA"
             fi
           else
             gh release create "$lectureflow_tag" --target "$GITHUB_SHA" --draft --title "LectureFlow $lectureflow_version · 课堂体验版" --notes-file "docs/RELEASE-$lectureflow_version.md"
           fi
           (cd dist && shasum -a 256 "LectureFlow-$lectureflow_version-macOS-arm64.zip" > SHA256SUMS)
           gh release upload "$lectureflow_tag" "dist/LectureFlow-$lectureflow_version-macOS-arm64.zip" dist/SHA256SUMS --clobber
-          gh release edit "$lectureflow_tag" --draft=false --latest
+          gh release edit "$lectureflow_tag" --draft=false --latest --target "$GITHUB_SHA" --notes-file "docs/RELEASE-$lectureflow_version.md"

@@ -4,7 +4,7 @@
 
 - 按用户确认改用琪露诺冰蓝，保留横向波形／大计时／暂停与结束的录音岛样式；结束后切为紧凑保存状态。录音列表改为连续行，本地时间与友好名称仅影响显示，课程可折叠。
 - 验证：应用构建成功、21 原生、107 Python、ruff 通过；在隔离合成资料库查看浅色暂停／结束、约 752×577 窄窗口及临时强制深色页面，并检查结束与折叠操作。未启动麦克风；未重新标记质量、延迟及长时评估。
-- 本次为主分支开发更新，公开 0.6.2 安装包仍对应原发布提交。范围、检查与下一步见 [界面改进记录](CIRNO_UI_REFINEMENT.md)。
+- 同版本重打包：已将当前主分支界面打入 `LectureFlow-0.6.2-macOS-arm64.zip` 并更新 [v0.6.2](https://github.com/lotus116/LectureFlow/releases/tag/v0.6.2) 附件与 `SHA256SUMS`；包内版本仍为 0.6.2，不含模型与课堂数据。范围与下一步见 [界面改进记录](CIRNO_UI_REFINEMENT.md)。
 
 ## 仓库首页 · 第二版学习风（LF-DOC / SD-01、SD-05）
 
@@ -13,11 +13,10 @@
 
 ## 0.6.2 阶段发布（LF-RELEASE，关联 SD-01 / SD-05 / SD-07）
 
-- 汇总字幕展开阅读、录音控制与悬浮窗调整，版本及发布说明已准备。未新增语音增强、多语种或模型候选。
-- 本地发布检查：ruff、107 项 Python 测试、19 项原生测试通过。[发布工作流](https://github.com/lotus116/LectureFlow/actions/runs/41190652632) 已成功完成独立打包、签名、后端启动检查及公开发布；[v0.6.2](https://github.com/lotus116/LectureFlow/releases/tag/v0.6.2) 包含 ZIP 与 SHA256SUMS。
-- 质量、延迟、续航、三小时及跨设备视觉覆盖仍暂缓或待反馈，不因阶段发布标记通过。
+- 汇总字幕展开阅读、录音控制与悬浮窗调整、冰蓝录音岛与窄窗布局，版本号保持 0.6.2。未新增语音增强、多语种或模型候选。
+- 本地重打包检查：ruff、107 项 Python 测试、21 项原生测试通过；`scripts/package-app --zip` 产出独立包，Info.plist 版本 0.6.2，无 Models／data。已更新 [v0.6.2](https://github.com/lotus116/LectureFlow/releases/tag/v0.6.2) 的 ZIP 与 `SHA256SUMS`。
+- 质量、延迟、续航、三小时及跨设备视觉覆盖仍暂缓或待反馈，不因阶段发布或重打包标记通过。
 - 下一步讨论见 [NEXT_IMPROVEMENTS.md](NEXT_IMPROVEMENTS.md)：源／目标语言、可比较的识别与翻译模型、可选增强；均为建议，未计为已实现。
-- 已重新下载公开 ZIP 并通过 SHA256SUMS 校验；检查包内版本为 0.6.2，无开发项目路径配置、Models 或 data 目录。
 
 ## 实时字幕展开阅读（LF-UI，关联 SD-05 / SD-07）
 
