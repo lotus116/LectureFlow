@@ -43,7 +43,7 @@ final class Workspace: ObservableObject {
     @Published private(set) var refreshError: String?
     @Published var requestedTab: String?
     @Published var busy = false
-    @Published var model = "asr-small"
+    @Published private(set) var model = RecognitionPreference.load()
     @Published var translate = true
     @Published var installedModels: [InstalledModel] = []
     @Published var downloading = false
@@ -214,7 +214,10 @@ final class Workspace: ObservableObject {
         if !captionsWaiting { notice = "本地模型已就绪，字幕已开启；此前录音仍保留。" }
     }
     func selectRecognitionModel(_ id: String) {
+        guard !live.isCapturing else { notice = "请先暂停，再切换识别模型。"; return }
+        guard ["asr-small", "asr-large"].contains(id) else { return }
         guard hasModel(id) else { notice = "该模型尚未下载，可在模型面板中下载后切换。"; return }
+        RecognitionPreference.save(id)
         model = id
         live.selectRecognitionModel(id)
     }
@@ -321,7 +324,7 @@ final class Workspace: ObservableObject {
             installedModels = try JSONDecoder().decode(ModelList.self, from: await backend.call(["models", "status"])).models
             reconcileCapture()
             if first && !downloadPaused {
-                let missing = ["asr-small", "translate"].filter { !hasModel($0) }
+                let missing = [model, "translate"].filter { !hasModel($0) }
                 if !missing.isEmpty { Task { await self.installModels(missing) } }
             }
         }
@@ -332,7 +335,7 @@ final class Workspace: ObservableObject {
         guard !downloading else { return }
         downloading = true; downloadPaused = false; downloadFraction = nil
         UserDefaults.standard.set(false, forKey: "modelDownloadPaused")
-        downloadMessage = "正在后台准备本地模型（默认模型约 1.86 GB）…"
+        downloadMessage = "正在后台准备所选本地模型…"
         let observer = Task { [weak self] in
             while !Task.isCancelled {
                 guard let self else { return }

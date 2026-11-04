@@ -27,3 +27,19 @@ final class RecognitionSelectionTests: XCTestCase {
         XCTAssertNil(choice.requested); XCTAssertNil(choice.active)
     }
 }
+
+final class RecognitionPreferenceTests: XCTestCase {
+    func testMigrationAndExplicitStandardChoiceSurviveReopening() {
+        let suite = "RecognitionPreferenceTests." + UUID().uuidString
+        let first = UserDefaults(suiteName: suite)!
+        defer { first.removePersistentDomain(forName: suite) }
+        XCTAssertEqual(RecognitionPreference.load(from: first), "asr-large")
+        RecognitionPreference.save("asr-small", to: first)
+        let reopened = UserDefaults(suiteName: suite)!
+        XCTAssertEqual(RecognitionPreference.load(from: reopened), "asr-small")
+        RecognitionPreference.save("asr-large", to: reopened)
+        XCTAssertEqual(RecognitionPreference.load(from: first), "asr-large")
+        RecognitionPreference.save("missing-model", to: reopened)
+        XCTAssertEqual(RecognitionPreference.load(from: first), "asr-large")
+    }
+}

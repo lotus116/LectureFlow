@@ -45,7 +45,7 @@ struct SettingsView: View {
                     }
                     if let fraction = workspace.downloadFraction { ProgressView(value: fraction) }
                 }
-                Text("标准识别为默认。高精度识别可选下载，不承诺未经实测的质量优势。首次约 1.86 GB，可暂停继续；更新应用会复用已下载模型。")
+                Text("记住上次选择；尚未保存偏好时默认高精度识别。模型下载可暂停继续，更新应用会复用已下载模型。识别质量仍需按实际课堂验证。")
                     .font(.caption).foregroundStyle(.secondary)
             }
             Section("记录方式细节") {
