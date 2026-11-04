@@ -12,10 +12,10 @@ import time
 from collections import deque
 from pathlib import Path
 
-from .adapters import HyMTTranslator, QwenASR
+from .adapters import HyMTTranslator, QwenASR, contains_only_chinese_speech, source_language
 from .inference_policy import decide_enhancement, matching_glossary, select_asr_hints
 from .library import Library, identity
-from .live_store import save, validate_session
+from .live_store import configuration, save, validate_session
 from .models import resolve
 from .runtime import configure, mlx_memory
 from .terminology import GLOSSARY_POLICY
@@ -28,20 +28,33 @@ class InputBuffer:
         self.condition = threading.Condition()
         self.closed = False
         self.dropped = 0
+        self.input_end = 0.0
 
     def put(self, item: dict) -> None:
         with self.condition:
+            if item.get("type") == "audio":
+                self.input_end = max(self.input_end, float(item.get("start", 0)))
             if len(self.items) >= self.capacity:
-                index = next((i for i, x in enumerate(self.items) if x["type"] == "audio"), 0)
+                index = next((i for i, x in enumerate(self.items) if x["type"] == "audio"), None)
+                if index is None:
+                    if item["type"] == "audio":
+                        self.dropped += 1
+                        return
+                    index = 0
+                else:
+                    self.dropped += 1
                 del self.items[index]
-                self.dropped += 1
             self.items.append(item)
             self.condition.notify()
 
-    def get(self) -> dict | None:
+    def get(self, timeout=None) -> dict | None:
         with self.condition:
-            self.condition.wait_for(lambda: self.items or self.closed)
+            self.condition.wait_for(lambda: self.items or self.closed, timeout=timeout)
             return self.items.popleft() if self.items else None
+
+    def backlog(self) -> int:
+        with self.condition:
+            return len(self.items)
 
     def close(self) -> None:
         with self.condition:
@@ -56,6 +69,8 @@ class CaptionEngine:
         translator,
         publish,
         *,
+        deferred=False,
+        language="English",
         english=True,
         translate=True,
         context="",
@@ -64,12 +79,21 @@ class CaptionEngine:
         hint_terms=None,
         glossary_policy=GLOSSARY_POLICY,
     ):
+        self.deferred = deferred
+        self.pending_translations = deque()
+        self.noise_floor = 0.001
+        self.last_optional_at = 0.0
+        self.last_revised_pair = None
+        self.language = language
         self.session, self.translator, self.publish = session, translator, publish
         self.english, self.translate = english, translate
         self.current = None
         self.state = None
         self.recent: deque = deque()
-        self.last_translation_at = 0.0
+        self.last_translation_at = time.monotonic()
+        self.last_temporary_text = ""
+        self.chunk_progress = None
+        self.chunk_progress_at = 0.0
         self.silence = 0.0
         self.last_end = None
         self.pre_roll = None
@@ -97,6 +121,8 @@ class CaptionEngine:
     def translated(self, text: str, *, following: str = "") -> str:
         if not self.translate or not text:
             return ""
+        if contains_only_chinese_speech(text):
+            return text
         # Neighbouring actual speech can disambiguate a revision; courseware cannot
         # supply words absent from the recognized utterance.
         options = {"following": following[-300:]}
@@ -114,13 +140,17 @@ class CaptionEngine:
         if self.last_end is not None and abs(start - self.last_end) > 0.1:
             self.finish()
         self.last_end = end
-        voiced = float(np.sqrt(np.mean(pcm * pcm))) >= 0.008
+        energy = float(np.sqrt(np.mean(pcm * pcm)))
+        threshold = min(0.008, max(0.002, self.noise_floor * 3))
+        voiced = energy >= threshold * (0.7 if self.state is not None else 1)
+        if not voiced:
+            self.noise_floor = 0.95 * self.noise_floor + 0.05 * min(energy, 0.003)
         if self.state is None:
             if not voiced:
                 self.pre_roll = (pcm.copy(), start)
                 return
             self.state = self.session.init_streaming(
-                language="English",
+                language=self.language,
                 chunk_size_sec=1.0,
                 max_context_sec=12,
                 context="",
@@ -134,6 +164,8 @@ class CaptionEngine:
                 "revision": 0,
             }
             self.utterance_pcm = []
+            self.chunk_progress = None
+            self.chunk_progress_at = start
             if self.pre_roll is not None:
                 previous, previous_start = self.pre_roll
                 if abs(start - previous_start - len(previous) / 16000) < 0.1:
@@ -146,14 +178,22 @@ class CaptionEngine:
         if self.utterance_pcm is not None:
             self.utterance_pcm.append(pcm.copy())
         self.current["end"] = end
+        chunk = getattr(self.state, "chunk_id", None)
+        if chunk is not None:
+            if chunk != self.chunk_progress:
+                self.chunk_progress, self.chunk_progress_at = chunk, end
+            elif end - self.chunk_progress_at > 4:
+                raise RuntimeError("识别处理进度停止，等待字幕链路恢复")
         text = self.state.text.strip()
         if text and text != self.current["english"]:
             self.current["english"] = text
-            if self.translate and time.monotonic() - self.last_translation_at >= 1:
+            if (not self.deferred and self.translate
+                    and time.monotonic() - self.last_translation_at >= 1):
                 self.current["chinese"] = self.translated(text)
                 self.last_translation_at = time.monotonic()
             self.emit(self.current, "temporary")
-        if self.silence >= 0.65 or end - self.current["start"] >= 12:
+        pause_limit = 0.65 if text.endswith((".", "?", "!", "。", "？", "！")) else 1.25
+        if self.silence >= pause_limit or end - self.current["start"] >= 12:
             self.finish()
 
     def finish(self) -> None:
@@ -169,15 +209,23 @@ class CaptionEngine:
         if not text:
             return
         entry["english"] = text
-        entry["chinese"] = self.translated(text)
-        self.emit(entry, "stable")
+        if self.deferred:
+            entry["chinese"] = ""
+            self.emit(entry, "stable")
+            if len(self.pending_translations) >= 3:
+                self.service(0, closing=True)
+            if self.translate:
+                self.pending_translations.append((entry, time.monotonic()))
+        else:
+            entry["chinese"] = self.translated(text)
+            self.emit(entry, "stable")
         if pcm_parts and (self.hint_terms or self.documents):
             pcm = np.concatenate(pcm_parts)
             # Keep only the latest pending polish so live never queues a backlog.
             self.pending_enhance = (entry, pcm)
         # Only the preceding two utterances can be revised by this later context.
         # English source stays unchanged unless a guided polish later accepts a fix.
-        if self.translate:
+        if self.translate and not self.deferred:
             for previous in list(self.recent)[-2:]:
                 revised = self.translated(previous["english"], following=text)
                 if revised != previous["chinese"]:
@@ -187,8 +235,40 @@ class CaptionEngine:
         while len(self.recent) > 3:
             self.emit(self.recent.popleft(), "locked")
 
+    def service(self, backlog: int, *, closing=False) -> None:
+        """One serial job per turn; stable results have a deadline and cannot be evicted."""
+        now = time.monotonic()
+        if self.pending_translations:
+            entry, queued_at = self.pending_translations[0]
+            if closing or backlog <= 2 or now - queued_at >= 6:
+                entry["chinese"] = self.translated(entry["english"])
+                self.emit(entry, "revised")
+                self.pending_translations.popleft()
+                self.last_translation_at = time.monotonic()
+            return
+        if closing or not self.translate or backlog > 2 or self.current is None:
+            return
+        text = self.current["english"]
+        elapsed = now - self.last_translation_at
+        complete = text.endswith((".", "?", "!", "。", "？", "！"))
+        if text and text != self.last_temporary_text and elapsed >= (2 if complete else 6):
+            self.last_temporary_text = text
+            self.current["chinese"] = self.translated(text)
+            self.last_translation_at = time.monotonic()
+            self.emit(self.current, "temporary")
+
     def polish(self) -> None:
         """Run at most one deferred courseware re-recognition between utterances."""
+        if self.deferred and not self.pending_translations and len(self.recent) >= 2:
+            previous, following = list(self.recent)[-2:]
+            pair = (previous["id"], following["id"])
+            if pair != self.last_revised_pair:
+                self.last_revised_pair = pair
+                revised = self.translated(previous["english"], following=following["english"])
+                if revised != previous["chinese"]:
+                    previous["chinese"] = revised
+                    self.emit(previous, "revised")
+                return
         job = self.pending_enhance
         self.pending_enhance = None
         if job is None or self.state is not None or self.session is None:
@@ -201,7 +281,7 @@ class CaptionEngine:
             return
         try:
             result = self.session.transcribe(
-                pcm, context=selection.context, language="English", return_chunks=False
+                pcm, context=selection.context, language=self.language, return_chunks=False
             )
             enhanced = (result.text or "").strip()
         except Exception:
@@ -214,6 +294,8 @@ class CaptionEngine:
         self.emit(entry, "revised")
 
     def lock_all(self) -> None:
+        while self.pending_translations:
+            self.service(0, closing=True)
         self.pending_enhance = None
         while self.recent:
             self.emit(self.recent.popleft(), "locked")
@@ -279,13 +361,24 @@ def run_live(root: Path, model_root: Path, lecture_id: str, session_id: str, asr
 
             materials = context(library, lecture_id)
             captions = CaptionEngine(
-                engine.session, None, publish, english=False, translate=False, **materials
+                engine.session, None, publish, english=False, translate=False, deferred=True,
+                language=source_language(configuration(library, session_id)), **materials
             )
             output({"type": "ready", "model": asr})
             dropped = 0
             requested_model = asr
             try:
-                while item := buffer.get():
+                while True:
+                    item = buffer.get(timeout=0.1)
+                    if item is None:
+                        if buffer.closed:
+                            break
+                        captions.service(0)
+                        if (captions.state is None and buffer.backlog() == 0
+                                and time.monotonic() - captions.last_optional_at >= 20):
+                            captions.polish()
+                            captions.last_optional_at = time.monotonic()
+                        continue
                     if item["type"] == "stop":
                         break
                     if item["type"] == "invalid":
@@ -338,14 +431,20 @@ def run_live(root: Path, model_root: Path, lecture_id: str, session_id: str, asr
                         captions.finish()
                         captions.pending_enhance = None
                         output({"type": "warning", "message": "字幕有短暂中断，可继续听课。"})
-                    # Polish only between utterances so it never races streaming or stacks up.
-                    if captions.state is None:
-                        captions.polish()
+                    gap_start = captions.last_end
+                    started = time.monotonic()
                     captions.feed(pcm, start)
+                    captions.service(buffer.backlog())
+                    output({"type": "progress", "processed_audio": start + len(pcm) / 16000,
+                            "input_audio": buffer.input_end, "backlog": buffer.backlog(),
+                            "dropped_packets": buffer.dropped,
+                            "inference_seconds": time.monotonic() - started,
+                            "gap_start": gap_start if gap_start is not None else start,
+                            "gap_end": start})
             finally:
                 captions.finish()
-                captions.polish()
                 captions.lock_all()
             output(
-                {"type": "stopped", "dropped_packets": buffer.dropped, "mlx_memory": mlx_memory()}
+                {"type": "stopped", "dropped_packets": buffer.dropped, "mlx_memory": mlx_memory(),
+                 "processed_audio": captions.last_end or 0, "inference_seconds": 0, "backlog": 0}
             )

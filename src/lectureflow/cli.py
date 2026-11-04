@@ -56,6 +56,7 @@ def parser() -> argparse.ArgumentParser:
     enqueue = actions.add_parser("enqueue")
     enqueue.add_argument("lecture_id")
     enqueue.add_argument("--asr", choices=["asr-small", "asr-large"], default="asr-small")
+    enqueue.add_argument("--language", choices=["auto", "English"], default="auto")
     enqueue.add_argument("--no-translation", action="store_true")
     enqueue.add_argument("--segment", action="append", dest="segment_ids")
     enqueue.add_argument("--context-file", type=Path)
@@ -90,6 +91,7 @@ def parser() -> argparse.ArgumentParser:
     create = live_actions.add_parser("create")
     create.add_argument("lecture_id")
     create.add_argument("--id", dest="capture_id")
+    create.add_argument("--language", choices=["auto", "English"], default="auto")
     history = live_actions.add_parser("history")
     history.add_argument("lecture_id")
     live_export = live_actions.add_parser("export")
@@ -185,6 +187,7 @@ def main() -> int:
                     result = library.enqueue(
                         args.lecture_id,
                         asr=args.asr,
+                        source_language=args.language,
                         translate=not args.no_translation,
                         segment_ids=args.segment_ids,
                         context=args.context_file.read_text() if args.context_file else "",
@@ -267,7 +270,9 @@ def main() -> int:
 
                 with Library(args.library_root) as library:
                     if args.live_action == "create":
-                        result = live_store.create(library, args.lecture_id, args.capture_id)
+                        result = live_store.create(
+                            library, args.lecture_id, args.capture_id, language=args.language,
+                        )
                     elif args.live_action == "export":
                         result = live_store.export(library, args.lecture_id)
                     else:

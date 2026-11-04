@@ -25,6 +25,9 @@ def main():
     parser.add_argument("audio", type=Path)
     parser.add_argument("--start", type=float, default=60)
     parser.add_argument("--seconds", type=float, default=30)
+    parser.add_argument("--asr", choices=["asr-small", "asr-large"], default="asr-large")
+    parser.add_argument("--language", choices=["auto", "English"], default="auto")
+    parser.add_argument("--model-root", type=Path)
     parser.add_argument("--translate-only", action="store_true")
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
@@ -44,13 +47,15 @@ def main():
         with Library(library_root) as lib:
             course = lib.create_course("Replay validation")
             lecture = lib.create_lecture(course["id"], "Replay validation")
-            session = live_store.create(lib, lecture["id"])
+            session = live_store.create(lib, lecture["id"], language=args.language)
         ready = threading.Event()
         reference = [time.perf_counter()]
         errors = args.output.with_suffix(".stderr.log").open("w")
         process = subprocess.Popen([
-            sys.executable, "-m", "lectureflow.cli", "--model-root", str(project / "models"),
+            sys.executable, "-m", "lectureflow.cli",
+            "--model-root", str(args.model_root or project / "models"),
             "--library-root", str(library_root), "live", "run", lecture["id"], session["id"],
+            "--asr", args.asr,
         ], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=errors, text=True)
 
         def receive():
@@ -70,7 +75,7 @@ def main():
                 process.stdin.write(json.dumps(item) + "\n")
                 process.stdin.flush()
 
-            flags = {"english": not args.translate_only, "translate": True}
+            flags = {"english": not args.translate_only, "translate": True, "asr": args.asr}
             send({"type": "configure", **flags})
             reference[0] = time.perf_counter()
             count = 0

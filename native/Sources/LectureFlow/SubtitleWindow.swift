@@ -203,7 +203,7 @@ private struct FloatingSubtitlesRoot: View {
 
     @ViewBuilder
     private func captionStack(visibleCount: Int) -> some View {
-        let captions = Array(live.captions.suffix(visibleCount))
+        let captions = Array(live.displayCaptions.suffix(visibleCount))
         ScrollViewReader { proxy in
             VStack(alignment: .leading, spacing: 0) {
                 if !follow {
@@ -235,7 +235,7 @@ private struct FloatingSubtitlesRoot: View {
                 }
                 .scrollIndicators(.hidden)
                 .simultaneousGesture(DragGesture().onChanged { _ in follow = false })
-                .onChange(of: live.captions.last?.revision) { _, _ in
+                .onChange(of: live.displayCaptions.last?.revision) { _, _ in
                     guard follow else { return }
                     withAnimation(.easeOut(duration: 0.12)) {
                         proxy.scrollTo("latest", anchor: .bottom)
@@ -274,7 +274,7 @@ private struct FloatingSubtitlesRoot: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .textSelection(.enabled)
-        .opacity(caption.id == live.captions.last?.id ? 1 : 0.72)
+        .opacity(caption.id == live.displayCaptions.last?.id ? 1 : 0.72)
         .animation(.easeOut(duration: 0.12), value: caption.revision)
     }
 

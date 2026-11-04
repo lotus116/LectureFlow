@@ -9,7 +9,7 @@ import time
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from .adapters import HyMTTranslator, QwenASR
+from .adapters import HyMTTranslator, QwenASR, source_language
 from .exporting import export_version
 from .inference_policy import (
     ASR_INPUT_POLICY,
@@ -193,6 +193,7 @@ def run_worker(root: Path, model_root: Path) -> dict:
                             else None
                         )
                         engine = QwenASR(Path(asr_spec["path"]))
+                        engine.language = source_language(config)
                         translator = HyMTTranslator(Path(mt_spec["path"])) if mt_spec else None
                         process_task(
                             library,

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import time
 from pathlib import Path
 
@@ -11,10 +12,11 @@ class QwenASR:
         from mlx_qwen3_asr import Session
 
         self.session = Session(model=str(path))
+        self.language = "English"
 
     def transcribe(self, audio: Path, context: str = "") -> dict:
         result = self.session.transcribe(
-            str(audio), context=context, language="English", return_chunks=True,
+            str(audio), context=context, language=self.language, return_chunks=True,
         )
         return {
             "text": result.text, "language": result.language, "chunks": result.chunks,
@@ -35,6 +37,8 @@ class HyMTTranslator:
     ) -> dict:
         if not text.strip():
             return {"text": "", "first_token_s": None, "total_s": 0, "truncated": False}
+        if contains_only_chinese_speech(text):
+            return {"text": text, "first_token_s": 0, "total_s": 0, "truncated": False}
         prompt = (
             (f"后续讲话（仅作消歧参考，不要翻译或补写）：\n{following[-1000:]}\n"
              if following else "")
@@ -42,7 +46,8 @@ class HyMTTranslator:
             (f"上下文（仅作消歧，勿翻译或补写）：\n{context[-2400:]}\n" if context else "")
             +
             (f"参考术语（仅在原文涉及这些词时使用）：\n{glossary}\n" if glossary else "")
-            + "将以下文本翻译为简体中文，注意只需要输出翻译后的结果，不要额外解释：\n"
+            + "将以下文本中的英文翻译为简体中文，中文原话保留，包括否定、自我纠正和重复。"
+            "只输出结果，不要解释或补写：\n"
             + text
         )
         return self._generate(prompt)
@@ -80,3 +85,15 @@ class HyMTTranslator:
             "text": "".join(pieces).strip(), "first_token_s": first,
             "total_s": time.perf_counter() - started, "truncated": final_reason == "length",
         }
+
+
+def contains_only_chinese_speech(text: str) -> bool:
+    """Mixed Latin speech still needs translation; never infer language from a label alone."""
+    return bool(re.search(r"[㐀-鿿]", text)) and not re.search(r"[A-Za-z]", text)
+
+
+def source_language(config: dict) -> str | None:
+    language = config.get("source_language", "English")
+    if language not in {"auto", "English"}:
+        raise ValueError("不支持的讲话语言配置")
+    return None if language == "auto" else language

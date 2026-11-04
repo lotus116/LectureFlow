@@ -79,6 +79,27 @@ final class CaptureTests: XCTestCase {
         XCTAssertNotEqual(sealed[0], sealed[1])
     }
 
+    func testCaptionSinkRestartsKeepEveryRecordingFrame() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let pump = CapturePump(audioRoot: root, referenceTime: 0)
+        let flags = CaptureFlags(recording: true, english: true, translate: true)
+        var directory: URL?
+        pump.onRecording = { directory = $0 }
+        pump.onFailure = { XCTFail($0) }
+        pump.update(flags)
+        for index in 0..<12 {
+            // The subtitle sink can be absent during backoff; the recording writer stays active.
+            pump.barrier()
+            pump.onPCM = index % 3 == 0 ? nil : { _, _, _ in }
+            pump.update(flags)
+            pump.submit(pcm(frames: 4000), hostTime: Double(index) * 0.25)
+        }
+        pump.sealRecording(); pump.barrier()
+        let file = try XCTUnwrap(directory).appendingPathComponent("chunk-00000.caf")
+        XCTAssertEqual(try AVAudioFile(forReading: file).length, 48000)
+    }
+
     func testResamplerFlushesTailBeforeSealingRecording() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: root) }

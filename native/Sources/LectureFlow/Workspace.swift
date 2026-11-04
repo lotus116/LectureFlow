@@ -208,7 +208,7 @@ final class Workspace: ObservableObject {
         live.change(effectiveCapture, lecture: lecture, backend: backend, model: model)
     }
     private func reconcileCapture() {
-        guard session.state == .running, live.flags.needsMicrophone,
+        guard session.state == .running, live.flags.needsMicrophone, !live.recoveryExhausted,
               let lecture, effectiveCapture != live.flags, effectiveCapture.needsMicrophone else { return }
         live.change(effectiveCapture, lecture: lecture, backend: backend, model: model)
         if !captionsWaiting { notice = "本地模型已就绪，字幕已开启；此前录音仍保留。" }
@@ -441,7 +441,8 @@ final class Workspace: ObservableObject {
 
     func enqueue() async {
         guard let lecture else { return }
-        var arguments = ["library", "enqueue", lecture.id, "--asr", model]
+        var arguments = ["library", "enqueue", lecture.id, "--asr", model,
+                         "--language", UserDefaults.standard.string(forKey: "sourceLanguage") ?? "auto"]
         if !translate { arguments.append("--no-translation") }
         selectedVersion = nil
         await perform(arguments)

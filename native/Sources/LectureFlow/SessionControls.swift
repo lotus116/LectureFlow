@@ -455,7 +455,7 @@ struct CaptureOptionsView: View {
             DisclosureGroup("更多选项") {
                 VStack(alignment: .leading, spacing: 10) {
                     Toggle("保存原始录音", isOn: binding(\.recording))
-                    Toggle("保存英文转写", isOn: binding(\.english))
+                    Toggle("保存原文转写", isOn: binding(\.english))
                     Toggle("翻译为中文", isOn: binding(\.translate))
                 }
                 .toggleStyle(.checkbox)

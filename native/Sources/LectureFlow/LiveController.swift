@@ -3,15 +3,6 @@ import AVFoundation
 import LectureFlowCore
 import SwiftUI
 
-struct LiveCaption: Decodable, Identifiable {
-    let id: String
-    let start: Double
-    let end: Double
-    let english: String
-    let chinese: String
-    let status: String
-    let revision: Int
-}
 struct LiveHistory: Decodable { let captions: [LiveCaption] }
 
 private final class LivePipe {
@@ -26,25 +17,50 @@ private final class LivePipe {
     private var accumulatedStart = 0.0
     private var current = CaptureFlags.paused
     private var stopping = false
+    private var stoppedAt: Double?
+    private var health = CaptionProgress(now: ProcessInfo.processInfo.systemUptime)
+    private var watchdog: DispatchSourceTimer?
     private var model: String
     private let event: ([String: Any]) -> Void
+    private let diagnosticURL: URL
+    private let diagnosticSession: String
+    private var nativeDropped = 0
+    private var backendDropped = 0
+    private var backlog = 0
+    private var inferenceSeconds = 0.0
+    private var gaps: [[String: Double]] = []
+    private var extendRecoveryGap = false
 
     init(paths: RuntimePaths, lectureID: String, sessionID: String, model: String,
          event: @escaping ([String: Any]) -> Void) throws {
         self.event = event; self.model = model
+        diagnosticSession = sessionID
+        diagnosticURL = paths.logs.appendingPathComponent("live-health.json")
+        if let data = try? Data(contentsOf: diagnosticURL), data.count < 100_000,
+           let previous = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+           previous["session_id"] as? String == sessionID,
+           let saved = previous["gaps"] as? [[String: Double]] {
+            gaps = Array(saved.suffix(64))
+            extendRecoveryGap = previous["recovery_requested"] as? Bool == true
+        }
         process = try paths.process(["live", "run", lectureID, sessionID, "--asr", model])
         process.standardInput = input; process.standardOutput = output
         // A dead inference child must never terminate the recording app via SIGPIPE.
         try protectInferencePipe(input.fileHandleForWriting)
-        let errors = try paths.log("live")
-        process.standardError = errors
-        defer { try? errors.close() }
+        try FileManager.default.createDirectory(at: paths.logs, withIntermediateDirectories: true)
+        // Model stderr is unrestricted third-party text. Numeric health diagnostics are separate.
+        process.standardError = FileHandle.nullDevice
         process.terminationHandler = { [weak self] child in
+            self?.watchdog?.cancel()
             if child.terminationStatus != 0 {
                 self?.event(["type": "error", "message": "实时字幕处理已停止，请稍后重新开启。录音开关不受影响。"])
             }
         }
         try process.run()
+        let timer = DispatchSource.makeTimerSource(queue: DispatchQueue.global(qos: .utility))
+        timer.schedule(deadline: .now() + 5, repeating: 5)
+        timer.setEventHandler { [weak self] in self?.checkProgress() }
+        watchdog = timer; timer.resume()
         reads.async { [self] in
             var bytes = Data()
             while true {
@@ -59,11 +75,73 @@ private final class LivePipe {
                     let line = bytes.prefix(upTo: end)
                     bytes.removeSubrange(...end)
                     if let object = try? JSONSerialization.jsonObject(with: line) as? [String: Any] {
+                        observe(object)
+                        if object["type"] as? String == "stopped" { persistHealth(recovering: false) }
                         event(object)
                     }
                 }
             }
         }
+    }
+
+    private func observe(_ object: [String: Any]) {
+        lock.lock(); defer { lock.unlock() }
+        let now = ProcessInfo.processInfo.systemUptime
+        if object["type"] as? String == "ready" { health.prepared(now: now) }
+        if ["progress", "stopped"].contains(object["type"] as? String ?? ""),
+           let end = object["processed_audio"] as? Double,
+           let duration = object["inference_seconds"] as? Double {
+            health.processed(end: end, duration: duration, now: now)
+            inferenceSeconds = duration
+            if let start = object["gap_start"] as? Double,
+               let end = object["gap_end"] as? Double, start.isFinite, end.isFinite, end > start {
+                gaps.append(["start": start, "end": end])
+                gaps = Array(gaps.suffix(64))
+            }
+            backendDropped = object["dropped_packets"] as? Int ?? backendDropped
+            backlog = object["backlog"] as? Int ?? backlog
+            if object["type"] as? String == "stopped", health.inputEnd > health.processedEnd + 0.1 {
+                gaps.append(["start": health.processedEnd, "end": health.inputEnd])
+                gaps = Array(gaps.suffix(64))
+            }
+        }
+    }
+
+    private func checkProgress() {
+        lock.lock()
+        let now = ProcessInfo.processInfo.systemUptime
+        let expired = stoppedAt.map { now - $0 > health.timeout } ?? health.stalled(now: now)
+        lock.unlock()
+        persistHealth(recovering: expired)
+        if expired { abort() }
+    }
+
+    private func persistHealth(recovering: Bool) {
+        lock.lock()
+        let now = ProcessInfo.processInfo.systemUptime
+        if recovering && health.inputEnd > health.processedEnd {
+            let gap = ["start": health.processedEnd, "end": health.inputEnd]
+            if gaps.last != gap { gaps.append(gap) }
+        }
+        let snapshot: [String: Any] = [
+            "input_audio": health.inputEnd, "processed_audio": health.processedEnd,
+            "no_progress_seconds": now - health.lastProgress, "timeout_seconds": health.timeout,
+            "native_dropped": nativeDropped, "backend_dropped": backendDropped,
+            "backlog": backlog, "inference_seconds": inferenceSeconds,
+            "recovery_requested": recovering, "session_id": diagnosticSession,
+            "gaps": Array(gaps.suffix(64))
+        ]
+        lock.unlock()
+        if let data = try? JSONSerialization.data(withJSONObject: snapshot) {
+            try? data.write(to: diagnosticURL, options: .atomic)
+        }
+    }
+
+    func abort() {
+        lock.lock(); stopping = true; lock.unlock()
+        watchdog?.cancel()
+        persistHealth(recovering: true)
+        if process.isRunning { kill(process.processIdentifier, SIGKILL) }
     }
 
     // All accumulation is protected, even when a UI control and capture callback race.
@@ -88,6 +166,11 @@ private final class LivePipe {
         lock.lock(); defer { lock.unlock() }
         guard !stopping else { return }
         if current != flags { flushLocked(); current = flags }
+        if extendRecoveryGap, !gaps.isEmpty {
+            gaps[gaps.count - 1]["end"] = max(gaps.last?["end"] ?? start, start)
+            extendRecoveryGap = false
+        }
+        health.input(end: start + Double(data.count) / 64000)
         if accumulated.isEmpty { accumulatedStart = start }
         accumulated.append(data)
         while accumulated.count >= 16000 {
@@ -110,7 +193,8 @@ private final class LivePipe {
     }
     private func enqueueLocked(_ object: [String: Any], audio: Bool) {
         if audio && pending >= 8 {
-            event(["type": "warning", "message": "字幕有短暂中断，可继续听课。"])
+            nativeDropped += 1
+            if nativeDropped % 40 == 1 { event(["type": "warning", "message": "字幕有短暂中断，可继续听课。"]) }
             return
         }
         guard var data = try? JSONSerialization.data(withJSONObject: object) else { return }
@@ -126,6 +210,7 @@ private final class LivePipe {
         lock.lock()
         guard !stopping else { lock.unlock(); return }
         flushLocked(); stopping = true
+        stoppedAt = ProcessInfo.processInfo.systemUptime
         enqueueLocked(["type": "stop"], audio: false)
         lock.unlock()
         writes.async { [self] in try? input.fileHandleForWriting.close() }
@@ -140,6 +225,10 @@ private final class LivePipeBox {
         lock.lock(); let old = pipe; pipe = new; lock.unlock()
         old?.stop()
     }
+    func abort() {
+        lock.lock(); let old = pipe; pipe = nil; lock.unlock()
+        old?.abort()
+    }
     func mode(_ flags: CaptureFlags) { lock.lock(); let value = pipe; lock.unlock(); value?.mode(flags) }
     func selectModel(_ model: String) { lock.lock(); let value = pipe; lock.unlock(); value?.selectModel(model) }
     func audio(_ bytes: Data, start: Double, flags: CaptureFlags) {
@@ -150,7 +239,10 @@ private final class LivePipeBox {
 @MainActor
 final class LiveController: NSObject, ObservableObject {
     @Published private(set) var flags = CaptureFlags.paused
-    @Published private(set) var captions: [LiveCaption] = []
+    private(set) var captions: [LiveCaption] = [] {
+        didSet { displayCaptions = LiveCaption.paragraphs(captions) }
+    }
+    @Published private(set) var displayCaptions: [LiveCaption] = []
     @Published private(set) var message = "随时开始，随时暂停"
     @Published private(set) var lectureID: String?
     @Published private(set) var isCapturing = false
@@ -158,6 +250,7 @@ final class LiveController: NSObject, ObservableObject {
     @Published private(set) var modelSelection = RecognitionSelection()
     var activeModel: String? { modelSelection.active }
     var pendingModel: String? { modelSelection.pending }
+    @Published private(set) var recoveryExhausted = false
     @Published private(set) var pendingSaves = 0
     @Published var error: String?
     @Published var inputDevice: UInt32 = UInt32(UserDefaults.standard.integer(forKey: "inputDevice"))
@@ -172,6 +265,10 @@ final class LiveController: NSObject, ObservableObject {
     private var captureStarted = false
     private var captureID = UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
     private var pipeToken: UUID?
+    private var drainingTokens: [UUID: String] = [:]
+    private var recoveryBudget = CaptionRecoveryBudget()
+    private var recoveryTask: Task<Void, Never>?
+    private var restartCaptions: (() -> Void)?
     var onLibraryChange: (() -> Void)?
 
     override init() {
@@ -200,7 +297,15 @@ final class LiveController: NSObject, ObservableObject {
         if flags.needsMicrophone && lectureID != lecture.id {
             error = "请先暂停当前课堂，再切换课堂。"; return
         }
+        if !flags.needsMicrophone {
+            recoveryBudget = CaptionRecoveryBudget(); recoveryExhausted = false
+        }
         if desired.needsASR && !pipes.present { modelSelection.request(model) }
+        recoveryTask?.cancel(); recoveryTask = nil
+        restartCaptions = { [weak self] in
+            guard let self else { return }
+            self.change(self.flags, lecture: lecture, backend: backend, model: model)
+        }
         flags = desired; generation += 1
         let revision = generation
         Task { [self] in
@@ -222,6 +327,7 @@ final class LiveController: NSObject, ObservableObject {
                     captureStarted = false
                 }
                 if !captureStarted {
+                    recoveryBudget = CaptionRecoveryBudget()
                     captions = []
                     referenceTime = ProcessInfo.processInfo.systemUptime; captureStarted = true
                     captureID = UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
@@ -284,12 +390,17 @@ final class LiveController: NSObject, ObservableObject {
                     message = "正在准备本地字幕，录音开关独立生效"
                     if sessionID == nil {
                         let created = try JSONDecoder().decode(Created.self, from: await backend.call([
-                            "live", "create", lecture.id, "--id", captureID
+                            "live", "create", lecture.id, "--id", captureID,
+                            "--language", UserDefaults.standard.string(forKey: "sourceLanguage") ?? "auto"
                         ])).id
                         guard revision == generation else { return }
                         sessionID = created
                     }
                     guard revision == generation else { return }
+                    while !drainingTokens.isEmpty {
+                        try await Task.sleep(for: .milliseconds(200))
+                        guard revision == generation else { return }
+                    }
                     let token = UUID(); pipeToken = token
                     let selectedModel = modelSelection.requested ?? model
                     let pipe = try LivePipe(paths: backend.paths, lectureID: lecture.id, sessionID: sessionID!, model: selectedModel) {
@@ -309,9 +420,16 @@ final class LiveController: NSObject, ObservableObject {
     }
 
     private func receive(_ event: [String: Any], token: UUID, sourceLecture: String) {
+        let kind = event["type"] as? String
+        if kind == "stopped" || (kind == "error" && drainingTokens[token] != nil) {
+            drainingTokens.removeValue(forKey: token)
+            onLibraryChange?()
+            return
+        }
         guard sourceLecture == lectureID else { return }
-        if event["type"] as? String != "caption" && token != pipeToken { return }
+        if token != pipeToken && kind != "caption" { return }
         switch event["type"] as? String {
+        case "progress": break
         case "ready":
             if let model = event["model"] as? String { modelSelection.acknowledge(model) }
             message = "实时字幕已就绪"
@@ -323,12 +441,28 @@ final class LiveController: NSObject, ObservableObject {
             message = "识别模型已切换，录音连续保存"
         case "warning": message = event["message"] as? String ?? "字幕有短暂中断"
         case "error":
-            modelSelection.reset()
-            pipeToken = nil; pipes.replace(nil); flags.english = false; flags.translate = false
-            if flags.needsMicrophone { pump?.update(flags) } else { shutdown() }
-            message = event["message"] as? String ?? "字幕处理已停止"
+            pipeToken = nil; pipes.abort()
+            guard flags.needsASR, isCapturing else { return }
+            guard let delay = recoveryBudget.nextDelay() else {
+                recoveryExhausted = true
+                flags.english = false; flags.translate = false
+                if flags.recording { pump?.update(flags) } else { shutdown() }
+                message = "字幕自动恢复已达上限，请暂停后重试；已有录音继续保存。"
+                return
+            }
+            let expectedGeneration = generation
+            message = "字幕处理中断，正在自动恢复；少量译文可能未完成，可用录音课后转写。"
+            recoveryTask = Task { [weak self] in
+                try? await Task.sleep(for: .seconds(delay))
+                guard !Task.isCancelled, let self, self.generation == expectedGeneration,
+                      self.flags.needsASR, self.isCapturing else { return }
+                self.restartCaptions?()
+            }
         case "caption":
-            guard event["session_id"] as? String == sessionID else { return }
+            guard CaptionEventPolicy.accepts(
+                token: token, activeToken: pipeToken, eventSession: event["session_id"] as? String,
+                currentSession: sessionID, drainingSession: drainingTokens[token],
+                captureStarted: captureStarted) else { return }
             guard let data = try? JSONSerialization.data(withJSONObject: event),
                   let caption = try? JSONDecoder().decode(LiveCaption.self, from: data) else { return }
             if let index = captions.firstIndex(where: { $0.id == caption.id }) {
@@ -364,6 +498,14 @@ final class LiveController: NSObject, ObservableObject {
         if lectureID != id { sessionID = nil; captureStarted = false; lectureID = id }
     }
 
+    private func drainCaptions() {
+        recoveryTask?.cancel(); recoveryTask = nil
+        if let token = pipeToken, let sessionID {
+            drainingTokens[token] = sessionID
+        }
+        pipeToken = nil; pipes.replace(nil)
+    }
+
     @objc func shutdown() {
         // Pause: stop mic/ASR but keep the open writer so continue stays one user segment.
         generation += 1
@@ -371,7 +513,7 @@ final class LiveController: NSObject, ObservableObject {
         if hasTap { engine?.inputNode.removeTap(onBus: 0); hasTap = false }
         pump?.softPause()
         pump?.barrier()
-        pipeToken = nil; pipes.replace(nil); flags = .paused
+        drainCaptions(); flags = .paused
         isCapturing = false; level = 0; modelSelection.reset()
         message = "已暂停；继续后仍属同一段录音"
     }
@@ -382,7 +524,7 @@ final class LiveController: NSObject, ObservableObject {
         pump?.sealRecording()
         pump?.barrier()
         pump = nil
-        pipeToken = nil; pipes.replace(nil); flags = .paused
+        drainCaptions(); flags = .paused
         isCapturing = false; level = 0; modelSelection.reset()
         captureStarted = false; sessionID = nil
         message = "Lecture 已结束；可追加录制或生成课后转写"
@@ -403,7 +545,10 @@ final class LiveController: NSObject, ObservableObject {
         flags.recording = false
         pump?.cancelRecording()
         if !flags.needsMicrophone { shutdown() }
-        else { message = "本段录音已取消，字幕继续运行；可从废纸篓恢复录音。" }
+        else {
+            message = "本段录音已取消，字幕继续运行；可从废纸篓恢复录音。"
+            if !pipes.present && !recoveryExhausted { restartCaptions?() }
+        }
     }
 
     @objc private func sleeping() {

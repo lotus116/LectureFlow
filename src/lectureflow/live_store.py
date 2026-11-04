@@ -1,6 +1,7 @@
 """Incremental live captions, with output switches enforced at the persistence boundary."""
 from __future__ import annotations
 
+import json
 import math
 import os
 import tempfile
@@ -35,8 +36,21 @@ def migrate(db) -> None:
     elif version not in {2, 3, 4}:
         raise ValueError("资料库版本不匹配")
 
+    db.execute("""CREATE TABLE IF NOT EXISTS live_configuration (
+        session_id TEXT PRIMARY KEY REFERENCES live_sessions(id) ON DELETE CASCADE,
+        config TEXT NOT NULL)""")
 
-def create(library, lecture_id: str, key: str | None = None) -> dict:
+
+def configuration(library, session_id: str) -> dict:
+    row = library.db.execute(
+        "SELECT config FROM live_configuration WHERE session_id=?", (session_id,),
+    ).fetchone()
+    return json.loads(row[0]) if row else {"source_language": "English", "language_policy": 0}
+
+
+def create(library, lecture_id: str, key: str | None = None, *, language="auto") -> dict:
+    if language not in {"auto", "English"}:
+        raise ValueError("不支持的讲话语言配置")
     library.row("lectures", lecture_id)
     key = uuid.UUID(key).hex if key else identity()
     with library.transaction():
@@ -46,6 +60,10 @@ def create(library, lecture_id: str, key: str | None = None) -> dict:
         library.db.execute(
             "INSERT OR IGNORE INTO live_sessions VALUES(?,?,?)", (key, lecture_id, now()),
         )
+        if not old:
+            library.db.execute("INSERT INTO live_configuration VALUES(?,?)", (
+                key, json.dumps({"source_language": language, "language_policy": 1}),
+            ))
     return {"id": key, "lecture_id": lecture_id}
 
 
@@ -94,7 +112,11 @@ def history(library, lecture_id: str) -> dict:
     rows = library.db.execute("""SELECT c.*,s.created_at FROM live_captions c
         JOIN live_sessions s ON s.id=c.session_id WHERE s.lecture_id=?
         ORDER BY s.created_at,s.id,c.start,c.id""", (lecture_id,))
-    return {"captions": [dict(row) for row in rows]}
+    captions = [dict(row) for row in rows]
+    sessions = library.db.execute("SELECT id FROM live_sessions WHERE lecture_id=?", (lecture_id,))
+    return {"captions": captions, "sessions": [
+        {"id": row[0], "config": configuration(library, row[0])} for row in sessions
+    ]}
 
 
 def export(library, lecture_id: str) -> dict:

@@ -22,9 +22,9 @@ struct LiveTranscriptView: View {
     @State private var language = "both"
     @State private var follow = true
     private var visible: [LiveCaption] {
-        live.captions.filter { search.isEmpty || $0.english.localizedCaseInsensitiveContains(search) || $0.chinese.contains(search) }
+        live.displayCaptions.filter { search.isEmpty || $0.english.localizedCaseInsensitiveContains(search) || $0.chinese.contains(search) }
     }
-    private var updateKey: String { live.captions.last.map { "\($0.id):\($0.revision)" } ?? "" }
+    private var updateKey: String { live.displayCaptions.last.map { "\($0.id):\($0.revision)" } ?? "" }
     private var enSize: CGFloat { LFChrome.transcriptEnglish(textSize) }
     private var zhSize: CGFloat { LFChrome.transcriptChinese(textSize) }
 
@@ -48,7 +48,7 @@ struct LiveTranscriptView: View {
                 Text(follow ? "跟随最新" : "已停止跟随 · 点“返回最新”继续")
                     .font(.system(size: LFChrome.captionSize))
                     .foregroundStyle(.secondary)
-                if live.captions.isEmpty {
+                if live.displayCaptions.isEmpty {
                     EmptyPanel(
                         title: "等待讲话",
                         systemImage: "waveform",
@@ -102,7 +102,7 @@ struct LiveTranscriptView: View {
     private var transcriptFilters: some View {
         HStack(spacing: 8) {
             Picker("显示", selection: $language) {
-                Text("双语").tag("both"); Text("中文").tag("zh"); Text("英文").tag("en")
+                Text("双语").tag("both"); Text("中文").tag("zh"); Text("原文").tag("en")
             }
             .frame(width: 115)
             .layoutPriority(1)
@@ -133,7 +133,7 @@ struct LiveTranscriptView: View {
                     } catch { live.error = error.localizedDescription }
                 }
             }
-            .disabled(live.captions.isEmpty)
+            .disabled(live.displayCaptions.isEmpty)
             Button("返回最新") {
                 follow = true; search = ""
                 DispatchQueue.main.async { withAnimation { proxy.scrollTo("latest-caption", anchor: .bottom) } }
