@@ -11,6 +11,7 @@ struct LectureFlowApp: App {
         // Single main window — WindowGroup can restore duplicates alongside AppKit reopen.
         Window("LectureFlow", id: "main") {
             LibraryView(model: workspace)
+                .disabled(workspace.isExiting)
                 .frame(minWidth: LFChrome.windowMinWidth, minHeight: LFChrome.windowMinHeight)
                 .background(WindowOpener(workspace: workspace, delegate: delegate))
         }
@@ -29,7 +30,7 @@ struct LectureFlowApp: App {
                     .keyboardShortcut("p", modifiers: [.command, .shift])
             }
         }
-        Settings { SettingsView(workspace: workspace) }
+        Settings { SettingsView(workspace: workspace).disabled(workspace.isExiting) }
         MenuBarExtra("LectureFlow", systemImage: "captions.bubble") {
             Text(workspace.lecture?.title ?? "LectureFlow")
             Button("打开主窗口") { delegate.showMainWindow() }
@@ -72,19 +73,82 @@ private struct WindowOpener: View {
 @MainActor
 final class LectureFlowDelegate: NSObject, NSApplicationDelegate {
     weak var workspace: Workspace?
+    private var exitTask: Task<Void, Never>?
+    private var exitPanel: NSPanel?
+    private let exitStatus = ExitStatus()
+    private var cancelRequested = false
+    private var acknowledgeFailure = false
+    private var exitAuthorized = false
+
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        if exitAuthorized { return .terminateNow }
         guard let workspace else { return .terminateNow }
+        if exitTask != nil { exitPanel?.makeKeyAndOrderFront(nil); return .terminateCancel }
         if workspace.live.flags.needsMicrophone || workspace.session.state == .running
             || workspace.session.state == .preparing {
             let alert = NSAlert()
             alert.messageText = "结束当前采集并退出？"
-            alert.informativeText = "确认后会封存已录内容再退出。仅有后台任务时会保存进度，不额外询问。"
+            alert.informativeText = "会等待录音保存与字幕收尾。等待期间可以取消退出；采集不会自动恢复。"
             alert.addButton(withTitle: "结束并退出")
             alert.addButton(withTitle: "取消")
             if alert.runModal() != .alertFirstButtonReturn { return .terminateCancel }
-            workspace.endSession()
         }
-        return .terminateNow
+        cancelRequested = false; acknowledgeFailure = false
+        exitStatus.message = "正在封存录音…"
+        exitStatus.failed = false
+        let panel = NSPanel(contentRect: NSRect(x: 0, y: 0, width: 460, height: 340),
+                            styleMask: [.titled], backing: .buffered, defer: false)
+        panel.title = "保存后退出"
+        panel.isReleasedWhenClosed = false
+        panel.worksWhenModal = true
+        panel.level = .modalPanel
+        panel.contentView = NSHostingView(rootView: ExitProgressView(status: exitStatus,
+            cancel: { [weak self] in self?.cancelTermination() },
+            acknowledge: { [weak self] in self?.acknowledgeIncompleteTermination() }))
+        panel.center(); panel.makeKeyAndOrderFront(nil)
+        exitPanel = panel
+        exitTask = Task { [weak self] in
+            guard let self else { return }
+            await workspace.prepareForExit()
+            while true {
+                if cancelRequested {
+                    await workspace.cancelExit()
+                    finishExit(sender, allow: false)
+                    return
+                }
+                let state = workspace.live.exitReadiness.snapshot
+                let backendDone = await workspace.backend.exitIsSettled()
+                if state.settled && backendDone {
+                    if state.canExit || acknowledgeFailure {
+                        finishExit(sender, allow: true)
+                        return
+                    }
+                    exitStatus.failed = true
+                    exitStatus.message = state.failures.joined(separator: "\n\n")
+                } else {
+                    exitStatus.message = "正在完成：录音保存 \(state.recordings) 项、字幕收尾 \(state.captions) 项"
+                        + (backendDone ? "" : "，以及后台任务收尾")
+                        + "。\n字幕积压较多时需要等待，可以取消退出留在应用。"
+                }
+                try? await Task.sleep(for: .milliseconds(150))
+            }
+        }
+        // terminateLater enters a nested modal loop. If terminate was called from a
+        // main-queue action, async saves and MainActor work cannot run in that loop.
+        // Keep the ordinary event loop alive, then request exit again once settled.
+        return .terminateCancel
+    }
+
+    func cancelTermination() { cancelRequested = true }
+    func acknowledgeIncompleteTermination() { acknowledgeFailure = true }
+
+    private func finishExit(_ sender: NSApplication, allow: Bool) {
+        exitPanel?.close(); exitPanel = nil
+        exitTask = nil
+        if allow {
+            exitAuthorized = true
+            sender.terminate(nil)
+        }
     }
     func applicationWillTerminate(_ notification: Notification) {
         workspace?.live.shutdown()
@@ -1156,5 +1220,32 @@ struct LibraryView: View {
     private func clock(_ seconds: Double) -> String {
         let value = Int(seconds)
         return String(format: "%02d:%02d:%02d", value / 3600, value / 60 % 60, value % 60)
+    }
+}
+
+@MainActor
+private final class ExitStatus: ObservableObject {
+    @Published var message = ""
+    @Published var failed = false
+}
+
+private struct ExitProgressView: View {
+    @ObservedObject var status: ExitStatus
+    let cancel: () -> Void
+    let acknowledge: () -> Void
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text(status.failed ? "部分内容未能完成保存" : "正在保存并收尾").font(.headline)
+            if !status.failed { ProgressView().controlSize(.small).accessibilityLabel("正在保存并收尾") }
+            ScrollView {
+                Text(status.message).font(.body).frame(maxWidth: .infinity, alignment: .leading)
+            }.frame(height: 160)
+            HStack {
+                Button(status.failed ? "留在应用检查" : "取消退出", action: cancel)
+                    .keyboardShortcut(.cancelAction)
+                Spacer()
+                if status.failed { Button("已了解，仍然退出", action: acknowledge) }
+            }
+        }.padding(24).frame(width: 460, height: 340)
     }
 }

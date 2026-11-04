@@ -104,8 +104,20 @@ actor Backend {
     private var worker: Process?
     private var download: Process?
     private var lastWorkerAttempt = Date.distantPast
+    private var exiting = false
+
+    func prepareForExit() {
+        exiting = true
+        if worker?.isRunning == true { worker?.terminate() }
+        downloadLifetime.stop()
+    }
+    func exitIsSettled() -> Bool { worker?.isRunning != true && download?.isRunning != true }
+    func cancelExit() { exiting = false }
 
     func call(_ arguments: [String], input: Data? = nil) throws -> Data {
+        if exiting && !["register-recording", "discard-recording"].contains(arguments.dropFirst().first ?? "") {
+            throw CancellationError()
+        }
         let child = try paths.process(arguments)
         let output = Pipe()
         let errorURL = FileManager.default.temporaryDirectory
@@ -135,6 +147,7 @@ actor Backend {
     }
 
     func startWorker(force: Bool = false) throws {
+        guard !exiting else { return }
         if worker?.isRunning == true { return }
         if !force && Date().timeIntervalSince(lastWorkerAttempt) < 10 { return }
         lastWorkerAttempt = Date()
@@ -149,7 +162,7 @@ actor Backend {
     }
 
     func downloadModels(_ aliases: [String]) async throws {
-        guard download?.isRunning != true else { return }
+        guard !exiting, download?.isRunning != true else { return }
         let progress = paths.storage.appendingPathComponent("model-download.json")
         let child = try paths.process(["fetch", "--progress-file", progress.path] + aliases)
         let log = try paths.log("download")

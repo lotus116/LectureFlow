@@ -80,6 +80,13 @@ public final class CapturePump {
         }
     }
 
+    /// Quit waits without blocking the main actor while queued audio reaches disk.
+    public func drain() async {
+        await withCheckedContinuation { continuation in
+            queue.async { continuation.resume() }
+        }
+    }
+
     public func barrier() {
         queue.sync {}
     }

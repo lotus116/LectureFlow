@@ -43,6 +43,24 @@ final class Workspace: ObservableObject {
     @Published private(set) var refreshError: String?
     @Published var requestedTab: String?
     @Published var busy = false
+    @Published private(set) var isExiting = false
+
+    func prepareForExit() async {
+        isExiting = true
+        monitoring?.cancel(); monitoring = nil
+        refreshToken = UUID()
+        session.end(at: ProcessInfo.processInfo.systemUptime)
+        await live.prepareForExit()
+        await backend.prepareForExit()
+        persistSession()
+    }
+    func cancelExit() async {
+        await backend.cancelExit()
+        live.cancelExit()
+        isExiting = false
+        notice = "已取消退出；采集已结束，已有内容继续保存，不会自动开启麦克风。"
+        startMonitoring()
+    }
     @Published private(set) var model = RecognitionPreference.load()
     @Published var translate = true
     @Published var installedModels: [InstalledModel] = []
@@ -111,6 +129,7 @@ final class Workspace: ObservableObject {
     }
 
     func startMonitoring() {
+        guard !isExiting else { return }
         guard monitoring == nil else { return }
         monitoring = Task { [weak self] in
             // Library first so the sidebar isn't blocked behind a slow model probe.
@@ -182,6 +201,7 @@ final class Workspace: ObservableObject {
     }
     var captionsWaiting: Bool { session.desired.needsASR && effectiveCapture != session.desired }
     func primarySessionAction(subtitlesIfIdle: Bool = false) {
+        guard !isExiting else { return }
         if session.state == .running || session.state == .preparing { pauseSession(); return }
         guard !busy, let lecture else { return }
         if subtitlesIfIdle && !session.hasSession { _ = session.configure(CapturePreset.subtitles.flags) }
@@ -204,10 +224,12 @@ final class Workspace: ObservableObject {
         Task { await refresh() }
     }
     func reconnectCaptions() {
+        guard !isExiting else { return }
         guard session.state == .running, let lecture, effectiveCapture.needsASR else { return }
         live.change(effectiveCapture, lecture: lecture, backend: backend, model: model)
     }
     private func reconcileCapture() {
+        guard !isExiting else { return }
         guard session.state == .running, live.flags.needsMicrophone, !live.recoveryExhausted,
               let lecture, effectiveCapture != live.flags, effectiveCapture.needsMicrophone else { return }
         live.change(effectiveCapture, lecture: lecture, backend: backend, model: model)
@@ -235,12 +257,13 @@ final class Workspace: ObservableObject {
     }
 
     func refresh() async {
+        guard !isExiting else { return }
         let request = UUID(); refreshToken = request
         do {
             let latest = try JSONDecoder().decode(Overview.self, from: await backend.call([
                 "library", "status"
             ]))
-            guard refreshToken == request else { return }
+            guard !isExiting, refreshToken == request else { return }
             overview = latest
             refreshError = nil
             if !recovered {
@@ -284,7 +307,7 @@ final class Workspace: ObservableObject {
             let needsWorker = overview.courses.flatMap(\.lectures).flatMap(\.tasks)
                 .contains { ["queued", "running"].contains($0.state) }
             let needsKnowledge = hasModel("translate") && (overview.knowledge_jobs ?? []).contains { ["queued", "running"].contains($0.state) }
-            if (needsWorker || needsKnowledge) && !live.flags.needsASR && !busy { try await backend.startWorker() }
+            if !isExiting && (needsWorker || needsKnowledge) && !live.flags.needsASR && !busy { try await backend.startWorker() }
             persistSession()
         } catch { if refreshToken == request { refreshError = error.localizedDescription } }
     }
@@ -314,6 +337,7 @@ final class Workspace: ObservableObject {
     }
 
     func refreshModels() async {
+        guard !isExiting else { return }
         let first = !preparedModels
         preparedModels = true
         do {
@@ -332,6 +356,7 @@ final class Workspace: ObservableObject {
     }
 
     func installModels(_ aliases: [String]) async {
+        guard !isExiting else { return }
         guard !downloading else { return }
         downloading = true; downloadPaused = false; downloadFraction = nil
         UserDefaults.standard.set(false, forKey: "modelDownloadPaused")
@@ -369,6 +394,7 @@ final class Workspace: ObservableObject {
     func hasModel(_ id: String) -> Bool { installedModels.contains { $0.id == id && $0.installed } }
 
     func perform(_ arguments: [String]) async {
+        guard !isExiting else { return }
         busy = true
         defer { busy = false }
         do {

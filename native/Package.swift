@@ -8,6 +8,7 @@ let package = Package(
     targets: [
         .target(name: "LectureFlowCore"),
         .executableTarget(name: "LectureFlow", dependencies: ["LectureFlowCore"]),
-        .testTarget(name: "LectureFlowCoreTests", dependencies: ["LectureFlowCore"])
+        .testTarget(name: "LectureFlowCoreTests", dependencies: ["LectureFlowCore"]),
+        .testTarget(name: "LectureFlowAppTests", dependencies: ["LectureFlow", "LectureFlowCore"])
     ]
 )
