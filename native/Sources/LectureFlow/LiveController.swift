@@ -391,7 +391,7 @@ final class LiveController: NSObject, ObservableObject {
                     if sessionID == nil {
                         let created = try JSONDecoder().decode(Created.self, from: await backend.call([
                             "live", "create", lecture.id, "--id", captureID,
-                            "--language", UserDefaults.standard.string(forKey: "sourceLanguage") ?? "auto"
+                            "--language", SourceLanguagePreference.load()
                         ])).id
                         guard revision == generation else { return }
                         sessionID = created

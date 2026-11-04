@@ -25,3 +25,15 @@ public enum RecognitionPreference {
         defaults.set(model, forKey: key)
     }
 }
+
+/// Version one exposed unrestricted detection as "Chinese/English auto".
+/// Its saved value cannot establish consent to the corrected experimental option.
+public enum SourceLanguagePreference {
+    public static let key = "sourceLanguageV2"
+    public static func load(from defaults: UserDefaults = .standard) -> String {
+        let saved = defaults.string(forKey: key)
+        let language = saved == "auto" ? "auto" : "English"
+        defaults.set(language, forKey: key)
+        return language
+    }
+}

@@ -275,7 +275,7 @@ class Library:
     def enqueue(
         self, lecture_id: str, *, asr: str = "asr-small", translate: bool = True,
         context: str = "", glossary: str = "", segment_ids: list[str] | None = None,
-        source_language: str = "auto",
+        source_language: str = "English",
     ) -> dict:
         if source_language not in {"auto", "English"}:
             raise ValueError("不支持的讲话语言配置")
@@ -313,7 +313,7 @@ class Library:
             # Never persist a caller-supplied vocabulary dump as ASR input.
             # Guided re-recognition selects a tiny prompt later from the draft.
             config["source_language"] = source_language
-            config["language_policy"] = 1
+            config["language_policy"] = 2
             config["context"] = ""
             config["asr_input_policy"] = "guided_rerecognize_v1"
             config["glossary"] = glossary or materials["glossary"]

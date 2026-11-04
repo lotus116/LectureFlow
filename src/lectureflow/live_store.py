@@ -48,7 +48,7 @@ def configuration(library, session_id: str) -> dict:
     return json.loads(row[0]) if row else {"source_language": "English", "language_policy": 0}
 
 
-def create(library, lecture_id: str, key: str | None = None, *, language="auto") -> dict:
+def create(library, lecture_id: str, key: str | None = None, *, language="English") -> dict:
     if language not in {"auto", "English"}:
         raise ValueError("不支持的讲话语言配置")
     library.row("lectures", lecture_id)
@@ -62,7 +62,7 @@ def create(library, lecture_id: str, key: str | None = None, *, language="auto")
         )
         if not old:
             library.db.execute("INSERT INTO live_configuration VALUES(?,?)", (
-                key, json.dumps({"source_language": language, "language_policy": 1}),
+                key, json.dumps({"source_language": language, "language_policy": 2}),
             ))
     return {"id": key, "lecture_id": lecture_id}
 

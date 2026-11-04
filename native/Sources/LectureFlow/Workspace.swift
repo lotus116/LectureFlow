@@ -442,7 +442,7 @@ final class Workspace: ObservableObject {
     func enqueue() async {
         guard let lecture else { return }
         var arguments = ["library", "enqueue", lecture.id, "--asr", model,
-                         "--language", UserDefaults.standard.string(forKey: "sourceLanguage") ?? "auto"]
+                         "--language", SourceLanguagePreference.load()]
         if !translate { arguments.append("--no-translation") }
         selectedVersion = nil
         await perform(arguments)

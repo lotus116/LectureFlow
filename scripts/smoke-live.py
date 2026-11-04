@@ -26,7 +26,7 @@ def main():
     parser.add_argument("--start", type=float, default=60)
     parser.add_argument("--seconds", type=float, default=30)
     parser.add_argument("--asr", choices=["asr-small", "asr-large"], default="asr-large")
-    parser.add_argument("--language", choices=["auto", "English"], default="auto")
+    parser.add_argument("--language", choices=["auto", "English"], default="English")
     parser.add_argument("--model-root", type=Path)
     parser.add_argument("--translate-only", action="store_true")
     parser.add_argument("--output", type=Path, required=True)

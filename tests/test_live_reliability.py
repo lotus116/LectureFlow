@@ -58,7 +58,7 @@ def test_language_snapshot_survives_reopen_and_legacy_create_is_not_migrated(tmp
     with Library(tmp_path) as lib:
         course = lib.create_course("synthetic")
         lecture = lib.create_lecture(course["id"], "synthetic")
-        fresh = live_store.create(lib, lecture["id"])
+        fresh = live_store.create(lib, lecture["id"], language="auto")
         legacy = live_store.create(lib, lecture["id"])
         lib.db.execute("DELETE FROM live_configuration WHERE session_id=?", (legacy["id"],))
         live_store.create(lib, lecture["id"], legacy["id"], language="auto")
@@ -158,8 +158,8 @@ def test_new_offline_tasks_snapshot_language_without_rewriting_previous_versions
         course = lib.create_course("synthetic")
         lecture = lib.create_lecture(course["id"], "synthetic")
         lib.import_audio(lecture["id"], [audio])
-        automatic = lib.enqueue(lecture["id"], translate=False)
-        english = lib.enqueue(lecture["id"], translate=False, source_language="English")
+        automatic = lib.enqueue(lecture["id"], translate=False, source_language="auto")
+        english = lib.enqueue(lecture["id"], translate=False)
         assert lib.version_content(automatic["version_id"])["config"]["source_language"] == "auto"
         assert lib.version_content(english["version_id"])["config"]["source_language"] == "English"
 
@@ -179,3 +179,17 @@ def test_translation_failure_cannot_lose_newly_finalized_original():
         engine.finish()
     assert events[-1]["status"] == "stable"
     assert events[-1]["english"] == "not corrected 4"
+
+
+def test_english_classroom_defaults_are_used_by_cli_and_new_live_session(tmp_path):
+    from lectureflow.cli import parser
+    assert parser().parse_args(["live", "create", "lecture"]).language == "English"
+    assert parser().parse_args(["library", "enqueue", "lecture"]).language == "English"
+    with Library(tmp_path) as lib:
+        course = lib.create_course("synthetic")
+        lecture = lib.create_lecture(course["id"], "synthetic")
+        session = live_store.create(lib, lecture["id"])
+        config = live_store.configuration(lib, session["id"])
+        assert config == {"source_language": "English", "language_policy": 2}
+        live_store.create(lib, lecture["id"], session["id"], language="auto")
+        assert live_store.configuration(lib, session["id"]) == config

@@ -43,3 +43,20 @@ final class RecognitionPreferenceTests: XCTestCase {
         XCTAssertEqual(RecognitionPreference.load(from: first), "asr-large")
     }
 }
+
+final class SourceLanguagePreferenceTests: XCTestCase {
+    func testPreviousAutomaticSettingMigratesAndNewExplicitChoicePersists() {
+        let suite = "SourceLanguagePreferenceTests." + UUID().uuidString
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        defaults.set("auto", forKey: "sourceLanguage")
+        XCTAssertEqual(SourceLanguagePreference.load(from: defaults), "English")
+        defaults.set("auto", forKey: SourceLanguagePreference.key)
+        let reopened = UserDefaults(suiteName: suite)!
+        XCTAssertEqual(SourceLanguagePreference.load(from: reopened), "auto")
+        defaults.set("English", forKey: SourceLanguagePreference.key)
+        XCTAssertEqual(SourceLanguagePreference.load(from: reopened), "English")
+        defaults.set("invalid", forKey: SourceLanguagePreference.key)
+        XCTAssertEqual(SourceLanguagePreference.load(from: reopened), "English")
+    }
+}

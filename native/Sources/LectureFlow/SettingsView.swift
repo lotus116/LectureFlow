@@ -23,7 +23,7 @@ struct SettingsView: View {
     @State private var devices: [InputDevice] = []
     @AppStorage("autoFloatingSubtitles") private var autoFloatingSubtitles = true
     @AppStorage("saveEnglishTranscript") private var saveEnglishTranscript = true
-    @AppStorage("sourceLanguage") private var sourceLanguage = "auto"
+    @AppStorage(SourceLanguagePreference.key) private var sourceLanguage = "English"
     @AppStorage("saveChineseTranslation") private var saveChineseTranslation = true
 
     var body: some View {
@@ -51,11 +51,11 @@ struct SettingsView: View {
             }
             Section("记录方式细节") {
                 Picker("新任务讲话语言", selection: $sourceLanguage) {
-                    Text("自动识别中英").tag("auto")
-                    Text("英语").tag("English")
+                    Text("英语课堂（推荐）").tag("English")
+                    Text("自动检测所有语言（实验）").tag("auto")
                 }
                 .disabled(workspace.live.isCapturing)
-                Text("用于新建录音会话和课后转写；继续已有会话沿用原配置。")
+                Text("英语课堂默认固定英语。自动模式可能将重口音误判为其他语言。用于新会话和新课后任务，已有会话沿用原配置。")
                     .font(.caption).foregroundStyle(.secondary)
                 Toggle("保存原文转写", isOn: $saveEnglishTranscript)
                 Toggle("保存中文翻译", isOn: $saveChineseTranslation)
