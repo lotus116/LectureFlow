@@ -4,7 +4,10 @@
 - A01 / SD-04、07、08：正常退出等待录音封存与登记、字幕全部收尾和本应用后台进程结束；暂停中的录音也封存。可取消退出，失败不自动判成功；固定英语及上下文回改保留。异常强杀待办恢复仍未实现。
 - 129 项 Python、35 项原生测试、ruff、应用构建通过；新增实际字幕子进程与真实音频封存测试。具体等待设计、证据和边界见 LIVE_RELIABILITY。实际课堂语义、延迟、长时及硬件故障仍未验收。
 - 其他需求偏差仅补充具体方案、数据保护和验收条件，见 NEXT_IMPROVEMENTS；未经批准不修改。原始 PRD 留档，最新设计记录本次批准，不将缺口改写成新需求。
-- 本轮仅提交并交付本地测试包，不创建正式发布或标签。安装包与远端验证结果在完成后补记。
+- 已交付源码 `fc40edf` 的本地测试包 0.6.2／6.2.4；24 个后端文件与源码一致，独立启动、固定英语、本地签名及 ZIP 完整性通过。[源码 CI](https://github.com/lotus116/LectureFlow/actions/runs/41837238724) 成功，本地 HEAD、origin/main 与 GitHub 主分支核对一致。未创建正式发布或标签。
+- ZIP：`LectureFlow-save-on-quit-local-test-20261104-fc40edf-macOS-arm64.zip`，157,594,975 字节；SHA-256：`c535a25c306e124227606b992f5eff72d516e057fd7c73006997a71b00883164`。
+
+实际 AppKit 退出流程还通过四种隔离场景：保存与字幕分别延迟、重复退出请求、保存失败不自动退出、取消后留在应用且麦克风关闭。`scripts/smoke-quit.py` 已纳入 macOS CI。审查发现并修复了 `terminateLater` 嵌套等待可能阻塞主队列保存回调的问题；使用普通事件循环完成收尾后再授权退出。系统注销／重启若先被保存保护拦下，需要在保存退出完成后再次操作。参考 [Apple 退出等待说明](https://developer.apple.com/documentation/appkit/nsapplication/terminatereply/terminatelater)。
 
 # 上下文回改恢复与全面需求对照 · 2026-11-04
 
@@ -146,5 +149,3 @@
 ## 历史
 
 0.5.x 证据仍有效，不等于简化版或本轮 UI 已全部视觉验收。
-
-实际 AppKit 退出流程还通过四种隔离场景：保存与字幕分别延迟、重复退出请求、保存失败不自动退出、取消后留在应用且麦克风关闭。`scripts/smoke-quit.py` 已纳入 macOS CI。审查发现并修复了 `terminateLater` 嵌套等待可能阻塞主队列保存回调的问题；使用普通事件循环完成收尾后再授权退出。系统注销／重启若先被保存保护拦下，需要在保存退出完成后再次操作。参考 [Apple 退出等待说明](https://developer.apple.com/documentation/appkit/nsapplication/terminatereply/terminatelater)。
