@@ -9,7 +9,8 @@ import math
 import sys
 import threading
 import time
-from collections import deque
+from collections import OrderedDict, deque
+from dataclasses import dataclass
 from pathlib import Path
 
 from .adapters import HyMTTranslator, QwenASR, contains_only_chinese_speech, source_language
@@ -22,7 +23,7 @@ from .terminology import GLOSSARY_POLICY
 
 
 class InputBuffer:
-    def __init__(self, capacity: int = 8):
+    def __init__(self, capacity: int = 240):
         self.capacity = capacity
         self.items: deque = deque()
         self.condition = threading.Condition()
@@ -62,6 +63,14 @@ class InputBuffer:
             self.condition.notify_all()
 
 
+@dataclass
+class TranslationJob:
+    entry: dict
+    context: str
+    following: str
+    queued_at: float
+
+
 class CaptionEngine:
     def __init__(
         self,
@@ -80,10 +89,12 @@ class CaptionEngine:
         glossary_policy=GLOSSARY_POLICY,
     ):
         self.deferred = deferred
-        self.pending_translations = deque()
+        self.pending_translations: OrderedDict[str, TranslationJob] = OrderedDict()
+        self.translation_context: dict[str, str] = {}
+        self.translations_completed = 0
+        self.context_translations_completed = 0
         self.noise_floor = 0.001
         self.last_optional_at = 0.0
-        self.last_revised_pair = None
         self.language = language
         self.session, self.translator, self.publish = session, translator, publish
         self.english, self.translate = english, translate
@@ -118,14 +129,14 @@ class CaptionEngine:
         entry["revision"] += 1
         self.publish(entry.copy(), self.english, self.translate)
 
-    def translated(self, text: str, *, following: str = "") -> str:
+    def translated(self, text: str, *, context: str = "", following: str = "") -> str:
         if not self.translate or not text:
             return ""
         if contains_only_chinese_speech(text):
             return text
         # Neighbouring actual speech can disambiguate a revision; courseware cannot
         # supply words absent from the recognized utterance.
-        options = {"following": following[-300:]}
+        options = {"context": context[-1200:], "following": following[-1000:]}
         if self.glossary:
             options["glossary"] = matching_glossary(self.glossary, text)
         result = self.translator.translate(text, **options)
@@ -164,6 +175,7 @@ class CaptionEngine:
                 "revision": 0,
             }
             self.utterance_pcm = []
+            self.last_temporary_text = ""
             self.chunk_progress = None
             self.chunk_progress_at = start
             if self.pre_roll is not None:
@@ -189,7 +201,7 @@ class CaptionEngine:
             self.current["english"] = text
             if (not self.deferred and self.translate
                     and time.monotonic() - self.last_translation_at >= 1):
-                self.current["chinese"] = self.translated(text)
+                self.current["chinese"] = self.translated(text, context=self.preceding_context())
                 self.last_translation_at = time.monotonic()
             self.emit(self.current, "temporary")
         pause_limit = 0.65 if text.endswith((".", "?", "!", "。", "？", "！")) else 1.25
@@ -209,71 +221,105 @@ class CaptionEngine:
         if not text:
             return
         entry["english"] = text
-        if self.deferred:
-            entry["chinese"] = ""
-            self.emit(entry, "stable")
-            if len(self.pending_translations) >= 3:
-                self.service(0, closing=True)
-            if self.translate:
-                self.pending_translations.append((entry, time.monotonic()))
-        else:
-            entry["chinese"] = self.translated(text)
-            self.emit(entry, "stable")
-        if pcm_parts and (self.hint_terms or self.documents):
-            pcm = np.concatenate(pcm_parts)
-            # Keep only the latest pending polish so live never queues a backlog.
-            self.pending_enhance = (entry, pcm)
-        # Only the preceding two utterances can be revised by this later context.
-        # English source stays unchanged unless a guided polish later accepts a fix.
-        if self.translate and not self.deferred:
-            for previous in list(self.recent)[-2:]:
-                revised = self.translated(previous["english"], following=text)
-                if revised != previous["chinese"]:
-                    previous["chinese"] = revised
-                    self.emit(previous, "revised")
+        # Persist finalized source before any potentially failing inference.
+        self.emit(entry, "stable")
+        self.translation_context[entry["id"]] = self.preceding_context()
         self.recent.append(entry)
+        self.queue_translation(entry)
+        # A new stable utterance gives the preceding two new evidence. Coalesce
+        # unstarted work per target, retaining its original deadline and FIFO slot.
+        for previous in list(self.recent)[-3:-1]:
+            self.queue_translation(previous)
+        if pcm_parts and (self.hint_terms or self.documents):
+            self.pending_enhance = (entry, np.concatenate(pcm_parts))
         while len(self.recent) > 3:
-            self.emit(self.recent.popleft(), "locked")
+            self.retire_oldest()
+        if not self.deferred:
+            while self.pending_translations:
+                self.service(0, closing=True)
+
+    def preceding_context(self) -> str:
+        return "\n".join(item["english"] for item in list(self.recent)[-2:])[-1200:]
+
+    def following_context(self, entry: dict) -> str:
+        recent = list(self.recent)
+        index = next(i for i, item in enumerate(recent) if item["id"] == entry["id"])
+        return "\n".join(item["english"] for item in recent[index + 1:index + 3])[-1000:]
+
+    def queue_translation(self, entry: dict) -> None:
+        if not self.translate:
+            return
+        key = entry["id"]
+        previous = self.pending_translations.get(key)
+        self.pending_translations[key] = TranslationJob(
+            entry, self.translation_context[key], self.following_context(entry),
+            previous.queued_at if previous else time.monotonic(),
+        )
+
+    def complete_translation(self, key: str) -> None:
+        job = self.pending_translations[key]
+        translated = self.translated(
+            job.entry["english"], context=job.context, following=job.following,
+        )
+        # Only remove acknowledged work. Failed inference remains pending, and
+        # the caption must never be locked while its revision is outstanding.
+        job.entry["chinese"] = translated
+        self.emit(job.entry, "revised")
+        del self.pending_translations[key]
+        self.translations_completed += 1
+        self.context_translations_completed += bool(job.following)
+        self.last_translation_at = time.monotonic()
+
+    def translation_progress(self) -> dict:
+        return {
+            "translation_pending": len(self.pending_translations),
+            "translations_completed": self.translations_completed,
+            "context_translations_completed": self.context_translations_completed,
+        }
+
+    def retire_oldest(self) -> None:
+        entry = self.recent[0]
+        if entry["id"] in self.pending_translations:
+            self.complete_translation(entry["id"])
+        self.emit(entry, "locked")
+        self.recent.popleft()
+        self.translation_context.pop(entry["id"], None)
 
     def service(self, backlog: int, *, closing=False) -> None:
-        """One serial job per turn; stable results have a deadline and cannot be evicted."""
+        """Required first translations and context revisions share a fair FIFO.
+
+        Drain one job per turn when input catches up, or after six seconds of
+        queue age. Deadlines are never reset by newer context. Window eviction
+        and normal shutdown finish outstanding work before locking a caption.
+        """
         now = time.monotonic()
         if self.pending_translations:
-            entry, queued_at = self.pending_translations[0]
-            if closing or backlog <= 2 or now - queued_at >= 6:
-                entry["chinese"] = self.translated(entry["english"])
-                self.emit(entry, "revised")
-                self.pending_translations.popleft()
-                self.last_translation_at = time.monotonic()
+            key, job = next(iter(self.pending_translations.items()))
+            if closing or backlog <= 2 or now - job.queued_at >= 6:
+                self.complete_translation(key)
             return
-        if closing or not self.translate or backlog > 2 or self.current is None:
+        if closing or not self.translate or self.current is None:
             return
         text = self.current["english"]
         elapsed = now - self.last_translation_at
-        complete = text.endswith((".", "?", "!", "。", "？", "！"))
-        if text and text != self.last_temporary_text and elapsed >= (2 if complete else 6):
+        if (text and text != self.last_temporary_text and elapsed >= 1
+                and (backlog <= 2 or elapsed >= 6)):
+            self.current["chinese"] = self.translated(text, context=self.preceding_context())
             self.last_temporary_text = text
-            self.current["chinese"] = self.translated(text)
             self.last_translation_at = time.monotonic()
             self.emit(self.current, "temporary")
 
     def polish(self) -> None:
-        """Run at most one deferred courseware re-recognition between utterances."""
-        if self.deferred and not self.pending_translations and len(self.recent) >= 2:
-            previous, following = list(self.recent)[-2:]
-            pair = (previous["id"], following["id"])
-            if pair != self.last_revised_pair:
-                self.last_revised_pair = pair
-                revised = self.translated(previous["english"], following=following["english"])
-                if revised != previous["chinese"]:
-                    previous["chinese"] = revised
-                    self.emit(previous, "revised")
-                return
+        """Optional courseware recognition never consumes required revision work."""
+        if self.pending_translations:
+            return
         job = self.pending_enhance
         self.pending_enhance = None
         if job is None or self.state is not None or self.session is None:
             return
         entry, pcm = job
+        if entry["status"] == "locked" or entry not in self.recent:
+            return
         if pcm is None or len(pcm) < 1600 or len(pcm) > 16000 * 12:
             return
         selection = select_asr_hints(self.hint_terms, self.documents, entry["english"])
@@ -290,15 +336,19 @@ class CaptionEngine:
         if not decision.accepted or decision.text == entry["english"]:
             return
         entry["english"] = decision.text
-        entry["chinese"] = self.translated(decision.text)
         self.emit(entry, "revised")
+        self.queue_translation(entry)
+        recent = list(self.recent)
+        index = recent.index(entry)
+        for previous in recent[max(0, index - 2):index]:
+            self.queue_translation(previous)
 
     def lock_all(self) -> None:
         while self.pending_translations:
             self.service(0, closing=True)
         self.pending_enhance = None
         while self.recent:
-            self.emit(self.recent.popleft(), "locked")
+            self.retire_oldest()
 
 
 def output(event: dict) -> None:
@@ -373,7 +423,7 @@ def run_live(root: Path, model_root: Path, lecture_id: str, session_id: str, asr
                     if item is None:
                         if buffer.closed:
                             break
-                        captions.service(0)
+                        captions.service(buffer.backlog())
                         if (captions.state is None and buffer.backlog() == 0
                                 and time.monotonic() - captions.last_optional_at >= 20):
                             captions.polish()
@@ -440,11 +490,12 @@ def run_live(root: Path, model_root: Path, lecture_id: str, session_id: str, asr
                             "dropped_packets": buffer.dropped,
                             "inference_seconds": time.monotonic() - started,
                             "gap_start": gap_start if gap_start is not None else start,
-                            "gap_end": start})
+                            "gap_end": start, **captions.translation_progress()})
             finally:
                 captions.finish()
                 captions.lock_all()
             output(
                 {"type": "stopped", "dropped_packets": buffer.dropped, "mlx_memory": mlx_memory(),
-                 "processed_audio": captions.last_end or 0, "inference_seconds": 0, "backlog": 0}
+                 "processed_audio": captions.last_end or 0, "inference_seconds": 0, "backlog": 0,
+                 **captions.translation_progress()}
             )
