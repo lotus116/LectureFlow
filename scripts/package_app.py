@@ -154,10 +154,10 @@ def package(with_models: bool, archive: bool, test_build: bool = False,
                                             else "LectureFlow 口音测试")
             info["CFBundleVersion"] = "20261105.1"
             info["LectureFlowTestBuild"] = label
-            (resources / "build-info.json").write_text(json.dumps({
-                "commit": commit, "version": VERSION, "build": label,
-                "official_release": False,
-            }, indent=2))
+        (resources / "build-info.json").write_text(json.dumps({
+            "commit": commit, "version": VERSION, "build": label or f"release-{VERSION}",
+            "official_release": not test_build,
+        }, indent=2))
         info_path.write_bytes(plistlib.dumps(info))
         shutil.copy2(PROJECT / "docs/USER_GUIDE.md", resources / "使用说明.md")
         shutil.copytree(PROJECT / "docs/licenses", resources / "Licenses")
