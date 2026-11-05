@@ -21,12 +21,14 @@ def run(arguments, **kwargs):
     subprocess.run([str(a) for a in arguments], check=True, cwd=PROJECT, **kwargs)
 
 
-def package(with_models: bool, archive: bool, test_build: bool = False) -> Path:
+def package(with_models: bool, archive: bool, test_build: bool = False,
+            test_kind: str = "accent") -> Path:
     from lectureflow.models import CATALOG, resolve
 
     commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=PROJECT,
                                      text=True).strip()
-    label = f"accent-test-{commit[:10]}" if test_build else ""
+    label = f"{test_kind}-test-{commit[:10]}" if test_build else ""
+    test_name = "LectureFlow Review Test" if test_kind == "review" else "LectureFlow Accent Test"
     distribution = PROJECT / "dist"
     if test_build:
         distribution = distribution / label
@@ -146,9 +148,10 @@ def package(with_models: bool, archive: bool, test_build: bool = False) -> Path:
         info.pop("LectureFlowProjectRoot", None)
         info["CFBundleIconFile"] = "AppIcon"
         if test_build:
-            info["CFBundleIdentifier"] = "local.lectureflow.accent-test"
-            info["CFBundleName"] = "LectureFlow Accent Test"
-            info["CFBundleDisplayName"] = "LectureFlow 口音测试"
+            info["CFBundleIdentifier"] = f"local.lectureflow.{test_kind}-test"
+            info["CFBundleName"] = test_name
+            info["CFBundleDisplayName"] = ("LectureFlow 复习标记测试" if test_kind == "review"
+                                            else "LectureFlow 口音测试")
             info["CFBundleVersion"] = "20261105.1"
             info["LectureFlowTestBuild"] = label
             (resources / "build-info.json").write_text(json.dumps({
@@ -190,7 +193,7 @@ def package(with_models: bool, archive: bool, test_build: bool = False) -> Path:
                 m["installed"] for m in status["models"] if m["id"] != "asr-large"
             ):
                 raise RuntimeError("Bundled default models cannot be resolved")
-        destination = distribution / ("LectureFlow Accent Test.app" if test_build
+        destination = distribution / (f"{test_name}.app" if test_build
                                       else "LectureFlow.app")
         backup = distribution / ".previous-LectureFlow.app"
         if backup.exists():
@@ -215,5 +218,7 @@ if __name__ == "__main__":
     parser.add_argument("--with-models", action="store_true")
     parser.add_argument("--zip", action="store_true")
     parser.add_argument("--test-build", action="store_true")
+    parser.add_argument("--test-kind", choices=["accent", "review"], default="accent")
     args = parser.parse_args()
-    print(f"Built standalone app: {package(args.with_models, args.zip, args.test_build)}")
+    output = package(args.with_models, args.zip, args.test_build, args.test_kind)
+    print(f"Built standalone app: {output}")

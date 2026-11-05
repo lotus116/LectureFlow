@@ -130,6 +130,12 @@ private struct FloatingSubtitlesRoot: View {
 
             Spacer(minLength: 4)
 
+            ReviewCurrentButton(workspace: workspace, live: live, compact: true)
+                .contextMenu {
+                    Button("查看复习标记") { workspace.openReviewMarks() }
+                }
+                .help(workspace.reviews.feedback ?? "标记当前位置，课后复习")
+
             if workspace.session.hasSession {
                 Button(workspace.session.primaryTitle) {
                     workspace.primarySessionAction()

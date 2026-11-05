@@ -73,3 +73,5 @@ VERSION、pyproject.toml 与 uv.lock 中项目版本保持一致。更新版本�
 ## 口音本地测试包
 
 `zsh scripts/package-app --zip --test-build` 在独立的 `dist/accent-test-提交/` 目录生成包，不覆盖原应用或0.6.3包。使用独立bundle ID，包内build-info.json记录来源提交及非正式发行标识；仍不含模型和私人资料。不创建Release或tag。
+
+复习标记测试使用 `zsh scripts/package-app --zip --test-build --test-kind review`，输出至 `dist/review-test-提交/`，应用名称和bundle ID独立于口音测试及正式包。首次试用前结束并退出旧应用，避免多个应用同时打开同一资料库。

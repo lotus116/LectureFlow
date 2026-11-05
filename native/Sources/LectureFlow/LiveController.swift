@@ -278,6 +278,11 @@ final class LiveController: NSObject, ObservableObject {
     private var historyGeneration = 0
     private var captureStarted = false
     private var captureID = UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
+    /// Same host-clock domain as caption timestamps and RecordingWriter ranges.
+    var currentReviewAnchor: (captureID: String, time: Double)? {
+        guard isCapturing, captureStarted else { return nil }
+        return (captureID, max(0, ProcessInfo.processInfo.systemUptime - referenceTime))
+    }
     private var pipeToken: UUID?
     private var drainingTokens: [UUID: String] = [:]
     private var recoveryBudget = CaptionRecoveryBudget()

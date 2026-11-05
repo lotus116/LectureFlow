@@ -20,6 +20,7 @@ final class Workspace: ObservableObject {
             }
             restoreSession()
             live.prepareHistory(for: selectedLecture)
+            reviews.selectLecture(selectedLecture)
             if let id = selectedLecture {
                 Task { [weak self] in
                     guard let self, self.selectedLecture == id, let lecture = self.lecture else { return }
@@ -42,6 +43,7 @@ final class Workspace: ObservableObject {
     @Published var notice: String?
     @Published private(set) var refreshError: String?
     @Published var requestedTab: String?
+    @Published var reviewPresented = false
     @Published var busy = false
     @Published private(set) var isExiting = false
 
@@ -51,6 +53,7 @@ final class Workspace: ObservableObject {
         refreshToken = UUID()
         session.end(at: ProcessInfo.processInfo.systemUptime)
         await live.prepareForExit()
+        await reviews.finishWrites()
         await backend.prepareForExit()
         persistSession()
     }
@@ -69,6 +72,8 @@ final class Workspace: ObservableObject {
     @Published var downloadFraction: Double?
     @Published var downloadPaused = UserDefaults.standard.bool(forKey: "modelDownloadPaused")
     let backend = Backend()
+    let reviews: ReviewMarks
+    let playback = AudioPlayback()
     let live = LiveController()
     let subtitles = SubtitleWindow()
     private var subscriptions: Set<AnyCancellable> = []
@@ -102,6 +107,11 @@ final class Workspace: ObservableObject {
     }
 
     init() {
+        reviews = ReviewMarks(backend: backend)
+        reviews.objectWillChange.sink { [weak self] _ in self?.objectWillChange.send() }
+            .store(in: &subscriptions)
+        playback.objectWillChange.sink { [weak self] _ in self?.objectWillChange.send() }
+            .store(in: &subscriptions)
         // Meter updates redraw the recorder itself, not the entire library and task list.
         Publishers.MergeMany(
             live.$flags.dropFirst().map { _ in () }.eraseToAnyPublisher(),
@@ -144,6 +154,23 @@ final class Workspace: ObservableObject {
     }
 
     var floatingSubtitlesVisible: Bool { subtitles.isVisible }
+
+    func markCurrentForReview() {
+        guard !isExiting, let lecture = live.lectureID,
+              let anchor = live.currentReviewAnchor else { return }
+        reviews.add(lecture: lecture, capture: anchor.captureID, time: anchor.time)
+    }
+
+    func markCaptionForReview(_ caption: LiveCaption, lecture: String) {
+        guard !isExiting, let capture = caption.session_id else { return }
+        reviews.add(lecture: lecture, capture: capture, time: caption.start, caption: caption.id)
+    }
+
+    func openReviewMarks() {
+        playback.stop()
+        reviewPresented = true
+        if !isMainWindowVisible { toggleMainWindow() }
+    }
 
     func openSubtitles(hideMain: Bool = false) {
         subtitles.show(workspace: self)

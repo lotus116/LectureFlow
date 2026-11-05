@@ -14,6 +14,7 @@ public final class RecordingWriter {
     private var fileFrames: AVAudioFrameCount = 0
     private var chunkIndex = 0
     private var totalFrames: Int64 = 0
+    private var captureRanges: [[String: Double]] = []
     private var lockFD: Int32 = -1
     private var sealed = false
 
@@ -41,13 +42,14 @@ public final class RecordingWriter {
     private func checkpoint() throws {
         let object: [String: Any] = ["id": id, "created_at": created, "sealed": sealed,
                                       "frames": totalFrames, "sample_rate": 16000,
-                                      "capture_id": captureID, "start_offset_s": startOffset]
+                                      "capture_id": captureID, "start_offset_s": startOffset,
+                                      "capture_ranges": captureRanges]
         let data = try JSONSerialization.data(withJSONObject: object, options: [.sortedKeys])
         try data.write(to: directory.appendingPathComponent("capture.json"), options: .atomic)
     }
 
     public func append(_ buffer: AVAudioPCMBuffer, start: Double = 0) throws {
-        guard !sealed, buffer.format.sampleRate == 16000,
+        guard !sealed, start.isFinite, start >= 0, buffer.format.sampleRate == 16000,
               buffer.format.channelCount == 1, let input = buffer.floatChannelData else {
             throw CocoaError(.fileWriteInapplicableStringEncoding)
         }
@@ -72,6 +74,16 @@ public final class RecordingWriter {
             part.frameLength = count
             memcpy(part.floatChannelData![0], input[0].advanced(by: Int(offset)), Int(count) * 4)
             try file!.write(from: part)
+            let captureStart = start + Double(offset) / 16000
+            let duration = Double(count) / 16000
+            if let last = captureRanges.last,
+               abs(captureStart - (last["capture_start"]! + last["duration"]!)) < 0.02 {
+                captureRanges[captureRanges.count - 1]["duration"]! += duration
+            } else {
+                captureRanges.append(["capture_start": captureStart,
+                                      "source_start": Double(totalFrames) / 16000,
+                                      "duration": duration])
+            }
             offset += count; fileFrames += count; totalFrames += Int64(count)
             if fileFrames == chunkFrames {
                 let url = file!.url

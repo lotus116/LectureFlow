@@ -119,12 +119,13 @@ final class LectureFlowDelegate: NSObject, NSApplicationDelegate {
                 let state = workspace.live.exitReadiness.snapshot
                 let backendDone = await workspace.backend.exitIsSettled()
                 if state.settled && backendDone {
-                    if state.canExit || acknowledgeFailure {
+                    if (state.canExit && !workspace.reviews.hasUnsavedChanges) || acknowledgeFailure {
                         finishExit(sender, allow: true)
                         return
                     }
                     exitStatus.failed = true
-                    exitStatus.message = state.failures.joined(separator: "\n\n")
+                    exitStatus.message = (state.failures + (workspace.reviews.hasUnsavedChanges
+                        ? ["复习标记尚未保存。可取消退出，重试保存标记。"] : [])).joined(separator: "\n\n")
                 } else {
                     exitStatus.message = "正在完成：录音保存 \(state.recordings) 项、字幕收尾 \(state.captions) 项"
                         + (backendDone ? "" : "，以及后台任务收尾")
@@ -202,7 +203,7 @@ struct LibraryView: View {
     @State private var dropCourseID: String?
     @State private var importingForCourse: String?
     @AppStorage("transcriptTextSize") private var transcriptTextSize = 15.0
-    @StateObject private var playback = AudioPlayback()
+    private var playback: AudioPlayback { model.playback }
     @Environment(\.openSettings) private var openSettings
 
     var body: some View {
@@ -436,6 +437,9 @@ struct LibraryView: View {
         }
         .onChange(of: importing) { _, open in
             if !open { importingForCourse = nil }
+        }
+        .sheet(isPresented: $model.reviewPresented) {
+            ReviewMarksView(workspace: model, store: model.reviews, playback: model.playback)
         }
         .sheet(isPresented: Binding(get: { form != nil }, set: { if !$0 { form = nil } })) {
             VStack(alignment: .leading, spacing: 18) {
@@ -1046,7 +1050,7 @@ struct LibraryView: View {
     private func unifiedTranscript(_ lecture: Lecture) -> some View {
         VStack(alignment: .leading, spacing: LFChrome.space10) {
             if transcriptSource == "live" {
-                LiveTranscriptView(live: model.live, lecture: lecture, backend: model.backend)
+                LiveTranscriptView(workspace: model, live: model.live, lecture: lecture, backend: model.backend)
             } else {
                 if model.transcript?.possible_context_bias == true {
                     HStack {

@@ -105,6 +105,24 @@ def parser() -> argparse.ArgumentParser:
     retry.add_argument("session_id")
     retry.add_argument("--asr", choices=["asr-small", "asr-large"], default="asr-large")
     commands.add_parser("worker", help="处理队列；关闭界面不会取消任务")
+    review = commands.add_parser("review", help="本地复习标记")
+    review_actions = review.add_subparsers(dest="review_action", required=True)
+    for name in ("list", "add", "detail", "done", "remove", "restore"):
+        action = review_actions.add_parser(name)
+        action.add_argument("lecture_id")
+        if name == "list":
+            action.add_argument("--removed", action="store_true")
+        if name not in {"list", "add"}:
+            action.add_argument("id")
+        if name == "add":
+            action.add_argument("capture_id")
+            action.add_argument("time", type=float)
+            action.add_argument("--caption-id")
+            action.add_argument("--id")
+        if name == "done":
+            action.add_argument("--value", choices=["0", "1"], required=True)
+        if name == "remove":
+            action.add_argument("--confirmed", action="store_true")
     from .commands import add
 
     add(commands, actions)
@@ -295,6 +313,26 @@ def main() -> int:
                     else:
                         result = live_store.history(library, args.lecture_id)
                     print(json.dumps(result, ensure_ascii=False))
+        elif args.command == "review":
+            from . import review_marks
+            from .library import Library
+
+            with Library(args.library_root) as library:
+                if args.review_action == "add":
+                    result = review_marks.create(library, args.lecture_id, args.capture_id,
+                        args.time, caption_id=args.caption_id, key=args.id)
+                elif args.review_action == "list":
+                    result = review_marks.listing(library, args.lecture_id, removed=args.removed)
+                elif args.review_action == "detail":
+                    result = review_marks.detail(library, args.lecture_id, args.id)
+                else:
+                    if args.review_action == "remove" and not args.confirmed:
+                        raise ValueError("移除标记需要确认；录音与字幕不会删除")
+                    result = review_marks.update(library, args.lecture_id, args.id,
+                        remove=args.review_action == "remove",
+                        restore=args.review_action == "restore",
+                        reviewed=args.value == "1" if args.review_action == "done" else None)
+                print(json.dumps(result, ensure_ascii=False))
         elif args.command == "worker":
             from .worker import run_worker
 

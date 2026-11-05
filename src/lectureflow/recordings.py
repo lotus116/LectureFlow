@@ -88,6 +88,7 @@ def register(library, lecture_id: str, directory: Path, *, recover: bool = False
                 "recovered": recover,
                 "capture_id": descriptor.get("capture_id"),
                 "start_offset_s": descriptor.get("start_offset_s", 0),
+                "capture_ranges": descriptor.get("capture_ranges", []),
                 "unreadable_chunks": unreadable,
             },
         )

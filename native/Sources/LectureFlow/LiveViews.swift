@@ -14,6 +14,7 @@ struct LiveControlView: View {
 }
 
 struct LiveTranscriptView: View {
+    @ObservedObject var workspace: Workspace
     @ObservedObject var live: LiveController
     let lecture: Lecture
     let backend: Backend
@@ -59,9 +60,17 @@ struct LiveTranscriptView: View {
                         LazyVStack(alignment: .leading, spacing: LFChrome.space16) {
                             ForEach(visible) { caption in
                                 VStack(alignment: .leading, spacing: 6) {
-                                    Text(clock(caption.start))
-                                        .font(.system(size: max(11, LFChrome.captionSize * (textSize / 15)), weight: .medium).monospacedDigit())
-                                        .foregroundStyle(LFChrome.accentInk.opacity(0.85))
+                                    HStack {
+                                        Text(clock(caption.start))
+                                            .font(.system(size: max(11, LFChrome.captionSize * (textSize / 15)), weight: .medium).monospacedDigit())
+                                            .foregroundStyle(LFChrome.accentInk.opacity(0.85))
+                                        Spacer()
+                                        Button("🎯") { workspace.markCaptionForReview(caption, lecture: lecture.id) }
+                                            .buttonStyle(.plain)
+                                            .disabled(caption.session_id == nil || workspace.reviews.saving || workspace.isExiting)
+                                            .help("标记这段内容，课后复习")
+                                            .accessibilityLabel("标记 \(clock(caption.start)) 的内容供复习")
+                                    }
                                     // Main window: English above, Chinese below.
                                     if language != "zh", !caption.english.isEmpty {
                                         Text(caption.english)

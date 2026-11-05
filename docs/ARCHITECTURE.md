@@ -10,6 +10,8 @@ AudioSegment 保存源、顺序、时长、块和哈希；用户片段为开始�
 
 课后版本绑定不可变素材、模型和术语快照；人工修改与历史受保护。实时当前字幕与修订历史由 live_store 持久化，保存边界遵守英文／中文开关。实时人工编辑入口及统一导出仍存在 A03 缺口。
 
+复习标记由 `review_marks` 表保存 Lecture／capture ID、采集时间、可选字幕 ID、复习及移除状态，不复制字幕文本。录音写入在 `capture.json` 保存连续区间的 `capture_start/source_start/duration`，登记至 `segment.json`；回听据此从含暂停的字幕时钟换算到去暂停的源时间，并定位内部块。旧／不完整映射禁止猜测定位。字幕按同一采集会话动态查找最新保存结果；只有录音时可关联后续课后转写的源区间。正常退出等待标记写入，失败请求保留相同身份重试；成功写入前的异常强杀不保证恢复。
+
 ## 模块与数据流
 
 | 实现入口 | 职责与边界 |
@@ -17,6 +19,7 @@ AudioSegment 保存源、顺序、时长、块和哈希；用户片段为开始�
 | [原生应用](../native/Sources/LectureFlow/)／[Core](../native/Sources/LectureFlowCore/) | SwiftUI、AVAudioEngine、权限、独立写入和子进程通信 |
 | [live.py](../src/lectureflow/live.py)／[live_store.py](../src/lectureflow/live_store.py) | 流式识别、必做中文回改、可选课件 polish、当前字幕及修订保存 |
 | [recordings.py](../src/lectureflow/recordings.py) | CAF 块登记、哈希、恢复与跨块解码；不修改源录音 |
+| [review_marks.py](../src/lectureflow/review_marks.py)／[ReviewMarks.swift](../native/Sources/LectureFlow/ReviewMarks.swift) | 🎯 时间点、状态、移除恢复、文字和原音定位；不调用模型 |
 | [worker.py](../src/lectureflow/worker.py)／[library.py](../src/lectureflow/library.py) | 后台任务、快照、检查点与事务；课后相邻上下文仍缺 A02 |
 | [documents.py](../src/lectureflow/documents.py)／[knowledge.py](../src/lectureflow/knowledge.py) | 课程资料、解析、术语和补全；增量能力缺口见 A04/A05 |
 | [adapters.py](../src/lectureflow/adapters.py)／[models.py](../src/lectureflow/models.py) | 本地 Qwen ASR 与 HyMT 翻译、固定模型版本和下载 |

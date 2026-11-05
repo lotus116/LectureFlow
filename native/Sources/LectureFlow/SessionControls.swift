@@ -56,6 +56,22 @@ struct SessionControlBar: View {
                     .font(.system(size: LFChrome.captionSize))
             }
 
+            HStack(spacing: 10) {
+                ReviewCurrentButton(workspace: workspace, live: live)
+                Button("复习标记\(workspace.reviews.activeCount == 0 ? "" : " · \(workspace.reviews.activeCount)")") {
+                    workspace.openReviewMarks()
+                }
+                .disabled(workspace.lecture == nil || workspace.isExiting)
+                .accessibilityIdentifier("review-marks-open")
+                if let feedback = workspace.reviews.feedback {
+                    Text(feedback).font(.caption).foregroundStyle(.secondary)
+                }
+                if workspace.reviews.hasUnsavedChanges && !workspace.reviews.saving {
+                    Button("重试保存标记") { workspace.reviews.retryFailed() }
+                }
+                Spacer(minLength: 0)
+            }.controlSize(.small)
+
         }
         .padding(.horizontal, LFChrome.space16)
         .padding(.vertical, readingMode ? 8 : 12)

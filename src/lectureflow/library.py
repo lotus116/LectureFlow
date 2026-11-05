@@ -102,6 +102,9 @@ class Library:
         from .live_store import migrate
 
         migrate(self.db)
+        from .review_marks import migrate as migrate_review_marks
+
+        migrate_review_marks(self.db)
         from . import documents, files, summaries
 
         files.migrate(self.db)

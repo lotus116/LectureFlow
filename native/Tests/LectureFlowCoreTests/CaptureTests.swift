@@ -36,6 +36,8 @@ final class CaptureTests: XCTestCase {
         XCTAssertEqual(descriptor["frames"] as? Int, 4000)
         XCTAssertEqual(descriptor["capture_id"] as? String, "capture-anchor")
         XCTAssertEqual(descriptor["start_offset_s"] as? Double, 12.5)
+        let ranges = try XCTUnwrap(descriptor["capture_ranges"] as? [[String: Double]])
+        XCTAssertEqual(ranges, [["capture_start": 12.5, "source_start": 0, "duration": 0.25]])
     }
     func testTranslationWithoutRecordingProducesNoAudioFiles() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
@@ -71,6 +73,12 @@ final class CaptureTests: XCTestCase {
         pump.sealRecording()
         pump.barrier()
         XCTAssertEqual(sealed.count, 1)
+        let data = try Data(contentsOf: sealed[0].appendingPathComponent("capture.json"))
+        let descriptor = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        let ranges = try XCTUnwrap(descriptor["capture_ranges"] as? [[String: Double]])
+        XCTAssertEqual(ranges, [["capture_start": 0, "source_start": 0, "duration": 0.25],
+                                ["capture_start": 0.5, "source_start": 0.25, "duration": 0.25]])
+        XCTAssertEqual(try AVAudioFile(forReading: sealed[0].appendingPathComponent("chunk-00000.caf")).length, 8000)
         pump.update(CaptureFlags(recording: true))
         pump.submit(pcm(frames: 4000), hostTime: 1)
         pump.sealRecording()
