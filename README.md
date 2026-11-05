@@ -7,7 +7,7 @@
 <p align="center">
   <a href="https://github.com/lotus116/LectureFlow/releases/latest"><strong>下载 macOS 版 →</strong></a>
   &nbsp; · &nbsp; <a href="docs/USER_GUIDE.md"><strong>使用指南</strong></a>
-  &nbsp; · &nbsp; <a href="docs/RELEASE-0.6.2.md">0.6.2 更新说明</a>
+  &nbsp; · &nbsp; <a href="docs/RELEASE-0.6.3.md">0.6.3 更新说明</a>
   &nbsp; · &nbsp; <a href="https://github.com/lotus116/LectureFlow/issues">反馈问题</a>
 </p>
 
@@ -38,8 +38,8 @@
 **资料放一次，各次 Lecture 共享。** 课前或课后都能新增资料；导入后自动整理相关拼写提示，辅助术语可修改、停用或补充。课件中的明确中英对照与人工校正参与翻译，自动生成的中文仅作建议。[了解课程资料与术语](docs/USER_GUIDE.md#课程资料与术语)
 
 > [!TIP]
-> **0.6.2 · 把更多空间留给字幕**<br>
-> 在「转写 → 实时记录」点击「展开字幕」，收起顶部大面板，保留计时、采集控制、搜索、字号、复制与导出。点击「恢复布局」即可返回。[本版改进](docs/RELEASE-0.6.2.md)
+> **0.6.3 · 英语字幕与退出保存修复**<br>
+> 默认固定英语识别，短暂积压后补做上下文翻译回改，退出时等待录音保存与字幕收尾。[本版改进](docs/RELEASE-0.6.3.md)
 
 ## 三步开始上课
 
@@ -80,6 +80,7 @@ zsh scripts/run
   <a href="docs/STATUS.md">实际进度</a> &nbsp; · &nbsp;
   <a href="docs/PRODUCT_DESIGN-2026-10-31.md">产品设计</a> &nbsp; · &nbsp;
   <a href="docs/SD_TRACKING.md">需求核对</a> &nbsp; · &nbsp;
-  <a href="docs/NEXT_IMPROVEMENTS.md">下一步讨论</a>
+  <a href="docs/NEXT_IMPROVEMENTS.md">下一步讨论</a> &nbsp; · &nbsp;
+  <a href="docs/SPEECH_RESEARCH-2026-11-05.md">语音增强研究</a>
 </p>
 <p align="center"><sub>琪露诺主题为非官方同人视觉，与原作及玩偶制造商无官方关联。横幅使用 AI 辅助创作；流程图为功能示意，非软件截图。</sub></p>
