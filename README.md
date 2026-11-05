@@ -77,10 +77,11 @@ zsh scripts/run
 ---
 
 <p align="center">
+  <a href="docs/README.md">文档导航</a> &nbsp; · &nbsp;
   <a href="docs/STATUS.md">实际进度</a> &nbsp; · &nbsp;
-  <a href="docs/PRODUCT_DESIGN-2026-10-31.md">产品设计</a> &nbsp; · &nbsp;
-  <a href="docs/SD_TRACKING.md">需求核对</a> &nbsp; · &nbsp;
-  <a href="docs/NEXT_IMPROVEMENTS.md">下一步讨论</a> &nbsp; · &nbsp;
-  <a href="docs/SPEECH_RESEARCH-2026-11-05.md">语音增强研究</a>
+  <a href="docs/PRODUCT.md">产品设计</a> &nbsp; · &nbsp;
+  <a href="docs/STATUS.md#需求实现矩阵">需求核对</a> &nbsp; · &nbsp;
+  <a href="docs/design/OPEN_ITEMS.md">下一步讨论</a> &nbsp; · &nbsp;
+  <a href="docs/research/SPEECH_RESEARCH-2026-11-05.md">语音增强研究</a>
 </p>
 <p align="center"><sub>琪露诺主题为非官方同人视觉，与原作及玩偶制造商无官方关联。横幅使用 AI 辅助创作；流程图为功能示意，非软件截图。</sub></p>

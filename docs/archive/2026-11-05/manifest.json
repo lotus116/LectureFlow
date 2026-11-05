@@ -1,0 +1,351 @@
+{
+  "base_commit": "a4a0857a9abbd42767bbafec2e0ea5721fb73a21",
+  "documents": [
+    {
+      "source": "docs/ARCHITECTURE.md",
+      "archive": "docs/archive/2026-11-05/snapshot/docs/ARCHITECTURE.md",
+      "current": "docs/ARCHITECTURE.md",
+      "original_sha256": "d0385c7c309fcff52bec2e18caf47d6fc84fe826e3984cc00fca19bfbc5b4765",
+      "archive_sha256": "2bda529489ab15ebb863fe9ef51f9c8d77f38a469a9e00cc9daf406de8467743",
+      "link_changes": []
+    },
+    {
+      "source": "docs/BRAND.md",
+      "archive": "docs/archive/2026-11-05/snapshot/docs/BRAND.md",
+      "current": "docs/design/VISUAL.md",
+      "original_sha256": "75b6f325a9e3962329d1502da4618b6f1a1ee30779518f0dfdbd287525468b2c",
+      "archive_sha256": "d0fbfc1c631b1887097ee81799baa7421ce8ed9637a108798cff02c5c25315fe",
+      "link_changes": []
+    },
+    {
+      "source": "docs/CIRNO_UI_REFINEMENT.md",
+      "archive": "docs/archive/2026-11-05/snapshot/docs/CIRNO_UI_REFINEMENT.md",
+      "current": "docs/design/VISUAL.md",
+      "original_sha256": "5eee09bd98b0638abff326d8e0b6f727059370e719e8086c9c078c9f3d29f455",
+      "archive_sha256": "601dc42204b1080ea6a5a17ae0e758af4ba57a0c634ea08a478ae1a918d4ee9d",
+      "link_changes": []
+    },
+    {
+      "source": "docs/CURSOR_HANDOFF-2026-10-31.md",
+      "archive": "docs/archive/2026-11-05/snapshot/docs/CURSOR_HANDOFF-2026-10-31.md",
+      "current": null,
+      "original_sha256": "bdd2f6d25024087cf56682b110ab69794ecbed4768f7a632d3e14c837a1e4b2f",
+      "archive_sha256": "64e36376375f49c702698bdc49aa03929ec9abf3d422b634465d785b34325dab",
+      "link_changes": []
+    },
+    {
+      "source": "docs/DELIVERY.md",
+      "archive": "docs/archive/2026-11-05/snapshot/docs/DELIVERY.md",
+      "current": null,
+      "original_sha256": "e12d1176a97de87a94f09dd0af55b4f9427e7d02e4f8dee3a499ff10de4f436b",
+      "archive_sha256": "18e6b44f60f924db53a3d42256e4d83181a0a536b276425eb79bc69332f069cb",
+      "link_changes": []
+    },
+    {
+      "source": "docs/DEVELOPMENT.md",
+      "archive": "docs/archive/2026-11-05/snapshot/docs/DEVELOPMENT.md",
+      "current": "docs/DEVELOPMENT.md",
+      "original_sha256": "6cd19e017b5a55b9477b02d36561b77276fabe71979b0081661724c76cb16efa",
+      "archive_sha256": "2ed9be532c61c04a0e5b419a2ab793118e16fa0c2cb32784ec87dc5b6c2e1efb",
+      "link_changes": []
+    },
+    {
+      "source": "docs/FEEDBACK-0.3.md",
+      "archive": "docs/archive/2026-11-05/snapshot/docs/FEEDBACK-0.3.md",
+      "current": null,
+      "original_sha256": "b9162ba96ec3107127517120efb89180b216352441c1973885f29ff8c1a78305",
+      "archive_sha256": "dc926c69c5a1b84c7901bf07e10d4d13a17719a0e71308f6eafa76263182dab7",
+      "link_changes": []
+    },
+    {
+      "source": "docs/FEEDBACK-0.4.md",
+      "archive": "docs/archive/2026-11-05/snapshot/docs/FEEDBACK-0.4.md",
+      "current": null,
+      "original_sha256": "8227b04c8312ba5a06b3b62a743a50c7856943291eefbea168e246cb77bb0c4b",
+      "archive_sha256": "b65a9f67de439793287de4f4e8a7cdbe4eab8a61f73e43bca42474d3ae13c4be",
+      "link_changes": []
+    },
+    {
+      "source": "docs/GUIDED_ASR_0.5.md",
+      "archive": "docs/archive/2026-11-05/snapshot/docs/GUIDED_ASR_0.5.md",
+      "current": null,
+      "original_sha256": "0be4037ee14446ff7e2b0283a9708e13ccbc48afa65034f41fc71016020fefe8",
+      "archive_sha256": "741bdac302fa2a5c7e1a444e55df2df2c1987676dad940e2014b73d44c8cf496",
+      "link_changes": []
+    },
+    {
+      "source": "docs/IMPLEMENTATION_PLAN.md",
+      "archive": "docs/archive/2026-11-05/snapshot/docs/IMPLEMENTATION_PLAN.md",
+      "current": null,
+      "original_sha256": "3ad0063991a472ef80f6a6990c172149e05dd088d3078af940b63e7ea897c927",
+      "archive_sha256": "a5fef834170ff1f0799b9c507638d1dfa3bd796efb2f78e561c3232d9630f8d7",
+      "link_changes": []
+    },
+    {
+      "source": "docs/KNOWLEDGE_REDESIGN_HANDOFF.md",
+      "archive": "docs/archive/2026-11-05/snapshot/docs/KNOWLEDGE_REDESIGN_HANDOFF.md",
+      "current": null,
+      "original_sha256": "9c3bebdd84036fd133d82e52259a0e5af7c15f3c4ad9f6b8c727725beee90dd3",
+      "archive_sha256": "6ba7a226fa4b7cb87e2bffb302359e62d6258f447bbf4b8316996c854005f6b7",
+      "link_changes": []
+    },
+    {
+      "source": "docs/LIVE.md",
+      "archive": "docs/archive/2026-11-05/snapshot/docs/LIVE.md",
+      "current": "docs/design/REALTIME.md",
+      "original_sha256": "2389b4b2065f08eba13e5d8ec96ce039e8fe6c2bde402bd6239a727c3e0b92d1",
+      "archive_sha256": "48c85c9a2e6ac8975bfc17f863d8d3035ce8f86d587a8efca9412e714b4380dd",
+      "link_changes": []
+    },
+    {
+      "source": "docs/LIVE_RELIABILITY.md",
+      "archive": "docs/archive/2026-11-05/snapshot/docs/LIVE_RELIABILITY.md",
+      "current": "docs/design/REALTIME.md",
+      "original_sha256": "bbb9ab0e3b060eb96701040ef5561b9c043890bd57b65d607c6da8ffa9db46ee",
+      "archive_sha256": "04bd10924d273d4bacb7a4efec0267bfc402087d3bd6c4ab2399064afa205212",
+      "link_changes": []
+    },
+    {
+      "source": "docs/NEXT_IMPROVEMENTS.md",
+      "archive": "docs/archive/2026-11-05/snapshot/docs/NEXT_IMPROVEMENTS.md",
+      "current": "docs/design/OPEN_ITEMS.md",
+      "original_sha256": "2e765ceddc157dcd5166da0528ff9f07890a9e5f645c5eed921847905ee63d48",
+      "archive_sha256": "968fac44900486e881e408e5b7bc3796d1966fe7753160a4e59b3ed7e0e48ba0",
+      "link_changes": [
+        [
+          "../src/lectureflow/live.py",
+          "../../../../../src/lectureflow/live.py"
+        ],
+        [
+          "../src/lectureflow/worker.py",
+          "../../../../../src/lectureflow/worker.py"
+        ],
+        [
+          "../native/Sources/LectureFlow/LiveViews.swift",
+          "../../../../../native/Sources/LectureFlow/LiveViews.swift"
+        ],
+        [
+          "../src/lectureflow/live_store.py",
+          "../../../../../src/lectureflow/live_store.py"
+        ],
+        [
+          "../native/Sources/LectureFlow/MaterialsView.swift",
+          "../../../../../native/Sources/LectureFlow/MaterialsView.swift"
+        ],
+        [
+          "../src/lectureflow/documents.py",
+          "../../../../../src/lectureflow/documents.py"
+        ],
+        [
+          "../native/Sources/LectureFlow/SubtitleWindow.swift",
+          "../../../../../native/Sources/LectureFlow/SubtitleWindow.swift"
+        ],
+        [
+          "../native/Sources/LectureFlow/LectureFlowApp.swift",
+          "../../../../../native/Sources/LectureFlow/LectureFlowApp.swift"
+        ],
+        [
+          "../native/Sources/LectureFlow/LiveController.swift",
+          "../../../../../native/Sources/LectureFlow/LiveController.swift"
+        ],
+        [
+          "../src/lectureflow/files.py",
+          "../../../../../src/lectureflow/files.py"
+        ],
+        [
+          "../native/Sources/LectureFlow/RuntimePaths.swift",
+          "../../../../../native/Sources/LectureFlow/RuntimePaths.swift"
+        ]
+      ]
+    },
+    {
+      "source": "docs/PHASE0.md",
+      "archive": "docs/archive/2026-11-05/snapshot/docs/PHASE0.md",
+      "current": null,
+      "original_sha256": "719e295dfc4b935d4e2b0241d50bc01c1e79d27a388eef6b266a6222363c4917",
+      "archive_sha256": "6b3b2e4ad88e53e464bd57c391603cea73241271f91af5b9a857fde1dc1aa57e",
+      "link_changes": []
+    },
+    {
+      "source": "docs/PRD-v1.4.md",
+      "archive": "docs/archive/2026-11-05/snapshot/docs/PRD-v1.4.md",
+      "current": null,
+      "original_sha256": "c6d7555e30d30c55bc7d23ae8aaf9a2e94bb87b1bf5dc4b296cb64f6dea7cf85",
+      "archive_sha256": "83120701ffc5159aaf2dfa1f3386c6b1fa81720576cdfbf41541d859beb42cb9",
+      "link_changes": []
+    },
+    {
+      "source": "docs/PRODUCT_DESIGN-2026-10-31.md",
+      "archive": "docs/archive/2026-11-05/snapshot/docs/PRODUCT_DESIGN-2026-10-31.md",
+      "current": "docs/PRODUCT.md",
+      "original_sha256": "e828b24a938867dc61ce669ef2d0730910652b30431268ebc0bcc49074889070",
+      "archive_sha256": "11b019b63eff242ea12e105d0dd0d0db23630cb6a1f7f6bfd0c4d782b0499fb0",
+      "link_changes": []
+    },
+    {
+      "source": "docs/RELEASE-0.2.0.md",
+      "archive": "docs/archive/2026-11-05/snapshot/docs/RELEASE-0.2.0.md",
+      "current": "docs/RELEASE-0.2.0.md",
+      "original_sha256": "365b1e804a1b9b4b8443bb51e27f624383adf532a245654822a482c747a07df2",
+      "archive_sha256": "2ac8ece21401ce00791a1ea91dac9ef87668614f39d2b684b778c7f7a434483d",
+      "link_changes": []
+    },
+    {
+      "source": "docs/RELEASE-0.3.0.md",
+      "archive": "docs/archive/2026-11-05/snapshot/docs/RELEASE-0.3.0.md",
+      "current": "docs/RELEASE-0.3.0.md",
+      "original_sha256": "e2df7aa445aafcd15d1eaf4a110a359cf8b75177f479150163e26578ff4557f2",
+      "archive_sha256": "84b757c28d45bf78dcb679171c2e9b419da387abea7faf270723bb9f0bd83664",
+      "link_changes": []
+    },
+    {
+      "source": "docs/RELEASE-0.4.0.md",
+      "archive": "docs/archive/2026-11-05/snapshot/docs/RELEASE-0.4.0.md",
+      "current": "docs/RELEASE-0.4.0.md",
+      "original_sha256": "888a821e2a11706dcb917a1335c4a613b324ee2b5300c8c8f256c240feafd2a5",
+      "archive_sha256": "e13100c0747634aab357bfd26665e12c06ae492e8589ae6788b9caa106eb5bf0",
+      "link_changes": []
+    },
+    {
+      "source": "docs/RELEASE-0.4.1.md",
+      "archive": "docs/archive/2026-11-05/snapshot/docs/RELEASE-0.4.1.md",
+      "current": "docs/RELEASE-0.4.1.md",
+      "original_sha256": "32931f3fe4141400ea94aa2a2b0dcaa83488aa7eaa819d6472f949a0d1686128",
+      "archive_sha256": "ea55d52b0809e873a4dcb18fa865e9577de76a9699045b26742a6df75d469523",
+      "link_changes": []
+    },
+    {
+      "source": "docs/RELEASE-0.6.1.md",
+      "archive": "docs/archive/2026-11-05/snapshot/docs/RELEASE-0.6.1.md",
+      "current": "docs/RELEASE-0.6.1.md",
+      "original_sha256": "52621f69f5604ef2223b6bc88ce0a1400247021d3cf15ed90d020a9943184f56",
+      "archive_sha256": "9387d0e953976e3a3df3d155c56c19361a7259143dc48944f8fef77f2eb94893",
+      "link_changes": []
+    },
+    {
+      "source": "docs/RELEASE-0.6.2.md",
+      "archive": "docs/archive/2026-11-05/snapshot/docs/RELEASE-0.6.2.md",
+      "current": "docs/RELEASE-0.6.2.md",
+      "original_sha256": "743b284d6aa763a800ec97aec3fbeed469ca2448f6229b768a23950457db9825",
+      "archive_sha256": "3c474a9bf925bf6b768f8d467288952c79d22470ccee1fd2d85f0dc83b1c45ab",
+      "link_changes": []
+    },
+    {
+      "source": "docs/RELEASE-0.6.3.md",
+      "archive": "docs/archive/2026-11-05/snapshot/docs/RELEASE-0.6.3.md",
+      "current": "docs/RELEASE-0.6.3.md",
+      "original_sha256": "0aecf77256b645b078721a9644ee817116752f43501467b37b51aa5bc4af0454",
+      "archive_sha256": "a8fd952656a8d46a2b069a4a594ce46f632f21bdc00fa90335975743acc2e1bd",
+      "link_changes": []
+    },
+    {
+      "source": "docs/REVIEW.md",
+      "archive": "docs/archive/2026-11-05/snapshot/docs/REVIEW.md",
+      "current": null,
+      "original_sha256": "622d85ee9029f8f62a7862f21c386d6f6c1c49f18258a39cacce82ffbd2990f4",
+      "archive_sha256": "b6a4e4c0e032af659f3a9e55dcda35e3c8fc604b84dbbe170a47d66587bc418d",
+      "link_changes": []
+    },
+    {
+      "source": "docs/SD_TRACKING.md",
+      "archive": "docs/archive/2026-11-05/snapshot/docs/SD_TRACKING.md",
+      "current": "docs/STATUS.md",
+      "original_sha256": "0845dd60238299e492ebb23055cf31cf31c4a68926b8f4051bbb968d13cf5df6",
+      "archive_sha256": "65b8d09ca45ec91451e5b3ded11ca49258e20b440fa2599706f2ccd88eeb8363",
+      "link_changes": []
+    },
+    {
+      "source": "docs/SOURCE.md",
+      "archive": "docs/archive/2026-11-05/snapshot/docs/SOURCE.md",
+      "current": "docs/design/DECISIONS.md",
+      "original_sha256": "581d8078de1439d3d21e5f9602678ef625b869b3493c877e67ac09ba0c5b1c16",
+      "archive_sha256": "a8015889222ac45109bbfccb710b1097f11fdbbe52bb752960c1442f8005b832",
+      "link_changes": []
+    },
+    {
+      "source": "docs/SPEECH_RESEARCH-2026-11-05.md",
+      "archive": "docs/archive/2026-11-05/snapshot/docs/SPEECH_RESEARCH-2026-11-05.md",
+      "current": "docs/research/SPEECH_RESEARCH-2026-11-05.md",
+      "original_sha256": "c1fdc233ec367be95d2b98d1842e50a56df51b6e2c4e5637294d877f29ef60e6",
+      "archive_sha256": "aa8794eda5632a073f094a7a4afb5b606a530af1c4f0428bf93f6253bd549124",
+      "link_changes": []
+    },
+    {
+      "source": "docs/STATUS.md",
+      "archive": "docs/archive/2026-11-05/snapshot/docs/STATUS.md",
+      "current": "docs/STATUS.md",
+      "original_sha256": "e4bdcac7ec5de3644bfc485dc49fad630d383c9baccddb941423ffbe5a5e3e06",
+      "archive_sha256": "057ac6da172eead24a84511e993175185ecf56f4b886258cf16007e1ba682fa4",
+      "link_changes": []
+    },
+    {
+      "source": "docs/TERMINOLOGY_QUALITY_FIX.md",
+      "archive": "docs/archive/2026-11-05/snapshot/docs/TERMINOLOGY_QUALITY_FIX.md",
+      "current": "docs/design/MATERIALS.md",
+      "original_sha256": "1abaa4fdb84e0aa581d49c395755b82ab225b3af30b4d81ba275969c68ea238c",
+      "archive_sha256": "987252130957350653605b4479835322880098b6983819835ee7dbeae9306084",
+      "link_changes": []
+    },
+    {
+      "source": "docs/UI_REDESIGN_BRIEF.md",
+      "archive": "docs/archive/2026-11-05/snapshot/docs/UI_REDESIGN_BRIEF.md",
+      "current": null,
+      "original_sha256": "5b0e9022ae3e387f0a96bf1b18985408fd95dfcec2f79d6a88ca8f60c390e7db",
+      "archive_sha256": "3dfec1304ea1293737569b1dbb315b1f463ebd3d76e68765116deb4a3c6d8963",
+      "link_changes": []
+    },
+    {
+      "source": "docs/USER_GUIDE.md",
+      "archive": "docs/archive/2026-11-05/snapshot/docs/USER_GUIDE.md",
+      "current": "docs/USER_GUIDE.md",
+      "original_sha256": "66dde5b15f33ece2b2f37006db7f4ffd506da96b9699e8046abb11937cbd8a2e",
+      "archive_sha256": "981dab05d608cb015ada3188bbd91e55ea1f6a0886c81783787fdc4863b83310",
+      "link_changes": []
+    },
+    {
+      "source": "docs/assets/ui-redesign/README.md",
+      "archive": "docs/archive/2026-11-05/snapshot/docs/assets/ui-redesign/README.md",
+      "current": "docs/assets/ui-redesign/README.md",
+      "original_sha256": "3adc87ceb59b47da8e546179f00e372a61df47b32ed22db7043283a8c51e0fef",
+      "archive_sha256": "0a68c38c5a30b87b7f922cf5b6a3469189ebca5863a0b6dca8973a5489015866",
+      "link_changes": []
+    },
+    {
+      "source": "docs/licenses/README.md",
+      "archive": "docs/archive/2026-11-05/snapshot/docs/licenses/README.md",
+      "current": "docs/licenses/README.md",
+      "original_sha256": "9b41cab18c56aeb1cd33c7961e413c5cc072e78efbc9e58c3f23d80121ab8fc1",
+      "archive_sha256": "f278d5851e28c09fbd211496b8913c4e6bd4be02e0f60edae2b65011ede28840",
+      "link_changes": []
+    },
+    {
+      "source": "AGENTS.md",
+      "archive": "docs/archive/2026-11-05/snapshot/AGENTS.original.md",
+      "current": "AGENTS.md",
+      "original_sha256": "bea7bfa78871295b79737bbd7b9dd12a8552cc02944a3f5aae3ebb2b0a4e2f78",
+      "archive_sha256": "bc9d9bd2f584e91e740608d5eb42e0771ce4e3c6de0cda40fc25e5fdbee9ce49",
+      "link_changes": []
+    },
+    {
+      "source": "README.md",
+      "archive": "docs/archive/2026-11-05/snapshot/README.md",
+      "current": "README.md",
+      "original_sha256": "bccd3cf632751e43c1d11deb5acc5b6e0702c12c288bb3b2f19b6082f0e1702a",
+      "archive_sha256": "6f9c92f5b5322d2a33f68adabfcae11f568fc51ae245484f4c53c93da4489908",
+      "link_changes": [
+        [
+          "docs/assets/hero-notebook.png",
+          "../../../assets/hero-notebook.png"
+        ],
+        [
+          "docs/assets/features-notebook.svg",
+          "../../../assets/features-notebook.svg"
+        ],
+        [
+          "docs/assets/course-sharing.svg",
+          "../../../assets/course-sharing.svg"
+        ]
+      ]
+    }
+  ]
+}

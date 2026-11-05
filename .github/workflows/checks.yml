@@ -25,6 +25,7 @@ jobs:
       - run: uv sync --frozen --extra dev
       - run: uv run --frozen --extra dev ruff check src tests scripts/smoke-live.py
       - run: uv run --frozen --extra dev pytest -q
+      - run: uv run --frozen --extra dev python scripts/check-docs.py
 
   native:
     name: macOS app build
