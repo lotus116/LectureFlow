@@ -21,10 +21,15 @@ def run(arguments, **kwargs):
     subprocess.run([str(a) for a in arguments], check=True, cwd=PROJECT, **kwargs)
 
 
-def package(with_models: bool, archive: bool) -> Path:
+def package(with_models: bool, archive: bool, test_build: bool = False) -> Path:
     from lectureflow.models import CATALOG, resolve
 
+    commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=PROJECT,
+                                     text=True).strip()
+    label = f"accent-test-{commit[:10]}" if test_build else ""
     distribution = PROJECT / "dist"
+    if test_build:
+        distribution = distribution / label
     distribution.mkdir(exist_ok=True)
     with tempfile.TemporaryDirectory(prefix=".package-", dir=distribution) as temporary:
         app = Path(temporary) / "LectureFlow.app"
@@ -140,6 +145,15 @@ def package(with_models: bool, archive: bool) -> Path:
         info = plistlib.loads(info_path.read_bytes())
         info.pop("LectureFlowProjectRoot", None)
         info["CFBundleIconFile"] = "AppIcon"
+        if test_build:
+            info["CFBundleIdentifier"] = "local.lectureflow.accent-test"
+            info["CFBundleDisplayName"] = "LectureFlow 口音测试"
+            info["CFBundleVersion"] = "20261105.1"
+            info["LectureFlowTestBuild"] = label
+            (resources / "build-info.json").write_text(json.dumps({
+                "commit": commit, "version": VERSION, "build": label,
+                "official_release": False,
+            }, indent=2))
         info_path.write_bytes(plistlib.dumps(info))
         shutil.copy2(PROJECT / "docs/USER_GUIDE.md", resources / "使用说明.md")
         shutil.copytree(PROJECT / "docs/licenses", resources / "Licenses")
@@ -185,7 +199,8 @@ def package(with_models: bool, archive: bool) -> Path:
         if backup.exists():
             shutil.rmtree(backup)
     if archive:
-        output = distribution / f"LectureFlow-{VERSION}-macOS-arm64.zip"
+        suffix = f"-{label}" if test_build else ""
+        output = distribution / f"LectureFlow-{VERSION}{suffix}-macOS-arm64.zip"
         run(["ditto", "-c", "-k", "--keepParent", "--sequesterRsrc", destination, output])
         if output.stat().st_size >= 2_147_483_648:
             raise RuntimeError("Release exceeds GitHub's single-asset limit")
@@ -197,5 +212,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--with-models", action="store_true")
     parser.add_argument("--zip", action="store_true")
+    parser.add_argument("--test-build", action="store_true")
     args = parser.parse_args()
-    print(f"Built standalone app: {package(args.with_models, args.zip)}")
+    print(f"Built standalone app: {package(args.with_models, args.zip, args.test_build)}")

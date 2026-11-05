@@ -79,7 +79,8 @@ final class LivePipe {
                     bytes.removeSubrange(...end)
                     if let object = try? JSONSerialization.jsonObject(with: line) as? [String: Any] {
                         receipt.observe(type: object["type"] as? String ?? "",
-                                        pendingTranslations: object["translation_pending"] as? Int)
+                                        pendingTranslations: object["translation_pending"] as? Int,
+                                        pendingAccent: object["accent_pending"] as? Int)
                         observe(object)
                         if object["type"] as? String == "stopped" { persistHealth(recovering: false) }
                         event(object)
@@ -162,7 +163,7 @@ final class LivePipe {
         flushLocked()
         current = flags
         enqueueLocked(["type": "configure", "english": flags.english, "translate": flags.translate,
-                       "asr": model], audio: false)
+                       "asr": model, "accent": UserDefaults.standard.bool(forKey: "accentReviewEnabled")], audio: false)
     }
 
     func selectModel(_ value: String) {
@@ -170,7 +171,7 @@ final class LivePipe {
         guard !stopping, model != value else { return }
         flushLocked(); model = value
         enqueueLocked(["type": "configure", "english": current.english, "translate": current.translate,
-                       "asr": model], audio: false)
+                       "asr": model, "accent": UserDefaults.standard.bool(forKey: "accentReviewEnabled")], audio: false)
     }
 
     func audio(_ data: Data, start: Double, flags: CaptureFlags) {
@@ -194,7 +195,7 @@ final class LivePipe {
 
     private func enqueueAudioLocked(_ data: Data, start: Double) {
         enqueueLocked(["type": "audio", "pcm": data.base64EncodedString(), "start": start,
-                       "english": current.english, "translate": current.translate, "asr": model], audio: true)
+                       "english": current.english, "translate": current.translate, "asr": model, "accent": UserDefaults.standard.bool(forKey: "accentReviewEnabled")], audio: true)
     }
     private func flushLocked() {
         if !accumulated.isEmpty {

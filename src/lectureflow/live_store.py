@@ -115,7 +115,8 @@ def history(library, lecture_id: str) -> dict:
     captions = [dict(row) for row in rows]
     sessions = library.db.execute("SELECT id FROM live_sessions WHERE lecture_id=?", (lecture_id,))
     return {"captions": captions, "sessions": [
-        {"id": row[0], "config": configuration(library, row[0])} for row in sessions
+        {"id": row[0], "config": configuration(library, row[0]),
+         "accent_reviews": accent_audits(library, row[0])} for row in sessions
     ]}
 
 
@@ -142,3 +143,31 @@ def export(library, lecture_id: str) -> dict:
 
         Path(name).unlink(missing_ok=True)
     return {"directory": str(directory)}
+
+
+def save_accent_audit(library, session_id, event, *, english):
+    # Kept inside the managed library; never in numeric diagnostics or telemetry.
+    library.db.execute("""CREATE TABLE IF NOT EXISTS live_accent_audit (
+        session_id TEXT NOT NULL REFERENCES live_sessions(id) ON DELETE CASCADE,
+        caption_id TEXT NOT NULL, event TEXT NOT NULL,
+        PRIMARY KEY(session_id,caption_id))""")
+    clean = dict(event)
+    if not english:
+        clean.pop("original", None)
+        clean.pop("candidate", None)
+        clean.pop("context_candidate", None)
+        clean.pop("target_decoded", None)
+    with library.transaction():
+        library.db.execute("""INSERT INTO live_accent_audit VALUES(?,?,?)
+            ON CONFLICT(session_id,caption_id) DO UPDATE SET event=excluded.event""",
+            (session_id, event["id"], json.dumps(clean, ensure_ascii=False)))
+
+
+def accent_audits(library, session_id):
+    exists = library.db.execute(
+        "SELECT 1 FROM sqlite_master WHERE type='table' AND name='live_accent_audit'").fetchone()
+    if not exists:
+        return []
+    return [json.loads(row[0]) for row in library.db.execute(
+        "SELECT event FROM live_accent_audit WHERE session_id=? ORDER BY caption_id",
+        (session_id,))]

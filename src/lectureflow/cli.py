@@ -100,6 +100,10 @@ def parser() -> argparse.ArgumentParser:
     run.add_argument("lecture_id")
     run.add_argument("session_id")
     run.add_argument("--asr", choices=["asr-small", "asr-large"], default="asr-small")
+    retry = live_actions.add_parser("retry-accent", help="从已封存原音补做口音候选；不覆盖旧字幕")
+    retry.add_argument("lecture_id")
+    retry.add_argument("session_id")
+    retry.add_argument("--asr", choices=["asr-small", "asr-large"], default="asr-large")
     commands.add_parser("worker", help="处理队列；关闭界面不会取消任务")
     from .commands import add
 
@@ -273,6 +277,19 @@ def main() -> int:
                         result = live_store.create(
                             library, args.lecture_id, args.capture_id, language=args.language,
                         )
+                    elif args.live_action == "retry-accent":
+                        import fcntl
+
+                        from .accent import recover_saved_reviews
+                        from .adapters import QwenASR
+                        from .models import resolve
+
+                        with (args.library_root / ".model.lock").open("a+") as lock:
+                            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                            record = resolve(args.asr, args.model_root, "asr")
+                            engine = QwenASR(Path(record["path"]))
+                            result = recover_saved_reviews(
+                                library, args.lecture_id, args.session_id, engine.session)
                     elif args.live_action == "export":
                         result = live_store.export(library, args.lecture_id)
                     else:

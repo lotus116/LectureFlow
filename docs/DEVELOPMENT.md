@@ -69,3 +69,7 @@ VERSION、pyproject.toml 与 uv.lock 中项目版本保持一致。更新版本�
 ## 实测边界
 
 文件回放可用 scripts/smoke-live.py，但不会打开麦克风，不能替代权限、设备、休眠或硬件故障验收。模型 WER 需要人工／可靠参考；RTF 不等于首个有意义译文延迟，RSS 与 MLX 峰值不能简单相加。研究资料见 [research](research/SPEECH_RESEARCH-2026-11-05.md)，旧实验协议与所有未关闭门槛见 STATUS。
+
+## 口音本地测试包
+
+`zsh scripts/package-app --zip --test-build` 在独立的 `dist/accent-test-提交/` 目录生成包，不覆盖原应用或0.6.3包。使用独立bundle ID，包内build-info.json记录来源提交及非正式发行标识；仍不含模型和私人资料。不创建Release或tag。

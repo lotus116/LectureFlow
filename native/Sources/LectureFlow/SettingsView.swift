@@ -24,6 +24,7 @@ struct SettingsView: View {
     @AppStorage("autoFloatingSubtitles") private var autoFloatingSubtitles = true
     @AppStorage("saveEnglishTranscript") private var saveEnglishTranscript = true
     @AppStorage(SourceLanguagePreference.key) private var sourceLanguage = "English"
+    @AppStorage("accentReviewEnabled") private var accentReviewEnabled = false
     @AppStorage("saveChineseTranslation") private var saveChineseTranslation = true
 
     var body: some View {
@@ -56,6 +57,10 @@ struct SettingsView: View {
                 }
                 .disabled(workspace.live.isCapturing)
                 Text("英语课堂默认固定英语。自动模式可能将重口音误判为其他语言。用于新会话和新课后任务，已有会话沿用原配置。")
+                    .font(.caption).foregroundStyle(.secondary)
+                Toggle("口音增强（实验）", isOn: $accentReviewEnabled)
+                    .disabled(workspace.live.isCapturing)
+                Text("默认关闭，仅固定英语生效。暂停后切换，继续采集时生效；本地复核原音，证据不足保留原字幕。可能增加字幕延迟。仅字幕模式不保存音频。")
                     .font(.caption).foregroundStyle(.secondary)
                 Toggle("保存原文转写", isOn: $saveEnglishTranscript)
                 Toggle("保存中文翻译", isOn: $saveChineseTranslation)

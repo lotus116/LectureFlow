@@ -40,11 +40,12 @@ public struct CaptionCompletion: Sendable {
     private var stopped = false
     private var failed = false
     public init() {}
-    public mutating func observe(type: String, pendingTranslations: Int? = nil) {
+    public mutating func observe(type: String, pendingTranslations: Int? = nil, pendingAccent: Int? = nil) {
         if type == "error" { failed = true }
         if type == "stopped" {
             stopped = true
             if let pendingTranslations, pendingTranslations != 0 { failed = true }
+            if let pendingAccent, pendingAccent != 0 { failed = true }
         }
     }
     public func succeeded(exitStatus: Int32) -> Bool { stopped && !failed && exitStatus == 0 }

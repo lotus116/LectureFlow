@@ -29,6 +29,8 @@ def main():
     parser.add_argument("--language", choices=["auto", "English"], default="English")
     parser.add_argument("--model-root", type=Path)
     parser.add_argument("--translate-only", action="store_true")
+    parser.add_argument("--accent", action="store_true")
+    parser.add_argument("--backend-python", type=Path)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     if not 0 < args.seconds <= 120 or args.output.resolve() == args.audio.resolve():
@@ -52,7 +54,7 @@ def main():
         reference = [time.perf_counter()]
         errors = args.output.with_suffix(".stderr.log").open("w")
         process = subprocess.Popen([
-            sys.executable, "-m", "lectureflow.cli",
+            str(args.backend_python or sys.executable), "-m", "lectureflow.cli",
             "--model-root", str(args.model_root or project / "models"),
             "--library-root", str(library_root), "live", "run", lecture["id"], session["id"],
             "--asr", args.asr,
@@ -75,7 +77,8 @@ def main():
                 process.stdin.write(json.dumps(item) + "\n")
                 process.stdin.flush()
 
-            flags = {"english": not args.translate_only, "translate": True, "asr": args.asr}
+            flags = {"english": not args.translate_only, "translate": True, "asr": args.asr,
+                     "accent": args.accent}
             send({"type": "configure", **flags})
             reference[0] = time.perf_counter()
             count = 0
@@ -94,7 +97,17 @@ def main():
             if code:
                 raise RuntimeError("Live engine failed; see stderr report")
             with Library(library_root) as lib:
-                captions = live_store.history(lib, lecture["id"])["captions"]
+                history = live_store.history(lib, lecture["id"])
+                captions = history["captions"]
+                audits = history["sessions"][0]["accent_reviews"]
+                if args.accent:
+                    assert audits and all(a["state"] == "reviewed" for a in audits)
+                    if args.translate_only:
+                        assert all("original" not in a and "candidate" not in a for a in audits)
+                report["accent_reviews"] = audits
+                stopped = next(e for e in reversed(report["events"]) if e["type"] == "stopped")
+                assert stopped.get("accent_pending", 0) == 0
+                assert stopped.get("translation_pending", 0) == 0
                 if not captions:
                     raise RuntimeError("No captions were generated for this clip")
                 assert not list((lib.lecture_path(lecture["id"]) / "Audio").iterdir())

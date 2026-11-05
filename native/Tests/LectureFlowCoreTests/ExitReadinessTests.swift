@@ -3,6 +3,15 @@ import XCTest
 @testable import LectureFlowCore
 
 final class ExitReadinessTests: XCTestCase {
+    func testPendingAccentReviewCannotReportSuccessfulStop() {
+        var incomplete = CaptionCompletion()
+        incomplete.observe(type: "stopped", pendingTranslations: 0, pendingAccent: 1)
+        XCTAssertFalse(incomplete.succeeded(exitStatus: 0))
+        var complete = CaptionCompletion()
+        complete.observe(type: "stopped", pendingTranslations: 0, pendingAccent: 0)
+        XCTAssertTrue(complete.succeeded(exitStatus: 0))
+    }
+
     func testQuitAfterPauseSealsAudioButWaitsForDelayedDatabaseRegistration() async throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: root) }

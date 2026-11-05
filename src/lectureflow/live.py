@@ -13,6 +13,7 @@ from collections import OrderedDict, deque
 from dataclasses import dataclass
 from pathlib import Path
 
+from .accent import AccentReviewer, ReviewQueue, SourceStamp
 from .adapters import HyMTTranslator, QwenASR, contains_only_chinese_speech, source_language
 from .inference_policy import decide_enhancement, matching_glossary, select_asr_hints
 from .library import Library, identity
@@ -69,6 +70,8 @@ class TranslationJob:
     context: str
     following: str
     queued_at: float
+    source_text: str
+    source_version: int
 
 
 class CaptionEngine:
@@ -87,7 +90,16 @@ class CaptionEngine:
         documents=None,
         hint_terms=None,
         glossary_policy=GLOSSARY_POLICY,
+        accent=False,
+        audit=None,
     ):
+        self.accent = accent
+        self.audit = audit or (lambda event: None)
+        self.accent_queue = ReviewQueue(capacity=4)
+        self.accent_audio = {}
+        self.accent_generation = 0
+        self.accent_failed = 0
+        self.accent_last_at = 0.0
         self.deferred = deferred
         self.pending_translations: OrderedDict[str, TranslationJob] = OrderedDict()
         self.translation_context: dict[str, str] = {}
@@ -125,6 +137,9 @@ class CaptionEngine:
             self.pre_roll = None
 
     def emit(self, entry: dict, status: str) -> None:
+        if entry.get("_source_text") != entry["english"]:
+            entry["source_version"] = entry.get("source_version", 0) + 1
+            entry["_source_text"] = entry["english"]
         entry["status"] = status
         entry["revision"] += 1
         self.publish(entry.copy(), self.english, self.translate)
@@ -232,6 +247,12 @@ class CaptionEngine:
             self.queue_translation(previous)
         if pcm_parts and (self.hint_terms or self.documents):
             self.pending_enhance = (entry, np.concatenate(pcm_parts))
+        if self.accent and self.language == "English" and pcm_parts:
+            self.accent_audio[entry["id"]] = np.concatenate(pcm_parts)
+            job = self.accent_queue.enqueue(self.source_stamp(entry), 0, time.monotonic())
+            self.audit({"id": entry["id"], "start": entry["start"], "end": entry["end"],
+                        "original": text, "source_version": job.source.source_version,
+                        "state": "pending", "reason": "awaiting_context"})
         while len(self.recent) > 3:
             self.retire_oldest()
         if not self.deferred:
@@ -254,13 +275,23 @@ class CaptionEngine:
         self.pending_translations[key] = TranslationJob(
             entry, self.translation_context[key], self.following_context(entry),
             previous.queued_at if previous else time.monotonic(),
+            entry["english"], entry.get("source_version", 0),
         )
 
     def complete_translation(self, key: str) -> None:
         job = self.pending_translations[key]
         translated = self.translated(
-            job.entry["english"], context=job.context, following=job.following,
+            job.source_text, context=job.context, following=job.following,
         )
+        if self.pending_translations.get(key) is not job:
+            return
+        if job.entry.get("edited") or job.entry["status"] == "locked":
+            del self.pending_translations[key]  # Superseded by protected content, not completed.
+            return
+        if (job.entry["english"] != job.source_text
+                or job.entry.get("source_version", 0) != job.source_version):
+            self.queue_translation(job.entry)  # Retain age, translate the new source on next turn.
+            return
         # Only remove acknowledged work. Failed inference remains pending, and
         # the caption must never be locked while its revision is outstanding.
         job.entry["chinese"] = translated
@@ -272,6 +303,11 @@ class CaptionEngine:
 
     def translation_progress(self) -> dict:
         return {
+            "accent_pending": len(self.accent_queue.jobs),
+            "accent_completed": self.accent_queue.completed - self.accent_failed,
+            "accent_failed": self.accent_failed,
+            "accent_oldest_seconds": self.accent_queue.age(time.monotonic()),
+            "accent_audio_bytes": sum(p.nbytes for p in self.accent_audio.values()),
             "translation_pending": len(self.pending_translations),
             "translations_completed": self.translations_completed,
             "context_translations_completed": self.context_translations_completed,
@@ -279,11 +315,13 @@ class CaptionEngine:
 
     def retire_oldest(self) -> None:
         entry = self.recent[0]
-        if entry["id"] in self.pending_translations:
+        self.review_accent(entry)
+        while entry["id"] in self.pending_translations:
             self.complete_translation(entry["id"])
         self.emit(entry, "locked")
         self.recent.popleft()
         self.translation_context.pop(entry["id"], None)
+        self.accent_audio.pop(entry["id"], None)
 
     def service(self, backlog: int, *, closing=False) -> None:
         """Required first translations and context revisions share a fair FIFO.
@@ -299,6 +337,7 @@ class CaptionEngine:
                 self.complete_translation(key)
             return
         if closing or not self.translate or self.current is None:
+            self.service_accent(backlog, closing=closing)
             return
         text = self.current["english"]
         elapsed = now - self.last_translation_at
@@ -308,6 +347,79 @@ class CaptionEngine:
             self.last_temporary_text = text
             self.last_translation_at = time.monotonic()
             self.emit(self.current, "temporary")
+            return
+        self.service_accent(backlog)
+
+    def source_stamp(self, entry):
+        return SourceStamp(entry["id"], self.accent_generation,
+                           entry.get("source_version", 0), entry["english"])
+
+    def configure_accent(self, enabled):
+        if enabled == self.accent:
+            return
+        # Drain the old mode at a boundary; turning off never deletes obligations.
+        self.finish()
+        self.lock_all()
+        self.accent_generation += 1
+        self.accent = enabled
+
+    def service_accent(self, backlog, *, closing=False):
+        job = self.accent_queue.oldest()
+        if not job or self.pending_translations:
+            return
+        recent = list(self.recent)
+        entry = next((e for e in recent if e["id"] == job.source.key), None)
+        if entry is None:
+            raise RuntimeError("口音复核任务失去目标")
+        has_following = recent.index(entry) < len(recent)-1
+        now = time.monotonic()
+        if ((closing or has_following or self.accent_queue.age(now) >= 12)
+                and (closing or backlog <= 2 or self.accent_queue.age(now) >= 12)
+                and (closing or now-self.accent_last_at >= 1)):
+            self.review_accent(entry)
+
+    def review_accent(self, entry=None):
+        import numpy as np
+        job = self.accent_queue.jobs.get(entry["id"]) if entry else self.accent_queue.oldest()
+        if job is None:
+            return
+        recent = list(self.recent)
+        entry = next(e for e in recent if e["id"] == job.source.key)
+        index = recent.index(entry)
+        following = recent[index+1] if index+1 < len(recent) else None
+        follow_pcm = self.accent_audio.get(following["id"]) if following else None
+        if (following and abs(following["start"]-entry["end"]) > .1):
+            following, follow_pcm = None, None
+        result = AccentReviewer(self.session).review(
+            job.source.text, following["english"] if following else "",
+            self.accent_audio[entry["id"]],
+            follow_pcm if follow_pcm is not None else np.zeros(0, dtype=np.float32))
+        valid = (self.accent_queue.jobs.get(entry["id"]) is job
+                 and self.source_stamp(entry) == job.source and not entry.get("edited")
+                 and entry["status"] != "locked")
+        if not valid:
+            result.update(accepted=False, reason="stale_source")
+        self.audit({**result, "id": entry["id"], "start": entry["start"], "end": entry["end"],
+                    "source_version": job.source.source_version,
+                    "wait_seconds": time.monotonic() - job.queued_at,
+                    "state": "failed" if result["reason"] == "review_failed" else "reviewed"})
+        if result["reason"] == "review_failed":
+            self.accent_failed += 1
+        if result["accepted"]:
+            entry["chinese"] = ""
+            entry["english"] = result["candidate"]
+            self.emit(entry, "revised")
+            self.queue_translation(entry)
+            for previous in recent[max(0, index-2):index]:
+                self.queue_translation(previous)
+            # Later translations also depend on the corrected preceding source.
+            for later in recent[index+1:index+3]:
+                n = recent.index(later)
+                self.translation_context[later["id"]] = "\n".join(
+                    e["english"] for e in recent[max(0, n-2):n])[-1200:]
+                self.queue_translation(later)
+        self.accent_queue.acknowledge(job)
+        self.accent_last_at = time.monotonic()
 
     def polish(self) -> None:
         """Optional courseware recognition never consumes required revision work."""
@@ -335,6 +447,8 @@ class CaptionEngine:
         decision = decide_enhancement(entry["english"], enhanced, selection.terms)
         if not decision.accepted or decision.text == entry["english"]:
             return
+        if self.accent:
+            entry["chinese"] = ""
         entry["english"] = decision.text
         self.emit(entry, "revised")
         self.queue_translation(entry)
@@ -344,6 +458,8 @@ class CaptionEngine:
             self.queue_translation(previous)
 
     def lock_all(self) -> None:
+        while self.accent_queue.jobs:
+            self.review_accent()
         while self.pending_translations:
             self.service(0, closing=True)
         self.pending_enhance = None
@@ -410,9 +526,19 @@ def run_live(root: Path, model_root: Path, lecture_id: str, session_id: str, asr
             from .documents import context
 
             materials = context(library, lecture_id)
+            def audit(event):
+                from .live_store import save_accent_audit
+                save_accent_audit(library, session_id,
+                                  {**event, "model": asr, "policy": "accent_audio_contrast_v1"},
+                                  english=captions.english)
+                if event.get("state") == "failed":
+                    output({"type": "warning",
+                            "message": "口音复核未完成，原字幕保留；已保存录音可课后转写。"})
+
             captions = CaptionEngine(
                 engine.session, None, publish, english=False, translate=False, deferred=True,
-                language=source_language(configuration(library, session_id)), **materials
+                language=source_language(configuration(library, session_id)),
+                audit=audit, **materials
             )
             output({"type": "ready", "model": asr})
             dropped = 0
@@ -441,6 +567,10 @@ def run_live(root: Path, model_root: Path, lecture_id: str, session_id: str, asr
                             Path(resolve("translate", model_root, "translation")["path"])
                         )
                         captions.translator = translator
+                    accent = item.get("accent", False)
+                    if not isinstance(accent, bool):
+                        raise ValueError("口音增强开关格式错误")
+                    captions.configure_accent(accent)
                     captions.configure(english, translate)
                     next_model = item.get("asr", requested_model)
                     if next_model != requested_model and next_model != asr:
@@ -451,6 +581,7 @@ def run_live(root: Path, model_root: Path, lecture_id: str, session_id: str, asr
                     if requested_model != asr and captions.state is None:
                         import gc
 
+                        captions.lock_all()
                         captions.polish()
                         output({"type": "loading", "message": "正在切换识别模型，录音继续保存"})
                         record = resolve(requested_model, model_root, "asr")
