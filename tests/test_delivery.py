@@ -1,4 +1,3 @@
-import fcntl
 import json
 import struct
 import wave
@@ -7,6 +6,7 @@ import zipfile
 import pytest
 
 from lectureflow import documents, files, purging, summaries
+from lectureflow import locking as fcntl
 from lectureflow.exporting import export_version
 from lectureflow.library import Library
 from lectureflow.runtime import sha256

@@ -14,3 +14,7 @@ models/
 local/
 reports/private/
 .env
+
+.test-tmp/
+test-results.txt
+.test-tmp-final/

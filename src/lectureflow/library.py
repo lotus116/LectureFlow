@@ -27,7 +27,7 @@ def identity() -> str:
 
 
 def folder_name(title: str, key: str) -> str:
-    clean = re.sub(r'[\x00-\x1f/:\\]', "_", title.strip()).strip(". ")[:80]
+    clean = re.sub(r'[\x00-\x1f/:\\<>"|?*]', "_", title.strip()).strip(". ")[:80]
     if not clean:
         raise ValueError("名称不能为空")
     return f"{clean} — {key[:8]}"

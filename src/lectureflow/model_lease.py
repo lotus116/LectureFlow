@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-import fcntl
 from pathlib import Path
+
+from . import locking as fcntl
 
 
 def live_requested(root: Path) -> bool:

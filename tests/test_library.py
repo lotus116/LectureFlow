@@ -1,10 +1,10 @@
-import fcntl
 import json
 import wave
 from pathlib import Path
 
 import pytest
 
+from lectureflow import locking as fcntl
 from lectureflow.exporting import export_version
 from lectureflow.library import Library
 from lectureflow.runtime import sha256

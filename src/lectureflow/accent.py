@@ -213,7 +213,6 @@ def recover_saved_reviews(library, lecture_id, session_id, session):
     therefore remain audit-only; a stale generation cannot modify the displayed text.
     No raw audio is newly persisted by this path (decoded PCM is read through a pipe).
     """
-    import fcntl
     import json
     import subprocess
     import uuid
@@ -221,6 +220,7 @@ def recover_saved_reviews(library, lecture_id, session_id, session):
     import imageio_ffmpeg
     import numpy as np
 
+    from . import locking as fcntl
     from .live_store import accent_audits, save_accent_audit, validate_session
     from .recordings import chunks_for, verify_source
 

@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-import fcntl
 import json
 import signal
 import time
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+from . import locking as fcntl
 from .adapters import HyMTTranslator, QwenASR, source_language
 from .exporting import export_version
 from .inference_policy import (

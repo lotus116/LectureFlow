@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 import contextlib
-import fcntl
 import functools
 import json
 import os
 import shutil
 from pathlib import Path
 
+from . import locking as fcntl
 from .library import folder_name, identity, now
 from .runtime import sha256, write_json
 
