@@ -22,6 +22,7 @@ struct LiveTranscriptView: View {
     @State private var search = ""
     @State private var language = "both"
     @State private var follow = true
+    @State private var hoveredCaptionID: String?
     private var visible: [LiveCaption] {
         live.displayCaptions.filter { search.isEmpty || $0.english.localizedCaseInsensitiveContains(search) || $0.chinese.contains(search) }
     }
@@ -65,7 +66,8 @@ struct LiveTranscriptView: View {
                                             .font(.system(size: max(11, LFChrome.captionSize * (textSize / 15)), weight: .medium).monospacedDigit())
                                             .foregroundStyle(LFChrome.accentInk.opacity(0.85))
                                         Spacer()
-                                        ReviewCaptionButton(workspace: workspace, caption: caption)
+                                        ReviewCaptionButton(workspace: workspace, caption: caption,
+                                                            revealed: hoveredCaptionID == caption.id)
                                     }
                                     // Main window: English above, Chinese below.
                                     if language != "zh", !caption.english.isEmpty {
@@ -81,6 +83,11 @@ struct LiveTranscriptView: View {
                                     }
                                 }
                                 .frame(maxWidth: .infinity, alignment: .leading)
+                                .contentShape(Rectangle())
+                                .background(ReviewHoverRegion { inside in
+                                    if inside { hoveredCaptionID = caption.id }
+                                    else if hoveredCaptionID == caption.id { hoveredCaptionID = nil }
+                                })
                                 .textSelection(.enabled)
                                 .id(caption.id)
                                 .padding(.bottom, LFChrome.space4)

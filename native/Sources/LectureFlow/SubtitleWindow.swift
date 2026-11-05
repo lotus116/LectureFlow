@@ -78,6 +78,7 @@ private struct FloatingSubtitlesRoot: View {
     @AppStorage("autoFloatingSubtitles") private var automatic = true
     @State private var settings = false
     @State private var follow = true
+    @State private var hoveredCaptionID: String?
 
     private let trafficLightInset: CGFloat = 78
     private let titlebarRow: CGFloat = 28
@@ -221,34 +222,21 @@ private struct FloatingSubtitlesRoot: View {
                     }
                     .padding(.bottom, 2)
                 }
-                ScrollView {
-                    LazyVStack(alignment: .leading, spacing: unitSpacing) {
-                        if captions.isEmpty {
-                            Text(live.flags.needsASR ? "等待讲话…" : "字幕将显示在这里")
-                                .font(.system(size: fontSize, weight: .medium))
-                                .foregroundStyle(.white.opacity(0.75))
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .id("latest")
-                        } else {
-                            ForEach(captions) { caption in
-                                captionBlock(caption).id(caption.id)
-                            }
-                            Color.clear.frame(height: 1).id("latest")
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                FloatingCaptionContent(captions: captions, waiting: live.flags.needsASR,
+                                       fontSize: fontSize, spacing: unitSpacing) { caption in
+                    captionBlock(caption)
                 }
                 .scrollIndicators(.hidden)
                 .simultaneousGesture(DragGesture().onChanged { _ in follow = false })
-                .onChange(of: live.displayCaptions.last?.revision) { _, _ in
-                    guard follow else { return }
+                .onChange(of: captions.map { "\($0.session_id ?? ""):\($0.id):\($0.revision)" }) { _, _ in
+                    guard follow, !captions.isEmpty else { return }
                     withAnimation(.easeOut(duration: 0.12)) {
-                        proxy.scrollTo("latest", anchor: .bottom)
+                        proxy.scrollTo(FloatingCaptionAnchor.tail, anchor: .bottom)
                     }
                 }
                 .onChange(of: visibleCount) { _, _ in
                     guard follow else { return }
-                    proxy.scrollTo("latest", anchor: .bottom)
+                    proxy.scrollTo(FloatingCaptionAnchor.tail, anchor: .bottom)
                 }
             }
             .foregroundStyle(.white)
@@ -281,8 +269,14 @@ private struct FloatingSubtitlesRoot: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .textSelection(.enabled)
         .opacity(caption.id == live.displayCaptions.last?.id ? 1 : 0.72)
-        ReviewCaptionButton(workspace: workspace, caption: caption, compact: true)
+        ReviewCaptionButton(workspace: workspace, caption: caption, compact: true,
+                            revealed: hoveredCaptionID == caption.id)
         }
+        .contentShape(Rectangle())
+        .background(ReviewHoverRegion { inside in
+            if inside { hoveredCaptionID = caption.id }
+            else if hoveredCaptionID == caption.id { hoveredCaptionID = nil }
+        })
         .animation(.easeOut(duration: 0.12), value: caption.revision)
     }
 

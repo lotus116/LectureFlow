@@ -219,20 +219,24 @@ struct ReviewCaptionButton: View {
     @ObservedObject var workspace: Workspace
     let caption: LiveCaption
     var compact = false
+    var revealed = false
     @State private var hovered = false
+    @FocusState private var keyboardFocused: Bool
     private var marked: Bool { workspace.isReviewMarked(caption) }
     var body: some View {
         Button { workspace.markCaptionForReview(caption, lecture: workspace.selectedLecture ?? "") } label: {
             Image(systemName: marked ? "bookmark.fill" : "bookmark")
                 .font(.system(size: compact ? 13 : 15, weight: .medium))
-                .foregroundStyle(marked ? Color.blue : Color.primary.opacity(hovered ? 0.85 : 0.5))
+                .foregroundStyle(marked ? Color.blue : Color.primary.opacity(0.85))
+                .opacity(marked || revealed || hovered || keyboardFocused ? 1 : 0)
                 .frame(width: 28, height: 28)
                 .background(hovered ? Color.primary.opacity(0.07) : .clear,
                             in: RoundedRectangle(cornerRadius: 6))
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .onHover { hovered = $0 }
+        .focused($keyboardFocused)
+        .background(ReviewHoverRegion { hovered = $0 })
         .disabled(caption.session_id == nil || workspace.reviews.saving || workspace.isExiting)
         .help(marked ? "取消这段的复习标记" : "标记这段内容，课后复习")
         .accessibilityLabel("\(reviewClock(caption.start)) 的复习书签")
