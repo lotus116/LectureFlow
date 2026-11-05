@@ -4,6 +4,8 @@
 
 ## 当前交付
 
+- **新增本地口音测试构建（非正式发布）**：来源 `64687b0`，[CI通过](https://github.com/lotus116/LectureFlow/actions/runs/41981553523)。独立开关默认关闭，155 Python／36原生及4类退出探针通过；真实3分钟、8秒停顿恢复和包内60秒／仅中文12秒回放完成。公开参考645词开关前后均107错词，尚无准确率增益证据；原音不变。安装包、详细性能及限制见[本轮交付记录](research/ACCENT_IMPLEMENTATION-2026-11-05.md)。
+
 - **已发布：[v0.6.3](https://github.com/lotus116/LectureFlow/releases/tag/v0.6.3)**，标签提交 `334252a`；[源码 CI](https://github.com/lotus116/LectureFlow/actions/runs/41958074919)与[发布工作流](https://github.com/lotus116/LectureFlow/actions/runs/41958095344)成功。后续发布证据文档提交 `a4a0857` 的 [CI](https://github.com/lotus116/LectureFlow/actions/runs/41958919699)成功。
 - 范围：固定英语默认、必做中文上下文回改及积压后补做、正常退出等待录音保存与字幕收尾，保留模型偏好与字幕恢复／阅读改进。
 - 发布检查：129 Python、35 原生测试、ruff，另四种真实 AppKit 隔离退出场景；独立构建、签名、包内后端启动、24 个后端文件源码一致性通过。实际下载公开 ZIP，153,624,408 字节，SHA-256 `b43088a5c3efb4b3abe39f2c6e333a8ffbcf011cb5c33916f7d0bf6a2e317c49` 与附件一致。

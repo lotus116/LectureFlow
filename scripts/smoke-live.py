@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import base64
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -53,12 +54,17 @@ def main():
         ready = threading.Event()
         reference = [time.perf_counter()]
         errors = args.output.with_suffix(".stderr.log").open("w")
+        backend_env = dict(os.environ)
+        if args.backend_python:
+            backend_env.pop("PYTHONPATH", None)
+            backend_env.pop("PYTHONHOME", None)
+            backend_env["PYTHONNOUSERSITE"] = "1"
         process = subprocess.Popen([
             str(args.backend_python or sys.executable), "-m", "lectureflow.cli",
             "--model-root", str(args.model_root or project / "models"),
             "--library-root", str(library_root), "live", "run", lecture["id"], session["id"],
             "--asr", args.asr,
-        ], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=errors, text=True)
+        ], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=errors, text=True, env=backend_env)
 
         def receive():
             for line in process.stdout:
