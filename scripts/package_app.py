@@ -147,6 +147,7 @@ def package(with_models: bool, archive: bool, test_build: bool = False) -> Path:
         info["CFBundleIconFile"] = "AppIcon"
         if test_build:
             info["CFBundleIdentifier"] = "local.lectureflow.accent-test"
+            info["CFBundleName"] = "LectureFlow Accent Test"
             info["CFBundleDisplayName"] = "LectureFlow 口音测试"
             info["CFBundleVersion"] = "20261105.1"
             info["LectureFlowTestBuild"] = label
@@ -189,7 +190,8 @@ def package(with_models: bool, archive: bool, test_build: bool = False) -> Path:
                 m["installed"] for m in status["models"] if m["id"] != "asr-large"
             ):
                 raise RuntimeError("Bundled default models cannot be resolved")
-        destination = distribution / "LectureFlow.app"
+        destination = distribution / ("LectureFlow Accent Test.app" if test_build
+                                      else "LectureFlow.app")
         backup = distribution / ".previous-LectureFlow.app"
         if backup.exists():
             shutil.rmtree(backup)
