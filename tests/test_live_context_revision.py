@@ -77,6 +77,39 @@ def test_short_backlog_catches_up_during_continuous_speech_without_idle_polish(m
     assert len(translator.calls) == 2  # No duplicate revision without new evidence.
 
 
+def test_leaked_revision_keeps_previous_translation_pending_and_can_retry(monkeypatch):
+    from lectureflow.adapters import HyMTTranslator
+
+    engine, _, events, _ = make_engine(monkeypatch)
+    translator = HyMTTranslator.__new__(HyMTTranslator)
+    translator._generate = lambda _: {'text': '已有译文', 'truncated': False}
+    engine.translator = translator
+    finish_utterance(engine, 0)
+    engine.service(0)
+    entry = engine.recent[0]
+    finish_utterance(engine, 1)
+    key = entry['id']
+    job = engine.pending_translations[key]
+    completed = engine.translations_completed
+    previous_events = len(events)
+    translator._generate = lambda _: {
+        'text': '后续讲话（仅作消歧参考，不要翻译或补写）：邻段', 'truncated': False,
+    }
+    with pytest.raises(ValueError, match='上下文提示'):
+        engine.complete_translation(key)
+    assert entry['chinese'] == '已有译文'
+    assert entry['status'] != 'locked'
+    assert engine.pending_translations[key] is job
+    assert engine.translations_completed == completed
+    assert len(events) == previous_events
+    translator._generate = lambda _: {'text': '当前目标的新译文', 'truncated': False}
+    engine.complete_translation(key)
+    assert key not in engine.pending_translations
+    assert entry['chinese'] == '当前目标的新译文'
+    assert engine.translations_completed == completed + 1
+    assert engine.context_translations_completed == 1
+
+
 @pytest.mark.parametrize('deferred', [True, False])
 def test_both_previous_utterances_receive_new_context_before_lock(monkeypatch, deferred):
     engine, translator, events, _ = make_engine(monkeypatch, deferred=deferred)

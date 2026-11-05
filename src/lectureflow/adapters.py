@@ -6,6 +6,8 @@ import re
 import time
 from pathlib import Path
 
+from .translation_policy import translation_prompt, validate_translation
+
 
 class QwenASR:
     def __init__(self, path: Path):
@@ -39,18 +41,9 @@ class HyMTTranslator:
             return {"text": "", "first_token_s": None, "total_s": 0, "truncated": False}
         if contains_only_chinese_speech(text):
             return {"text": text, "first_token_s": 0, "total_s": 0, "truncated": False}
-        prompt = (
-            (f"后续讲话（仅作消歧参考，不要翻译或补写）：\n{following[-1000:]}\n"
-             if following else "")
-            +
-            (f"上下文（仅作消歧，勿翻译或补写）：\n{context[-2400:]}\n" if context else "")
-            +
-            (f"参考术语（仅在原文涉及这些词时使用）：\n{glossary}\n" if glossary else "")
-            + "将以下文本中的英文翻译为简体中文，中文原话保留，包括否定、自我纠正和重复。"
-            "只输出结果，不要解释或补写：\n"
-            + text
-        )
-        return self._generate(prompt)
+        result = self._generate(translation_prompt(text, context, following, glossary))
+        validate_translation(text, result["text"])
+        return result
 
     def translate_term(self, text: str, context: str = "") -> dict:
         # Separate from sentence translation: a source excerpt is not the target.
