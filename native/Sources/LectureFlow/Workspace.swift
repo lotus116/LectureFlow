@@ -155,15 +155,30 @@ final class Workspace: ObservableObject {
 
     var floatingSubtitlesVisible: Bool { subtitles.isVisible }
 
+    var currentReviewCaption: LiveCaption? {
+        if live.isCapturing && !live.flags.needsASR { return nil }
+        guard let caption = live.displayCaptions.last, caption.session_id != nil else { return nil }
+        // A new recording can precede its first caption; never mark a previous session then.
+        if let anchor = live.currentReviewAnchor, caption.session_id != anchor.captureID { return nil }
+        return caption
+    }
+
+    func isReviewMarked(_ caption: LiveCaption) -> Bool {
+        !reviews.matching(caption, in: live.displayCaptions).isEmpty
+    }
+
     func markCurrentForReview() {
+        if let caption = currentReviewCaption, let lecture = selectedLecture {
+            markCaptionForReview(caption, lecture: lecture); return
+        }
         guard !isExiting, let lecture = live.lectureID,
               let anchor = live.currentReviewAnchor else { return }
         reviews.add(lecture: lecture, capture: anchor.captureID, time: anchor.time)
     }
 
     func markCaptionForReview(_ caption: LiveCaption, lecture: String) {
-        guard !isExiting, let capture = caption.session_id else { return }
-        reviews.add(lecture: lecture, capture: capture, time: caption.start, caption: caption.id)
+        guard !isExiting, selectedLecture == lecture else { return }
+        reviews.toggle(caption, in: live.displayCaptions, lecture: lecture)
     }
 
     func openReviewMarks() {

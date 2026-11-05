@@ -92,8 +92,10 @@ def test_restart_status_and_soft_removal_preserve_source(classroom):
         assert marks.listing(reopened, lecture)["marks"] == []
         assert marks.get(reopened, lecture, mark["id"])["removed"] == 1
         assert marks.listing(reopened, lecture, removed=True)["marks"][0]["id"] == mark["id"]
+        assert marks.listing(reopened, lecture, removed=True)["active_marks"] == []
         marks.update(reopened, lecture, mark["id"], restore=True)
         assert marks.listing(reopened, lecture)["marks"][0]["reviewed"] == 1
+        assert marks.listing(reopened, lecture, removed=True)["active_marks"][0]["id"] == mark["id"]
         assert len(live_store.history(reopened, lecture)["captions"]) == 1
 
 

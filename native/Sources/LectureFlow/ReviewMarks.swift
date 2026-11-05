@@ -1,4 +1,5 @@
 import Foundation
+import LectureFlowCore
 import SwiftUI
 
 struct ReviewMark: Decodable, Identifiable, Sendable {
@@ -10,8 +11,27 @@ struct ReviewMark: Decodable, Identifiable, Sendable {
     let reviewed: Int
     let removed: Int?
     let created_at: String
+
+    /// Match by stable source identity/time, including fragments merged for display.
+    func caption(in captions: [LiveCaption]) -> LiveCaption? {
+        let sameSession = captions.filter { $0.session_id == capture_id }
+        if let exact = sameSession.first(where: { $0.id == caption_id }) { return exact }
+        if let containing = sameSession.first(where: { $0.start <= capture_time && capture_time < $0.end }) {
+            return containing
+        }
+        func distance(_ caption: LiveCaption) -> Double {
+            min(abs(caption.start - capture_time), abs(caption.end - capture_time))
+        }
+        return sameSession.min(by: { distance($0) < distance($1) }).flatMap {
+            distance($0) <= 3 ? $0 : nil
+        }
+    }
 }
-struct ReviewMarkList: Decodable { let marks: [ReviewMark]; let active_count: Int? }
+struct ReviewMarkList: Decodable {
+    let marks: [ReviewMark]
+    let active_count: Int?
+    let active_marks: [ReviewMark]?
+}
 struct ReviewText: Decodable, Identifiable {
     let id: String
     let start: Double
@@ -38,6 +58,7 @@ struct ReviewDetail: Decodable {
 final class ReviewMarks: ObservableObject {
     @Published private(set) var marks: [ReviewMark] = []
     @Published private(set) var activeCount = 0
+    @Published private(set) var activeMarks: [ReviewMark] = []
     @Published private(set) var detail: ReviewDetail?
     @Published private(set) var saving = false
     @Published var error: String?
@@ -58,7 +79,8 @@ final class ReviewMarks: ObservableObject {
     init(call: @escaping ([String]) async throws -> Data) { self.call = call }
 
     func selectLecture(_ id: String?) {
-        lectureID = id; marks = []; activeCount = 0; detail = nil; selectedID = nil; showingRemoved = false
+        lectureID = id; marks = []; activeMarks = []; activeCount = 0
+        detail = nil; selectedID = nil; showingRemoved = false
         loadToken = UUID(); detailToken = UUID(); feedback = nil
         Task { await refresh() }
     }
@@ -72,6 +94,7 @@ final class ReviewMarks: ObservableObject {
                 from: await call(["review", "list", id] + (removed ? ["--removed"] : [])))
             guard lectureID == id, loadToken == token, showingRemoved == removed else { return }
             marks = result.marks
+            activeMarks = result.active_marks ?? (removed ? activeMarks : result.marks)
             activeCount = result.active_count ?? (removed ? activeCount : result.marks.count)
             if let key = selectedID, !marks.contains(where: { $0.id == key }) { selectedID = nil }
             if selectedID == nil { selectedID = marks.first(where: { $0.reviewed == 0 })?.id ?? marks.first?.id }
@@ -96,6 +119,23 @@ final class ReviewMarks: ObservableObject {
         var arguments = ["review", "add", lecture, capture, String(time), "--id", id]
         if let caption { arguments += ["--caption-id", caption] }
         write(arguments, success: "已标记 \(reviewClock(time))")
+    }
+    func matching(_ caption: LiveCaption, in captions: [LiveCaption]) -> [ReviewMark] {
+        activeMarks.filter {
+            let target = $0.caption(in: captions)
+            return target?.id == caption.id && target?.session_id == caption.session_id
+        }
+    }
+    func toggle(_ caption: LiveCaption, in captions: [LiveCaption], lecture: String) {
+        guard !saving, let capture = caption.session_id else { return }
+        let existing = matching(caption, in: captions)
+        if existing.isEmpty {
+            add(lecture: lecture, capture: capture, time: caption.start, caption: caption.id)
+        } else {
+            for mark in existing {
+                write(["review", "remove", lecture, mark.id, "--confirmed"], success: "已取消标记，可在“已移除”中恢复")
+            }
+        }
     }
     func setReviewed(_ mark: ReviewMark, value: Bool) {
         write(["review", "done", mark.lecture_id, mark.id, "--value", value ? "1" : "0"], success: "已更新复习状态")
@@ -151,25 +191,53 @@ struct ReviewCurrentButton: View {
     @ObservedObject var workspace: Workspace
     @ObservedObject var live: LiveController
     var compact = false
-    @State private var acknowledged = false
+    private var marked: Bool {
+        workspace.currentReviewCaption.map { workspace.isReviewMarked($0) } ?? false
+    }
     var body: some View {
         Button { workspace.markCurrentForReview() } label: {
             if compact {
-                Text(acknowledged ? "✓" : "🎯").frame(minWidth: 26, minHeight: 24)
+                Image(systemName: marked ? "bookmark.fill" : "bookmark")
+                    .foregroundStyle(marked ? Color.blue : Color.primary.opacity(0.7))
+                    .frame(width: 26, height: 24)
             }
-            else { Text("🎯 标记此处") }
+            else {
+                Label("标记当前", systemImage: marked ? "bookmark.fill" : "bookmark")
+                    .foregroundStyle(marked ? Color.blue : Color.primary)
+            }
         }
-        .disabled(!live.isCapturing || workspace.reviews.saving || workspace.isExiting)
-        .help("记录当前听到的位置，课后回听复习")
-        .accessibilityLabel("标记当前复习位置")
+        .disabled((workspace.currentReviewCaption == nil && !live.isCapturing)
+                  || workspace.reviews.saving || workspace.isExiting)
+        .help(marked ? "取消最新一段字幕的复习标记" : "标记最新一段字幕；还没有字幕时记录当前时间点")
+        .accessibilityLabel("标记当前")
+        .accessibilityValue(marked ? "已标记" : "未标记")
         .accessibilityIdentifier("review-mark-current")
-        .task(id: workspace.reviews.feedback) {
-            acknowledged = workspace.reviews.feedback?.hasPrefix("已标记") == true
-            if acknowledged {
-                try? await Task.sleep(for: .seconds(2))
-                if !Task.isCancelled { acknowledged = false }
-            }
+    }
+}
+
+struct ReviewCaptionButton: View {
+    @ObservedObject var workspace: Workspace
+    let caption: LiveCaption
+    var compact = false
+    @State private var hovered = false
+    private var marked: Bool { workspace.isReviewMarked(caption) }
+    var body: some View {
+        Button { workspace.markCaptionForReview(caption, lecture: workspace.selectedLecture ?? "") } label: {
+            Image(systemName: marked ? "bookmark.fill" : "bookmark")
+                .font(.system(size: compact ? 13 : 15, weight: .medium))
+                .foregroundStyle(marked ? Color.blue : Color.primary.opacity(hovered ? 0.85 : 0.5))
+                .frame(width: 28, height: 28)
+                .background(hovered ? Color.primary.opacity(0.07) : .clear,
+                            in: RoundedRectangle(cornerRadius: 6))
+                .contentShape(Rectangle())
         }
+        .buttonStyle(.plain)
+        .onHover { hovered = $0 }
+        .disabled(caption.session_id == nil || workspace.reviews.saving || workspace.isExiting)
+        .help(marked ? "取消这段的复习标记" : "标记这段内容，课后复习")
+        .accessibilityLabel("\(reviewClock(caption.start)) 的复习书签")
+        .accessibilityValue(marked ? "已标记" : "未标记")
+        .accessibilityIdentifier("review-caption-\(caption.id)")
     }
 }
 
@@ -182,7 +250,7 @@ struct ReviewMarksView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
-                Text("🎯 复习标记").font(.title2.bold())
+                Label("复习标记", systemImage: "bookmark.fill").font(.title2.bold())
                 Spacer()
                 Toggle("已移除", isOn: $store.showingRemoved).toggleStyle(.checkbox)
                 Button("刷新") { Task { await store.refresh(); store.loadDetail() } }
@@ -198,7 +266,7 @@ struct ReviewMarksView: View {
             if store.marks.isEmpty {
                 ContentUnavailableView(store.showingRemoved ? "没有已移除的标记" : "还没有复习标记",
                     systemImage: "scope", description: Text(store.showingRemoved
-                        ? "移除的标记会保留在这里，可以恢复。" : "听不懂时点 🎯；下课后在这里找到对应文字和录音。"))
+                        ? "移除的标记会保留在这里，可以恢复。" : "听不懂时点“标记当前”或段落右侧的书签；下课后在这里复习。"))
             } else {
                 HSplitView {
                     List(store.marks, selection: $store.selectedID) { mark in

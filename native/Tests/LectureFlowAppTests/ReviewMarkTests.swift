@@ -1,8 +1,68 @@
 import Foundation
+import LectureFlowCore
 import XCTest
 @testable import LectureFlow
 
 final class ReviewMarkTests: XCTestCase {
+    private func caption(_ id: String, start: Double, end: Double,
+                         session: String = "capture", revision: Int = 1) -> LiveCaption {
+        LiveCaption(id: id, start: start, end: end, english: "Synthetic sentence.",
+                    chinese: "合成字幕。", status: "stable", revision: revision, sessionID: session)
+    }
+
+    func testBookmarkFollowsSourceAcrossParagraphMergeAndRevision() {
+        let mark = ReviewMark(id: "mark", lecture_id: "lecture", capture_id: "capture",
+                              capture_time: 6, caption_id: "fragment-b", reviewed: 0,
+                              removed: 0, created_at: "2026-11-05T00:00:00Z")
+        let original = [caption("fragment-a", start: 0, end: 5),
+                        caption("fragment-b", start: 5, end: 10)]
+        XCTAssertEqual(mark.caption(in: original)?.id, "fragment-b")
+        let merged = [caption("fragment-a", start: 0, end: 10, revision: 9)]
+        XCTAssertEqual(mark.caption(in: merged)?.id, "fragment-a")
+        XCTAssertNil(mark.caption(in: [caption("fragment-b", start: 5, end: 10, session: "other")]))
+    }
+
+    @MainActor func testRowAndCurrentToggleShareDurableStateEvenWhenViewingRemoved() async throws {
+        var saved: [[String: Any]] = []
+        let store = ReviewMarks(call: { args in
+            if args[1] == "add" {
+                saved.append(["id": args[6], "lecture_id": "lecture", "capture_id": "capture",
+                              "capture_time": 5.0, "caption_id": "current", "reviewed": 0,
+                              "removed": 0, "created_at": "2026-11-05T00:00:00Z"])
+            } else if args[1] == "remove", let index = saved.firstIndex(where: { $0["id"] as? String == args[3] }) {
+                saved[index]["removed"] = 1
+            }
+            let active = saved.filter { $0["removed"] as? Int == 0 }
+            if args[1] == "list" {
+                let listed = args.contains("--removed") ? saved.filter { $0["removed"] as? Int == 1 } : active
+                return try JSONSerialization.data(withJSONObject: [
+                    "marks": listed, "active_marks": active, "active_count": active.count])
+            }
+            if args[1] == "detail", let mark = saved.first(where: { $0["id"] as? String == args[3] }) {
+                return try JSONSerialization.data(withJSONObject: ["mark": mark, "captions": [],
+                    "audio_message": "", "target_caption_id": NSNull(), "audio": NSNull()])
+            }
+            return Data("{}".utf8)
+        })
+        let current = caption("current", start: 5, end: 10)
+        store.selectLecture("lecture")
+        await store.refresh()
+        XCTAssertTrue(store.matching(current, in: [current]).isEmpty)
+        // Both toolbar and row invoke the same operation with the same source caption.
+        store.toggle(current, in: [current], lecture: "lecture")
+        await store.finishWrites()
+        XCTAssertEqual(store.matching(current, in: [current]).count, 1)
+        store.showingRemoved = true
+        await store.refresh()
+        XCTAssertTrue(store.marks.isEmpty)
+        XCTAssertEqual(store.matching(current, in: [current]).count, 1)
+        store.toggle(current, in: [current], lecture: "lecture")
+        await store.finishWrites()
+        XCTAssertTrue(store.matching(current, in: [current]).isEmpty)
+        XCTAssertEqual(store.marks.count, 1) // Cancellation remains recoverable.
+        XCTAssertEqual(saved.count, 1) // No duplicate mark from a second entry point.
+    }
+
     @MainActor func testFailedSaveRetriesExactAnchorAndBlocksCleanExit() async {
         var calls: [[String]] = []
         var fail = true
@@ -15,6 +75,7 @@ final class ReviewMarkTests: XCTestCase {
         XCTAssertTrue(store.hasUnsavedChanges)
         await store.finishWrites()
         XCTAssertTrue(store.hasUnsavedChanges)
+        XCTAssertTrue(store.activeMarks.isEmpty) // Never show a saved icon after a failed write.
         XCTAssertNotNil(store.error)
         fail = false
         store.retryFailed()

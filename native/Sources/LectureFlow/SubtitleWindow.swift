@@ -134,7 +134,6 @@ private struct FloatingSubtitlesRoot: View {
                 .contextMenu {
                     Button("查看复习标记") { workspace.openReviewMarks() }
                 }
-                .help(workspace.reviews.feedback ?? "标记当前位置，课后复习")
 
             if workspace.session.hasSession {
                 Button(workspace.session.primaryTitle) {
@@ -258,6 +257,7 @@ private struct FloatingSubtitlesRoot: View {
 
     @ViewBuilder
     private func captionBlock(_ caption: LiveCaption) -> some View {
+        HStack(alignment: .top, spacing: 8) {
         VStack(alignment: .leading, spacing: 2) {
             if language != "en", !caption.chinese.isEmpty {
                 Text(caption.chinese)
@@ -281,6 +281,8 @@ private struct FloatingSubtitlesRoot: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .textSelection(.enabled)
         .opacity(caption.id == live.displayCaptions.last?.id ? 1 : 0.72)
+        ReviewCaptionButton(workspace: workspace, caption: caption, compact: true)
+        }
         .animation(.easeOut(duration: 0.12), value: caption.revision)
     }
 

@@ -57,7 +57,9 @@ struct SessionControlBar: View {
             }
 
             HStack(spacing: 10) {
-                ReviewCurrentButton(workspace: workspace, live: live)
+                if !workspace.session.desired.needsASR {
+                    ReviewCurrentButton(workspace: workspace, live: live)
+                }
                 Button("复习标记\(workspace.reviews.activeCount == 0 ? "" : " · \(workspace.reviews.activeCount)")") {
                     workspace.openReviewMarks()
                 }

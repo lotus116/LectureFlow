@@ -67,12 +67,15 @@ def get(library, lecture_id, key):
 
 def listing(library, lecture_id, *, removed=False):
     library.row("lectures", lecture_id)
-    return {"active_count": library.db.execute(
-        "SELECT COUNT(*) FROM review_marks WHERE lecture_id=? AND removed=0", (lecture_id,),
-    ).fetchone()[0], "marks": [dict(r) for r in library.db.execute(
+    active = [dict(r) for r in library.db.execute(
+        "SELECT * FROM review_marks WHERE lecture_id=? AND removed=0 ORDER BY created_at,id",
+        (lecture_id,),
+    )]
+    return {"active_count": len(active), "active_marks": active,
+            "marks": [dict(r) for r in library.db.execute(
         "SELECT * FROM review_marks WHERE lecture_id=? AND removed=? ORDER BY created_at,id",
         (lecture_id, int(removed)),
-    )]}
+    )] if removed else active}
 
 
 def update(library, lecture_id, key, *, reviewed=None, remove=False, restore=False):

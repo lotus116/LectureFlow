@@ -65,11 +65,7 @@ struct LiveTranscriptView: View {
                                             .font(.system(size: max(11, LFChrome.captionSize * (textSize / 15)), weight: .medium).monospacedDigit())
                                             .foregroundStyle(LFChrome.accentInk.opacity(0.85))
                                         Spacer()
-                                        Button("🎯") { workspace.markCaptionForReview(caption, lecture: lecture.id) }
-                                            .buttonStyle(.plain)
-                                            .disabled(caption.session_id == nil || workspace.reviews.saving || workspace.isExiting)
-                                            .help("标记这段内容，课后复习")
-                                            .accessibilityLabel("标记 \(clock(caption.start)) 的内容供复习")
+                                        ReviewCaptionButton(workspace: workspace, caption: caption)
                                     }
                                     // Main window: English above, Chinese below.
                                     if language != "zh", !caption.english.isEmpty {
@@ -125,6 +121,7 @@ struct LiveTranscriptView: View {
 
     private func transcriptActions(proxy: ScrollViewProxy) -> some View {
         HStack(spacing: 8) {
+            ReviewCurrentButton(workspace: workspace, live: live)
             Button("复制") {
                 let text = visible.map { caption in
                     [clock(caption.start), language == "en" ? "" : caption.chinese,
