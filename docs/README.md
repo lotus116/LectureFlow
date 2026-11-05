@@ -13,6 +13,7 @@ LectureFlow 是面向英语课堂的本地 macOS 录音、英文转写与中文�
 | 如何开发、检查和发布 | [开发指南](DEVELOPMENT.md) |
 | 为什么这样决定、旧需求是否仍有效 | [决定依据](design/DECISIONS.md) |
 | 声音实验具体测了什么 | [语音增强研究](research/SPEECH_RESEARCH-2026-11-05.md) |
+| 口音复核为何没收益、下一步依据 | [离线归因与候选对照](research/ACCENT_DIAGNOSIS-2026-11-05.md) |
 | 找旧文档、旧测试或原始 PRD | [整理对照](archive/2026-11-05/MIGRATION.md)与[历史入口](archive/README.md) |
 
 日常主文档只有本页、USER_GUIDE、PRODUCT、STATUS、ARCHITECTURE、DEVELOPMENT 六份。根目录保留 RELEASE 文件和旧研究链接入口以兼容公开链接及发布脚本，不作为另一套当前设计。
