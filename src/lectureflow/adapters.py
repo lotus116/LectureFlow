@@ -6,6 +6,7 @@ import re
 import time
 from pathlib import Path
 
+from .translation_numbers import repair_numbers
 from .translation_policy import translation_prompt, validate_translation
 
 
@@ -43,6 +44,7 @@ class HyMTTranslator:
             return {"text": text, "first_token_s": 0, "total_s": 0, "truncated": False}
         result = self._generate(translation_prompt(text, context, following, glossary))
         validate_translation(text, result["text"])
+        result["text"] = repair_numbers(text, result["text"])
         return result
 
     def translate_term(self, text: str, context: str = "") -> dict:

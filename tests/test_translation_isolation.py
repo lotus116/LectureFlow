@@ -50,3 +50,59 @@ def test_adapter_retains_truncation_for_existing_callers():
     translator = HyMTTranslator.__new__(HyMTTranslator)
     translator._generate = lambda _: {'text': '部分译文', 'truncated': True}
     assert translator.translate('A long sentence.')['truncated']
+
+
+def test_unknown_source_version_requires_new_isolated_evidence():
+    from lectureflow.translation_policy import RevisionGuard
+
+    guard = RevisionGuard()
+    neighbor = "后半句涉及明天下午的工厂参观。"
+    guard.choose("a", "Old term", "原术语", "", "", None)
+    guard.choose("b", "Factory visit", neighbor, "", "", None)
+
+    def fails():
+        raise RuntimeError("interrupted")
+
+    with pytest.raises(RuntimeError, match="interrupted"):
+        guard.choose("a", "New term", "新术语。" + neighbor, "", "Factory visit", fails)
+    assert guard.choose("a", "New term", "新术语。" + neighbor, "", "Factory visit",
+                        lambda: "新术语。") == "新术语。"
+
+
+def test_repetition_supported_by_the_target_preserves_context_revision():
+    from lectureflow.translation_policy import RevisionGuard
+
+    guard = RevisionGuard()
+    phrase = "明天下午我们去工厂参观"
+    guard.remember("a", "Target", phrase)
+    guard.remember("b", "Next", phrase)
+    revised = phrase + "，这是本句中也有的一段补充说明。"
+    assert guard.choose("a", "Target", revised, "", "Next", None) == revised
+    for index in range(50):
+        guard.remember(index, f"Source {index}", phrase)
+    assert len(guard.anchors) == 6
+
+
+def test_temporary_translation_preserves_streaming_text_and_original_source():
+    translator = HyMTTranslator.__new__(HyMTTranslator)
+    prompts = []
+    def generate(prompt):
+        prompts.append(prompt)
+        return {"text": "当前概率0.39。", "truncated": False}
+    translator._generate = generate
+    target = "The probability is point zero three nine."
+    assert translator.translate(target)["text"] == "当前概率0.039。"
+    assert prompts == [translation_prompt(target)]
+
+
+def test_shorter_revision_can_be_a_wholesale_translation_of_the_next_sentence():
+    from lectureflow.translation_policy import RevisionGuard
+
+    guard = RevisionGuard()
+    original = "请逐项检查实验记录里每一种化学成分及其质量分数。"
+    following = "我们将于明天早晨在学校门口集合参加全校春季运动会。"
+    guard.remember("target", "Check the components.", original)
+    guard.remember("next", "Meet tomorrow for school sports.", following)
+    candidate = "明天早晨在学校门口集合参加全校春季运动会。"
+    assert guard.choose("target", "Check the components.", candidate,
+                        "", "Meet tomorrow for school sports.", None) == original

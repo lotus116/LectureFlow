@@ -22,6 +22,7 @@ from .live_store import configuration, save, validate_session
 from .models import resolve
 from .runtime import configure, mlx_memory
 from .terminology import GLOSSARY_POLICY
+from .translation_policy import RevisionGuard
 
 
 class InputBuffer:
@@ -104,6 +105,7 @@ class CaptionEngine:
         self.deferred = deferred
         self.pending_translations: OrderedDict[str, TranslationJob] = OrderedDict()
         self.translation_context: dict[str, str] = {}
+        self.revision_guard = RevisionGuard()
         self.translations_completed = 0
         self.context_translations_completed = 0
         self.noise_floor = 0.001
@@ -298,7 +300,10 @@ class CaptionEngine:
             return
         # Only remove acknowledged work. Failed inference remains pending, and
         # the caption must never be locked while its revision is outstanding.
-        job.entry["chinese"] = translated
+        job.entry["chinese"] = self.revision_guard.choose(
+            key, job.source_text, translated, job.context, job.following,
+            lambda: self.translated(job.source_text),
+        )
         self.emit(job.entry, "revised")
         del self.pending_translations[key]
         self.translations_completed += 1
@@ -469,6 +474,7 @@ class CaptionEngine:
         self.pending_enhance = None
         while self.recent:
             self.retire_oldest()
+        self.revision_guard.anchors.clear()
 
 
 def output(event: dict) -> None:
