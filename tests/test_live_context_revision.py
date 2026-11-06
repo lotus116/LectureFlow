@@ -395,3 +395,23 @@ def test_failed_temporary_translation_does_not_restart_wait_or_mark_text_done(mo
     engine.service(8)
     assert events[-1]['chinese']
     assert engine.last_temporary_translation_at == 6
+
+
+def test_reject_neighbour_echo_after_required_revision_and_clean_up(monkeypatch):
+    engine, _, engine_events, _ = make_engine(monkeypatch)
+    completed = {"Utterance 1": "这是本句原义。", "Utterance 2": "明天上午开始新的课程内容。"}
+    calls = []
+    def response(text, *, context="", following=""):
+        calls.append((text, following))
+        candidate = completed[text] + (completed["Utterance 2"] if following else "")
+        return {"text": candidate}
+    engine.translator.translate = response
+    for i in range(2):
+        finish_utterance(engine, i)
+        engine.service(0)
+    engine.lock_all()
+    assert calls == [("Utterance 1", ""), ("Utterance 2", ""), ("Utterance 1", "Utterance 2")]
+    assert engine.context_translations_completed == 1
+    assert engine.revision_guard.anchors == {}
+    locked = [e["chinese"] for e in engine_events if e["status"] == "locked"]
+    assert locked == list(completed.values())

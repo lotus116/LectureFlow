@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 import re
+from collections import OrderedDict
+from difflib import SequenceMatcher
 
 
 def translation_prompt(
@@ -55,3 +57,76 @@ def validate_translation(text: str, translated: str) -> None:
         pattern = rf'["“]{key}["”]\s*:'
         if re.search(pattern, translated) and not re.search(pattern, text):
             raise ValueError("译文混入上下文结构，已保留此前字幕与待办")
+
+
+class RevisionGuard:
+    """Track complete same-source translations in the current two-neighbour horizon."""
+
+    def __init__(self):
+        self.anchors = OrderedDict()
+
+    def choose(self, key, source, candidate, preceding, following, isolated):
+        if not following:
+            self.remember(key, source, candidate)
+            return candidate
+        anchor = self.anchors.get(key)
+        baseline = anchor[1] if anchor and anchor[0] == source else ""
+        references = set((preceding + "\n" + following).splitlines())
+        neighbors = [
+            zh
+            for other, (en, zh) in self.anchors.items()
+            if other != key and en != source and en in references
+        ]
+        if not self.suspicious(candidate, baseline, neighbors):
+            return candidate
+        if not baseline:
+            # Under backlog the first completed job can already include following speech.
+            baseline = isolated()
+            self.remember(key, source, baseline)
+            if not self.suspicious(candidate, baseline, neighbors):
+                return candidate
+        return baseline
+
+    def remember(self, key, source, translated):
+        self.anchors[key] = (source, translated)
+        self.anchors.move_to_end(key)
+        if len(self.anchors) > 6:
+            self.anchors.popitem(last=False)
+
+    @staticmethod
+    def suspicious(candidate, baseline, neighbors):
+        def compact(s):
+            return re.sub(r"[^a-z0-9一-鿿]", "", s.lower())
+
+        current, original = compact(candidate), compact(baseline)
+        if len(current) < 7 or not neighbors:
+            return False
+        expanded = not baseline or (
+            len(candidate) >= 1.4 * len(baseline) and len(candidate) >= len(baseline) + 10
+        )
+        # A replacement can be shorter than the target but closely resemble its neighbour.
+        # A cheap multiset upper bound avoids full target comparisons on ordinary revisions.
+        displaced = False
+        if not expanded and min(len(original), len(current)) >= 18:
+            target = SequenceMatcher(None, original, current, autojunk=False)
+            if target.quick_ratio() < 0.50:
+                displaced = target.ratio() < 0.25
+        if not expanded and not displaced:
+            return False
+        for zh in neighbors:
+            other = compact(zh)
+            match = SequenceMatcher(None, current, other, autojunk=False)
+            if displaced:
+                if match.quick_ratio() >= 0.55 and match.ratio() >= 0.55:
+                    return True
+                continue
+            for block in match.get_matching_blocks():
+                if block.size < 7:
+                    continue
+                phrase = current[block.a : block.a + block.size]
+                shared = SequenceMatcher(
+                    None, phrase, original, autojunk=False
+                ).find_longest_match()
+                if shared.size < 0.7 * block.size:
+                    return True
+        return False
