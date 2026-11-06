@@ -5,7 +5,7 @@
 <p align="center"><strong>为英语课堂准备的 macOS 与 Windows 本地助手</strong><br>上课看双语字幕，听不懂时留个书签，下课回到那句话听原音。录音、识别和翻译都在自己的电脑上完成。</p>
 
 <p align="center">
-  <a href="https://github.com/lotus116/LectureFlow/releases/latest"><strong>下载 macOS / Windows 版 →</strong></a>
+  <a href="https://github.com/lotus116/LectureFlow/releases/latest"><strong>下载 LectureFlow</strong></a>
   &nbsp; · &nbsp; <a href="docs/USER_GUIDE.md"><strong>使用指南</strong></a>
   &nbsp; · &nbsp; <a href="docs/RELEASE-0.6.5.md">0.6.5 更新说明</a>
   &nbsp; · &nbsp; <a href="https://github.com/lotus116/LectureFlow/issues">反馈问题</a>
@@ -17,15 +17,33 @@
 
 ## 从上课到复习
 
+<p align="center">
+  <img src="docs/assets/lecture-review-story.jpg" alt="课堂复习流程插画：看实时双语字幕，点书签标记当前句，课后听原音并到课件里核对 Gradient 的拼写。" width="100%">
+</p>
+
 1. **开始记录。** 新建课程并开始一个 Lecture，选择录音与双语字幕、仅录音或仅字幕。课件可按需添加，也可以导入已有录音做课后转写。
 2. **听到疑问就打书签。** 在主窗口或置顶浮窗看英文转写和流式中文初译。后文到来时，应用会回改前两段译文。遇到没听懂的地方，点「标记当前」就能继续听课。
 3. **课后回到那句话。** 在这堂 Lecture 打开「复习标记」。保存了原音且能定位时，会从上一句开头播到当前句末尾。想整理整堂课，可以从录音生成课后转写，逐段编辑、重译或导出。
 
-## 什么时候值得导入课件？
+<details>
+<summary>查看功能总览图</summary>
+
+![录音与导入、实时双语字幕、悬浮窗、课程资料、课后转写与本机处理](docs/assets/features-notebook.svg)
+
+</details>
+
+## 用课件核对拼写
 
 **想核对一个听不清的专业词，可以从书签查课件。** 先在书签里听原音，再点有疑问的那句。可以指定本节 PPT 或 PDF，也可以选中句中连续一至四个词缩小范围。结果最多列出三页，附文件名、页码和页内原文，供你对照老师的发音与课件写法。[书签复习操作](docs/USER_GUIDE.md#用书签标记听不懂的位置)
 
 资料按课程共享，导入一次即可供多次 Lecture 使用。上课时，应用只挑跟当前句子相关的少量术语作拼写提示。翻译可参考课件里明确的中英对照及手动校正的译名。导入资料对不同课程的实时识别准确率能有多大帮助，仍待验证。[课程资料与术语](docs/USER_GUIDE.md#课程资料与术语) · [课件对照实验](docs/research/CONTEXT_PPT_EXPLORATION.md)
+
+<details>
+<summary>查看资料如何在同一课程的 Lecture 之间共享</summary>
+
+![一门课程共用一份资料库，各次 Lecture 分别保存录音和转写](docs/assets/course-sharing.svg)
+
+</details>
 
 ## 安装
 
@@ -68,4 +86,4 @@ zsh scripts/run
   <a href="docs/design/OPEN_ITEMS.md">下一步讨论</a> &nbsp; · &nbsp;
   <a href="docs/research/SPEECH_RESEARCH-2026-11-05.md">语音增强研究</a>
 </p>
-<p align="center"><sub>琪露诺主题为非官方同人视觉，与原作及玩偶制造商无官方关联。横幅使用 AI 辅助创作。</sub></p>
+<p align="center"><sub>琪露诺主题为非官方同人视觉，与原作及玩偶制造商无官方关联。横幅与课堂流程插画使用 AI 辅助创作，插画中的字幕为示例。</sub></p>
