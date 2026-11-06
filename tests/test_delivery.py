@@ -1,4 +1,3 @@
-import fcntl
 import json
 import struct
 import wave
@@ -7,6 +6,7 @@ import zipfile
 import pytest
 
 from lectureflow import documents, files, purging, summaries
+from lectureflow import filelock as fcntl
 from lectureflow.exporting import export_version
 from lectureflow.library import Library
 from lectureflow.runtime import sha256
@@ -241,14 +241,14 @@ def test_damaged_pptx_has_actionable_error_and_cleans_partial_copy(library, tmp_
     assert list(documents.owner_path(lib, "course", course).iterdir()) == []
 
 
-def test_document_import_rejects_external_symlinks(library, tmp_path):
+def test_document_import_rejects_external_symlinks(library, tmp_path, directory_link):
     lib, course, _, _, _ = library
     external = tmp_path / "external"
     external.mkdir()
     directory = lib.course_path(course) / "Documents"
     if directory.exists():
         directory.rmdir()
-    directory.symlink_to(external, target_is_directory=True)
+    directory_link(directory, external)
     with pytest.raises(ValueError, match="范围"):
         documents.import_document(lib, "course", course, deck(tmp_path / "test.pptx"))
     assert list(external.iterdir()) == []
@@ -330,7 +330,7 @@ def test_purging_only_audio_preserves_completed_text_and_marks_missing_source(li
     assert source.exists() and lib.row("lectures", lecture)
 
 
-def test_trash_cleanup_does_not_follow_external_symlink(library, tmp_path):
+def test_trash_cleanup_does_not_follow_external_symlink(library, tmp_path, directory_link):
     lib, course, _, _, source = library
     files.archive(lib, "course", course, confirmed=True)
     target = files.archived(lib, "course", course)
@@ -339,6 +339,6 @@ def test_trash_cleanup_does_not_follow_external_symlink(library, tmp_path):
     outside.mkdir()
     sentinel = outside / "keep.txt"
     sentinel.write_text("untouched")
-    link.symlink_to(outside, target_is_directory=True)
+    directory_link(link, outside)
     purging.empty(lib, purging.preview(lib)["digest"], confirmed=True)
     assert sentinel.read_text() == "untouched" and source.exists()

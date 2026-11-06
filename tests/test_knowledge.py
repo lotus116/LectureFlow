@@ -268,7 +268,7 @@ def test_cancel_during_glossary_inference_does_not_commit_that_term(courseware):
 
 
 def test_courseware_edit_cannot_race_a_folder_move(courseware):
-    import fcntl
+    from lectureflow import filelock as fcntl
 
     lib, course, _, _, _ = courseware
     with (lib.root / ".structure.lock").open("a+") as handle:

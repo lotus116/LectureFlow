@@ -54,14 +54,14 @@ def anchors(text: str) -> set[str]:
 
 def main() -> None:
     errors = []
-    manifest = json.loads(MANIFEST.read_text())
+    manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
     sources = set()
     for item in manifest["documents"]:
         sources.add(item["source"])
         path = ROOT / item["archive"]
         if path.name == "AGENTS.md":
             errors.append(f"Historical agent rules must not auto-activate: {path}")
-        data = path.read_bytes()
+        data = path.read_bytes().replace(b"\r\n", b"\n")
         if hashlib.sha256(data).hexdigest() != item["archive_sha256"]:
             errors.append(f"Archive file altered: {item['archive']}")
         body = data.decode().split(MARKER, 1)[1]
@@ -91,7 +91,7 @@ def main() -> None:
             errors.append(f"Baseline inventory mismatch: {sorted(expected ^ sources)}")
 
     files = [ROOT / "README.md", ROOT / "AGENTS.md", *sorted((ROOT / "docs").rglob("*.md"))]
-    texts = {p.resolve(): visible_markdown(p.read_text()) for p in files}
+    texts = {p.resolve(): visible_markdown(p.read_text(encoding="utf-8")) for p in files}
     headings = {p: anchors(s) for p, s in texts.items()}
     checked = 0
     for path, text in texts.items():
@@ -118,11 +118,11 @@ def main() -> None:
             elif parsed.fragment and destination.suffix == ".md":
                 known = headings.get(destination)
                 if known is None:
-                    known = anchors(visible_markdown(destination.read_text()))
+                    known = anchors(visible_markdown(destination.read_text(encoding="utf-8")))
                 if unquote(parsed.fragment) not in known:
                     errors.append(f"Broken heading in {label}: {target}")
 
-    status = (ROOT / "docs/STATUS.md").read_text()
+    status = (ROOT / "docs/STATUS.md").read_text(encoding="utf-8")
     for prefix, maximum in [("SD", 11), ("LF", 12), ("A", 10)]:
         for number in range(1, maximum + 1):
             identifier = f"{prefix}{'-' if prefix != 'A' else ''}{number:02d}"
@@ -131,7 +131,7 @@ def main() -> None:
     for identifier in ["A01a", "A01b", "A03a", "A03b", "A05a", "A05b"]:
         if identifier not in status:
             errors.append(f"Unrouted subtask: {identifier}")
-    version = (ROOT / "VERSION").read_text().strip()
+    version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
     for required in ["docs/USER_GUIDE.md", "docs/licenses/README.md", "docs/assets/logo.png",
                      f"docs/RELEASE-{version}.md"]:
         if not (ROOT / required).is_file():
@@ -140,10 +140,10 @@ def main() -> None:
         ("pyproject.toml", r'\[project\][\s\S]*?\nversion = "([^"]+)"'),
         ("uv.lock", r'name = "lectureflow"\nversion = "([^"]+)"'),
     ]:
-        match = re.search(pattern, (ROOT / filename).read_text())
+        match = re.search(pattern, (ROOT / filename).read_text(encoding="utf-8"))
         if match is None or match.group(1) != version:
             errors.append(f"Project version mismatch: {filename}")
-    mapping = (ROOT / "docs/archive/2026-11-05/MIGRATION.md").read_text()
+    mapping = (ROOT / "docs/archive/2026-11-05/MIGRATION.md").read_text(encoding="utf-8")
     for source in sources:
         if f"`{source}`" not in mapping:
             errors.append(f"Missing migration row: {source}")

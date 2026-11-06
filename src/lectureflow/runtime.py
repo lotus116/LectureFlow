@@ -6,7 +6,6 @@ import hashlib
 import json
 import os
 import platform
-import resource
 import sys
 import tempfile
 from importlib.metadata import PackageNotFoundError, version
@@ -45,6 +44,12 @@ def sha256(path: Path) -> str:
 
 
 def peak_rss_bytes() -> int:
+    if sys.platform == "win32":
+        import psutil
+
+        return psutil.Process().memory_info().peak_wset
+    import resource
+
     peak = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     return int(peak if platform.system() == "Darwin" else peak * 1024)
 

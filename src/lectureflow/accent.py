@@ -213,13 +213,14 @@ def recover_saved_reviews(library, lecture_id, session_id, session):
     therefore remain audit-only; a stale generation cannot modify the displayed text.
     No raw audio is newly persisted by this path (decoded PCM is read through a pipe).
     """
-    import fcntl
     import json
     import subprocess
     import uuid
 
     import imageio_ffmpeg
     import numpy as np
+
+    from lectureflow import filelock as fcntl
 
     from .live_store import accent_audits, save_accent_audit, validate_session
     from .recordings import chunks_for, verify_source
@@ -234,7 +235,7 @@ def recover_saved_reviews(library, lecture_id, session_id, session):
         source = library.managed_path(library.lecture_path(lecture_id)/'Audio'/row['filename'])
         if source.name != 'segment.json':
             continue
-        meta = json.loads(source.read_text())
+        meta = json.loads(source.read_text(encoding="utf-8"))
         try:
             matches = uuid.UUID(meta.get('capture_id', '')).hex == uuid.UUID(session_id).hex
         except ValueError:

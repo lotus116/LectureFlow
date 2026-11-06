@@ -1,4 +1,3 @@
-import fcntl
 import json
 import uuid
 import wave
@@ -8,6 +7,7 @@ from types import SimpleNamespace
 import numpy as np
 import pytest
 
+from lectureflow import filelock as fcntl
 from lectureflow import live_store
 from lectureflow.library import Library
 from lectureflow.live import CaptionEngine, InputBuffer
@@ -186,7 +186,7 @@ def test_logical_recording_cross_chunk_time_mapping_and_tamper_detection(library
 def test_active_recording_is_never_recovered_or_rewritten(library):
     lib, lecture = library
     root = recording_directory(lib, lecture)
-    with (root / ".recording.lock").open("a+") as handle:
+    with fcntl.recording_path(lib.root, root).open("a+") as handle:
         fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
         with pytest.raises(ValueError, match="录制中"):
             register(lib, lecture, root, recover=True)

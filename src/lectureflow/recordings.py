@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
-import fcntl
 import json
 import uuid
 import wave
 from pathlib import Path
 from tempfile import TemporaryDirectory
+
+from lectureflow import filelock as fcntl
 
 from .audio import extract_clip, probe_duration
 from .library import now
@@ -19,7 +20,7 @@ def source_files(source):
         return [source]
     import json
 
-    content = json.loads(source.read_text())
+    content = json.loads(source.read_text(encoding="utf-8"))
     files = []
     for chunk in content["chunks"]:
         path = source.parent / chunk["file"]
@@ -34,7 +35,9 @@ def discard(library, lecture_id, directory, *, confirmed=False):
         raise ValueError("取消本段录音需要明确确认")
     from .files import archive
 
-    descriptor = json.loads((library.managed_path(directory) / "capture.json").read_text())
+    descriptor = json.loads(
+        (library.managed_path(directory) / "capture.json").read_text(encoding="utf-8")
+    )
     if not descriptor.get("sealed"):
         raise ValueError("请先封存当前录音，再取消")
     result = register(library, lecture_id, directory)
@@ -47,14 +50,14 @@ def register(library, lecture_id: str, directory: Path, *, recover: bool = False
     directory = library.managed_path(directory.resolve())
     if directory.parent != audio_root or not directory.name.startswith("live-"):
         raise ValueError("录音目录不属于当前课堂")
-    descriptor = json.loads((directory / "capture.json").read_text())
+    descriptor = json.loads((directory / "capture.json").read_text(encoding="utf-8"))
     key = uuid.UUID(descriptor["id"]).hex
     existing = library.db.execute("SELECT * FROM segments WHERE id=?", (key,)).fetchone()
     if existing:
         if existing["lecture_id"] != lecture_id:
             raise ValueError("录音已关联另一课堂")
         return dict(existing)
-    with (directory / ".recording.lock").open("a+") as lock:
+    with fcntl.recording_path(library.root, directory).open("a+") as lock:
         try:
             fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError as error:
@@ -64,7 +67,7 @@ def register(library, lecture_id: str, directory: Path, *, recover: bool = False
         if not descriptor.get("sealed") and not recover:
             raise ValueError("录音尚未封存，请使用恢复操作")
         chunks, unreadable = [], []
-        for path in sorted(directory.glob("chunk-*.caf")):
+        for path in sorted([*directory.glob("chunk-*.caf"), *directory.glob("chunk-*.wav")]):
             if path.resolve().parent != directory:
                 raise ValueError("录音块超出目录范围")
             try:
@@ -131,7 +134,7 @@ def recover_all(library, lecture_id: str) -> dict:
 
 
 def chunks_for(source: Path) -> list[dict]:
-    manifest = json.loads(source.read_text())
+    manifest = json.loads(source.read_text(encoding="utf-8"))
     if manifest.get("lectureflow_recording") != 1:
         raise ValueError("无效的录音清单")
     chunks = manifest["chunks"]

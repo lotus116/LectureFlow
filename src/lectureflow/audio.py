@@ -8,12 +8,20 @@ from pathlib import Path
 
 
 def probe_duration(source: Path) -> float:
+    if source.suffix.lower() == ".wav":
+        try:
+            with wave.open(str(source), "rb") as stream:
+                duration = stream.getnframes() / stream.getframerate()
+                if duration > 0:
+                    return duration
+        except (wave.Error, EOFError):
+            pass
     import imageio_ffmpeg
 
     result = subprocess.run(
         [imageio_ffmpeg.get_ffmpeg_exe(), "-nostdin", "-hide_banner", "-i", str(source),
          "-t", "0", "-f", "null", "-"],
-        capture_output=True, text=True, timeout=60, check=False,
+        capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60, check=False,
     )
     match = re.search(r"Duration:\s*(\d+):(\d+):([\d.]+)", result.stderr)
     if result.returncode or not match:
@@ -42,7 +50,8 @@ def extract_clip(source: Path, output: Path, start: float, seconds: float) -> fl
             "-n", "-ss", str(start), "-i", str(source), "-t", str(seconds), "-vn",
             "-ac", "1", "-ar", "16000", "-c:a", "pcm_s16le", str(output),
         ],
-        capture_output=True, text=True, timeout=max(120, seconds * 2), check=False,
+        capture_output=True, text=True, encoding="utf-8", errors="replace",
+        timeout=max(120, seconds * 2), check=False,
     )
     if result.returncode:
         raise ValueError(f"Audio decoding failed: {result.stderr.strip()}")

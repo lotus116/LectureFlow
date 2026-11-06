@@ -1,10 +1,10 @@
-import fcntl
 import json
 import wave
 from pathlib import Path
 
 import pytest
 
+from lectureflow import filelock as fcntl
 from lectureflow.exporting import export_version
 from lectureflow.library import Library
 from lectureflow.runtime import sha256
@@ -188,19 +188,21 @@ def test_second_worker_cannot_recover_an_active_workers_tasks(setup_library):
     assert library.row("tasks", task["id"])["state"] == "running"
 
 
-def test_import_refuses_audio_directory_symlink_outside_library(setup_library):
+def test_import_refuses_audio_directory_symlink_outside_library(setup_library, directory_link):
     library, lecture, tmp = setup_library
     audio = library.lecture_path(lecture) / "Audio"
     audio.rmdir()
     external = tmp / "external"
     external.mkdir()
-    audio.symlink_to(external, target_is_directory=True)
+    directory_link(audio, external)
     with pytest.raises(ValueError, match="范围"):
         library.import_audio(lecture, [recording(tmp / "source.wav")])
     assert list(external.iterdir()) == []
 
 
-def test_export_refuses_transcripts_directory_symlink_outside_library(setup_library):
+def test_export_refuses_transcripts_directory_symlink_outside_library(
+    setup_library, directory_link
+):
     library, lecture, tmp = setup_library
     library.import_audio(lecture, [recording(tmp / "source.wav")])
     task = library.enqueue(lecture, translate=False)
@@ -208,7 +210,7 @@ def test_export_refuses_transcripts_directory_symlink_outside_library(setup_libr
     folder.rmdir()
     external = tmp / "external"
     external.mkdir()
-    folder.symlink_to(external, target_is_directory=True)
+    directory_link(folder, external)
     with pytest.raises(ValueError, match="范围"):
         export_version(library, task["version_id"])
     assert list(external.iterdir()) == []

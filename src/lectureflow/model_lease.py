@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-import fcntl
 from pathlib import Path
+
+from lectureflow import filelock as fcntl
 
 
 def live_requested(root: Path) -> bool:

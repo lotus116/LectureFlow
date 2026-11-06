@@ -140,7 +140,9 @@ def dispatch(args) -> dict:
                 library, args.kind, args.owner_id, include_shared=args.include_shared
             )
         if args.materials_action == "import":
-            extracted = json.loads(args.pages_file.read_text()) if args.pages_file else None
+            extracted = (
+                json.loads(args.pages_file.read_text(encoding="utf-8")) if args.pages_file else None
+            )
             return documents.import_document(
                 library, args.kind, args.owner_id, args.source, extracted=extracted
             )

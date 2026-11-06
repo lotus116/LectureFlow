@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import base64
-import fcntl
 import json
 import math
 import sys
@@ -12,6 +11,8 @@ import time
 from collections import OrderedDict, deque
 from dataclasses import dataclass
 from pathlib import Path
+
+from lectureflow import filelock as fcntl
 
 from .accent import AccentReviewer, ReviewQueue, SourceStamp
 from .adapters import HyMTTranslator, QwenASR, contains_only_chinese_speech, source_language

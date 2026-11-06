@@ -166,9 +166,12 @@ def main() -> int:
                 start=args.start,
                 seconds=args.seconds,
                 repeats=args.repeats,
-                context=args.context_file.read_text() if args.context_file else "",
-                glossary=args.glossary_file.read_text() if args.glossary_file else "",
-                reference=args.reference.read_text() if args.reference else None,
+                context=args.context_file.read_text(encoding="utf-8") if args.context_file else "",
+                glossary=(
+                    args.glossary_file.read_text(encoding="utf-8")
+                            if args.glossary_file else ""
+                ),
+                reference=args.reference.read_text(encoding="utf-8") if args.reference else None,
             )
             print(f"{report['status']}: {args.output}")
             print("Offline timing only; classroom accuracy and live latency need separate review.")
@@ -182,7 +185,7 @@ def main() -> int:
                 start=args.start,
                 seconds=args.seconds,
                 chunk_seconds=args.chunk_seconds,
-                context=args.context_file.read_text() if args.context_file else "",
+                context=args.context_file.read_text(encoding="utf-8") if args.context_file else "",
             )
             print(f"{report['status']}: {args.output}")
             print("Chunk lag only; useful semantic latency requires annotated classroom audio.")
@@ -212,8 +215,14 @@ def main() -> int:
                         source_language=args.language,
                         translate=not args.no_translation,
                         segment_ids=args.segment_ids,
-                        context=args.context_file.read_text() if args.context_file else "",
-                        glossary=args.glossary_file.read_text() if args.glossary_file else "",
+                        context=(
+                            args.context_file.read_text(encoding="utf-8")
+                            if args.context_file else ""
+                        ),
+                        glossary=(
+                            args.glossary_file.read_text(encoding="utf-8")
+                            if args.glossary_file else ""
+                        ),
                     )
                 elif args.action == "task":
                     result = library.control(args.task_id, args.operation)
@@ -296,7 +305,7 @@ def main() -> int:
                             library, args.lecture_id, args.capture_id, language=args.language,
                         )
                     elif args.live_action == "retry-accent":
-                        import fcntl
+                        from lectureflow import filelock as fcntl
 
                         from .accent import recover_saved_reviews
                         from .adapters import QwenASR

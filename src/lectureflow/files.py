@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import contextlib
-import fcntl
 import functools
 import json
 import os
 import shutil
 from pathlib import Path
+
+from lectureflow import filelock as fcntl
 
 from .library import folder_name, identity, now
 from .runtime import sha256, write_json
@@ -80,7 +81,9 @@ def edit_lock(library, *, sealed_recording: Path | None = None, worker_lock_owne
             except BlockingIOError:
                 raise ValueError("请先暂停实时识别和后台处理，再整理或恢复资料") from None
         # Recording-only mode does not own an inference lock.
-        for lock in (sealed_recording or library.root).rglob(".recording.lock"):
+        locks = ([fcntl.recording_path(library.root, library.root)] if os.name == "nt"
+                 else (sealed_recording or library.root).rglob(".recording.lock"))
+        for lock in locks:
             library.managed_path(lock)
             handle = stack.enter_context(lock.open("a+"))
             try:
@@ -103,10 +106,17 @@ def _apply(library, operation: dict) -> None:
             raise ValueError("移动目标已存在；为保护文件，尚未覆盖任何资料")
         if source.exists():
             destination.parent.mkdir(parents=True, exist_ok=True)
-            os.rename(source, destination)
+            if os.name == "nt":
+                import ctypes
+
+                # MOVEFILE_WRITE_THROUGH; omit REPLACE_EXISTING to protect the destination.
+                if not ctypes.windll.kernel32.MoveFileExW(str(source), str(destination), 8):
+                    raise ctypes.WinError()
+            else:
+                os.rename(source, destination)
         elif not destination.exists():
             raise ValueError("待恢复的移动文件缺失，请保留资料库并检查备份")
-    for parent in {source.parent, destination.parent}:
+    for parent in ({source.parent, destination.parent} if os.name != "nt" else ()):
         descriptor = os.open(parent, os.O_RDONLY)
         try:
             os.fsync(descriptor)
@@ -241,7 +251,8 @@ def archive(
             or source.parent.resolve() != sealed_recording.resolve()
         ):
             raise ValueError("取消录音的目录与片段不匹配")
-        if not json.loads((sealed_recording / "capture.json").read_text()).get("sealed"):
+        descriptor = sealed_recording / "capture.json"
+        if not json.loads(descriptor.read_text(encoding="utf-8")).get("sealed"):
             raise ValueError("请先封存录音")
     with edit_lock(library, sealed_recording=sealed_recording):
         if hidden(library, kind, key):
@@ -366,7 +377,7 @@ def transfer(library, key: str, target: str, *, copy: bool = False) -> dict:
                         raise ValueError("录音目录包含符号链接，请先检查资料")
                     shutil.copytree(move_source, staging)
                     for descriptor in ("capture.json", "segment.json"):
-                        metadata = json.loads((staging / descriptor).read_text())
+                        metadata = json.loads((staging / descriptor).read_text(encoding="utf-8"))
                         metadata["id"] = new_id
                         metadata["source_segment_id"] = key
                         write_json(staging / descriptor, metadata)

@@ -137,7 +137,7 @@ def resolve(alias: str, root: Path, kind: str) -> dict:
         if bundled and Path(bundled).resolve() != root.resolve():
             return resolve(alias, Path(bundled), kind)
         raise ValueError(f"模型尚未安装：{alias}。请打开设置中的模型管理进行下载。")
-    record = json.loads(manifest.read_text())
+    record = json.loads(manifest.read_text(encoding="utf-8"))
     spec = CATALOG[alias]
     if any(record.get(key) != value for key, value in spec.items()):
         raise ValueError(f"Model manifest does not match pinned catalog: {alias}")

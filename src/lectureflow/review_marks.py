@@ -103,7 +103,7 @@ def _audio(library, mark, captions=(), *, source_times=False):
         path = library.segment_path(segment['id'])
         if path.name != 'segment.json' or not path.is_file():
             continue
-        source = json.loads(path.read_text())
+        source = json.loads(path.read_text(encoding="utf-8"))
         if source.get('capture_id') != mark['capture_id']:
             continue
         if sha256(path) != segment['sha256']:
