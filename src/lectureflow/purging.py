@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 import contextlib
-import fcntl
 import hashlib
 import json
 import shutil
 from pathlib import Path
 
+from . import locking as fcntl
 from .library import identity, now
 
 

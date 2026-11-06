@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-import fcntl
 import json
 import uuid
 import wave
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+from . import locking as fcntl
 from .audio import extract_clip, probe_duration
 from .library import now
 from .runtime import sha256, write_json

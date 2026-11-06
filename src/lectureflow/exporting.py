@@ -18,6 +18,15 @@ def timestamp(seconds: float, *, srt: bool = False) -> str:
 
 def export_version(library: Library, version_id: str) -> dict:
     content = library.version_content(version_id)
+    if content['config'].get('backend') == 'windows-cpu-experimental':
+        # Legacy Windows versions stored local model paths; never share those in JSON.
+        content['config']['models'] = {
+            name: ({'engine': 'local-model', 'revision': 'unknown'}
+                   if isinstance(value, str) else value)
+            for name, value in content['config'].get('models', {}).items()
+        }
+        if content['task'].get('error'):
+            content['task']['error'] = 'Local task/export error; see the application for details'
     destination = library.managed_path(
         library.lecture_path(content["lecture_id"]) / "Transcripts" / version_id,
     )

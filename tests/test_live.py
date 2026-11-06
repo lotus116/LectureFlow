@@ -1,4 +1,3 @@
-import fcntl
 import json
 import uuid
 import wave
@@ -9,6 +8,7 @@ import numpy as np
 import pytest
 
 from lectureflow import live_store
+from lectureflow import locking as fcntl
 from lectureflow.library import Library
 from lectureflow.live import CaptionEngine, InputBuffer
 from lectureflow.recordings import extract_source, register, verify_source

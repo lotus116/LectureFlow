@@ -296,8 +296,7 @@ def main() -> int:
                             library, args.lecture_id, args.capture_id, language=args.language,
                         )
                     elif args.live_action == "retry-accent":
-                        import fcntl
-
+                        from . import locking as fcntl
                         from .accent import recover_saved_reviews
                         from .adapters import QwenASR
                         from .models import resolve

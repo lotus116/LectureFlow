@@ -85,3 +85,7 @@ zsh scripts/run
   <a href="docs/research/SPEECH_RESEARCH-2026-11-05.md">语音增强研究</a>
 </p>
 <p align="center"><sub>琪露诺主题为非官方同人视觉，与原作及玩偶制造商无官方关联。横幅使用 AI 辅助创作；流程图为功能示意，非软件截图。</sub></p>
+
+## Windows 实验入口
+
+Windows MVP 的源码启动、模型准备和未实现范围见 [Windows 实验版说明](docs/WINDOWS.md)。当前仍为草稿贡献，不提供正式 Windows 安装包。
