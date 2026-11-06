@@ -1,4 +1,4 @@
-name: Release macOS app
+name: Release macOS and Windows
 
 on:
   workflow_dispatch:
@@ -7,14 +7,12 @@ permissions:
   contents: read
 
 concurrency:
-  group: release-macos
+  group: release-desktop
   cancel-in-progress: false
 
 jobs:
-  release:
+  macos:
     runs-on: macos-26
-    permissions:
-      contents: write
     env:
       UV_CACHE_DIR: ${{ github.workspace }}/.cache/uv
       UV_PYTHON_INSTALL_DIR: ${{ github.workspace }}/.tools/python
@@ -34,20 +32,76 @@ jobs:
           zsh scripts/test-native
       - name: Build standalone app
         run: zsh scripts/package-app --zip
-      - name: Publish checked package
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: macos
+          path: dist/LectureFlow-*-macOS-arm64.zip
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 1
+
+  windows:
+    runs-on: windows-2025
+    env:
+      PYTHONUTF8: '1'
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - name: Prepare Windows dependencies and verified models
+        shell: pwsh
+        run: |
+          python -m pip install uv==0.9.7
+          python -m venv .venv
+          ./scripts/setup-windows.ps1
+      - name: Test and build standalone Windows app
+        shell: pwsh
+        run: |
+          .venv/Scripts/python -m pytest -q
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          ./scripts/build-windows.ps1
+          ./scripts/package-windows-release.ps1
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: windows
+          path: dist/windows-release/*.zip
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 1
+
+  publish:
+    needs: [macos, windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          path: packages
+          merge-multiple: true
+      - name: Publish the verified pair
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          lectureflow_version="$(cat VERSION)"
-          lectureflow_tag="v$lectureflow_version"
-          mkdir -p .build
-          if gh release view "$lectureflow_tag" --json isDraft --jq '.isDraft' > .build/release-state 2>/dev/null; then
-            if [[ "$(cat .build/release-state)" == false ]]; then
-              echo "Refreshing published $lectureflow_tag assets from $GITHUB_SHA"
-            fi
+          set -euo pipefail
+          version=$(cat VERSION)
+          tag="v$version"
+          test -s "packages/LectureFlow-$version-macOS-arm64.zip"
+          test -s "packages/LectureFlow-$version-Windows-x64.zip"
+          (cd packages && sha256sum *.zip > SHA256SUMS)
+          # Never overwrite a published release or assets from a different commit.
+          if gh release view "$tag" --json isDraft,targetCommitish > "$RUNNER_TEMP/state.json" 2>/dev/null; then
+            jq -e --arg sha "$GITHUB_SHA" '.isDraft and .targetCommitish == $sha' "$RUNNER_TEMP/state.json"
           else
-            gh release create "$lectureflow_tag" --target "$GITHUB_SHA" --draft --title "LectureFlow $lectureflow_version · 课堂体验版" --notes-file "docs/RELEASE-$lectureflow_version.md"
+            gh release create "$tag" --draft --target "$GITHUB_SHA" --title "LectureFlow $version · macOS 与 Windows" --notes-file "docs/RELEASE-$version.md"
           fi
-          (cd dist && shasum -a 256 "LectureFlow-$lectureflow_version-macOS-arm64.zip" > SHA256SUMS)
-          gh release upload "$lectureflow_tag" "dist/LectureFlow-$lectureflow_version-macOS-arm64.zip" dist/SHA256SUMS --clobber
-          gh release edit "$lectureflow_tag" --draft=false --latest --target "$GITHUB_SHA" --notes-file "docs/RELEASE-$lectureflow_version.md"
+          gh release upload "$tag" packages/*.zip packages/SHA256SUMS --clobber
+          gh release view "$tag" --json assets --jq '.assets[] | [.digest[7:], .name] | join("  ")' > "$RUNNER_TEMP/remote-sums"
+          (cd packages && sha256sum --strict -c "$RUNNER_TEMP/remote-sums" && test "$(wc -l < "$RUNNER_TEMP/remote-sums")" -eq "$(ls -1 | wc -l)")
+          gh release edit "$tag" --draft=false --latest

@@ -48,13 +48,15 @@ python3 scripts/check-docs.py
 
 ## 独立打包与正式发布
 
+Windows x64 使用原生 PowerShell、Python 3.12 与 uv，运行 `scripts/setup-windows.ps1`、`scripts/build-windows.ps1` 和 `scripts/package-windows-release.ps1`。默认模型下载后按固定 SHA-256 核对；打包 EXE 用临时资料库检查后台启动。双平台手动工作流从同一提交构建，两个任务成功后统一生成 SHA256SUMS 并发布。
+
 ```sh
 zsh scripts/package-app --zip
 ```
 
 输出 dist/LectureFlow.app 与版本 ZIP，包含可搬移 Python 和后端。默认不内置模型；首次准备模型可联网下载并复用应用支持目录缓存。`--with-models` 仅在明确要求离线分发时使用。logo、USER_GUIDE、licenses 路径为打包依赖，文档整理不能随意移动。
 
-VERSION、pyproject.toml 与 uv.lock 中项目版本保持一致。更新版本号不自动发布；用户明确要求正式交付后，集中验证再触发 Release macOS app。工作流读取 `docs/RELEASE-版本号.md`，因此发布说明原路径保留；不要因整理文档触发发布或覆盖公开附件。
+VERSION、pyproject.toml 与 uv.lock 中项目版本保持一致。更新版本号不自动发布；用户明确要求正式交付后，集中验证再触发 Release macOS and Windows。工作流读取 `docs/RELEASE-版本号.md`，因此发布说明原路径保留；不要因整理文档触发发布或覆盖公开附件。
 
 发布检查包括代码／数据保护、相关行为测试、独立构建、签名、包内后端启动与源文件一致性；发布后核对标签提交、CI、下载附件版本与 SHA256SUMS。应用尚未 Apple 公证。0.6.3 的一次发布授权不表示未来每次修改均可正式发布。
 

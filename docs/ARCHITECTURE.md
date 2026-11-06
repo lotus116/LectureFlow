@@ -1,6 +1,6 @@
 # 当前架构与实现边界
 
-产品目标见 [PRODUCT](PRODUCT.md)，缺口和验证见 [STATUS](STATUS.md)。本页描述 0.6.3 基线及后续口音实验测试构建，不把验证未覆盖的能力当已验收。
+产品目标见 [PRODUCT](PRODUCT.md)，缺口和验证见 [STATUS](STATUS.md)。0.6.5 同时提供 macOS 和 Windows 桌面入口。Mac 使用 SwiftUI、AVAudioEngine 与 MLX；Windows 使用 Tk、PortAudio、sherpa-onnx 识别和本机 GGUF 翻译服务。两端复用 SQLite、CaptionEngine、书签和转写检查点。平台实测边界见 [Windows 记录](research/WINDOWS-TRIAL.md)。
 
 ## 数据与身份
 

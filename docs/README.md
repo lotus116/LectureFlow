@@ -1,11 +1,12 @@
 # LectureFlow 文档入口
 
-LectureFlow 是面向英语课堂的本地 macOS 录音、英文转写与中文翻译应用。当前发布信息、实现差异和下一步统一见 [STATUS](STATUS.md)；本文不维护第二份进度。
+LectureFlow 是面向英语课堂的本地 macOS / Windows 录音、英文转写与中文翻译应用。当前发布信息、实现差异和下一步统一见 [STATUS](STATUS.md)；本文不维护第二份进度。
 
 ## 按目的阅读
 
 | 你要了解什么 | 阅读入口 |
 |---|---|
+| 0.6.5 双平台发行及差异 | [版本说明](RELEASE-0.6.5.md) · [Windows 实机记录](research/WINDOWS-TRIAL.md) |
 | 安装并开始使用 | [使用指南](USER_GUIDE.md) |
 | 软件应该怎样工作、哪些规则不能改 | [已确认需求](PRODUCT.md) |
 | 当前做到哪、有什么问题、下一步是否已批准 | [当前状态与需求追踪](STATUS.md) |

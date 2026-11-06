@@ -2,16 +2,16 @@
   <img src="docs/assets/hero-notebook.png" alt="LectureFlow · 听懂课堂，留下文字。把每一堂课，留在本地。" width="100%">
 </p>
 
-<p align="center"><strong>为英文课堂准备的 macOS 本地助手</strong><br>录音、英译中字幕与课后转写，在自己的 Mac 上完成。</p>
+<p align="center"><strong>为英语课堂准备的 macOS 与 Windows 本地助手</strong><br>录音、英译中字幕与课后转写，在自己的电脑上完成。</p>
 
 <p align="center">
-  <a href="https://github.com/lotus116/LectureFlow/releases/latest"><strong>下载 macOS 版 →</strong></a>
+  <a href="https://github.com/lotus116/LectureFlow/releases/latest"><strong>下载 macOS / Windows 版 →</strong></a>
   &nbsp; · &nbsp; <a href="docs/USER_GUIDE.md"><strong>使用指南</strong></a>
-  &nbsp; · &nbsp; <a href="docs/RELEASE-0.6.4.md">0.6.4 更新说明</a>
+  &nbsp; · &nbsp; <a href="docs/RELEASE-0.6.5.md">0.6.5 更新说明</a>
   &nbsp; · &nbsp; <a href="https://github.com/lotus116/LectureFlow/issues">反馈问题</a>
 </p>
 
-<p align="center"><sub>Apple Silicon · macOS 26+ · 建议 16 GB 内存 · 安装无需 Python 或 Xcode</sub></p>
+<p align="center"><sub>Apple Silicon · macOS 26+ ／ Windows 11 x64 · 安装无需 Python 或 Xcode</sub></p>
 
 ---
 
@@ -38,24 +38,24 @@
 **资料放一次，各次 Lecture 共享。** 课前或课后都能新增资料；导入后自动整理相关拼写提示，辅助术语可修改、停用或补充。课件中的明确中英对照与人工校正参与翻译，自动生成的中文仅作建议。[了解课程资料与术语](docs/USER_GUIDE.md#课程资料与术语)
 
 > [!TIP]
-> **0.6.4 · 复习书签与字幕修复**<br>
-> 标记听不懂的位置供课后复习，修复浮窗空白提示残留和中文回改串段，保留流式翻译及必做回改。[本版改进](docs/RELEASE-0.6.4.md)
+> **0.6.5 · macOS 与 Windows**<br>
+> Windows 加入课堂录音、悬浮字幕和课后工作区。两端可从复习书签查课件，中文回改增加串句与数值保护。[本版改进及下载说明](docs/RELEASE-0.6.5.md)
 
 ## 三步开始上课
 
-1. **安装并新建课程。** 从[发布页](https://github.com/lotus116/LectureFlow/releases/latest)下载 ZIP，解压，将 `LectureFlow.app` 拖入“应用程序”。
+1. **安装并新建课程。** 从[发布页](https://github.com/lotus116/LectureFlow/releases/latest)选择对应系统。Mac 解压后将 `LectureFlow.app` 放入“应用程序”；Windows 完整解压后运行 `LectureFlow.exe`。
 2. **开始一个 Lecture。** 点击「开始新 Lecture」或导入录音；课程资料可按需加入。上课时使用主窗口或悬浮字幕。
 3. **课后留下可用的文字。** 在转写页查看实时记录，或生成课后结果，再编辑、复制或导出。
 
-首次需联网准备约 **1.86 GB** 默认模型，支持暂停和继续；准备期间可以先管理课程或仅录音。更新前结束采集并完全退出旧版，再替换应用。
+Windows 发行目录附带默认模型；Mac 首次需联网准备约 **1.86 GB** 默认模型，支持暂停和继续；准备期间可以先管理课程或仅录音。更新前结束采集并完全退出旧版，再替换应用。
 
 > [!NOTE]
-> 当前应用使用本地签名，尚未经过 Apple 公证。如果首次打开被系统拦截，请核对下载来源，再按[安装说明](docs/USER_GUIDE.md#安装)处理。
+> Mac 应用使用本地签名，尚未经过 Apple 公证。如果首次打开被系统拦截，请核对下载来源，再按[安装说明](docs/USER_GUIDE.md#安装)处理。
 
 <details>
 <summary><strong>从源码启动</strong></summary>
 
-开发环境需要 Xcode。在终端运行：
+Windows 源码构建见[开发指南](docs/DEVELOPMENT.md)。Mac 开发环境需要 Xcode。在终端运行：
 
 ```sh
 git clone https://github.com/lotus116/LectureFlow.git

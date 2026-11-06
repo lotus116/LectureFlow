@@ -1,6 +1,6 @@
 # Windows x64 课堂试用记录 · 2026-11-06
 
-从 main 的 8ea8f52 建立 codex/windows-port。按用户本次授权实施 SD-04/05/06/07 和书签复习的 Windows 入口。此分支供审阅。试用包采用目录分发，复制整个 LectureFlow 文件夹后双击 LectureFlow.exe。模型和运行时均随包提供。
+从 main 的 8ea8f52 建立 codex/windows-port。按用户本次授权实施 SD-04/05/06/07 和书签复习的 Windows 入口。移植成果纳入 0.6.5，实际下载及安装见[发布说明](../RELEASE-0.6.5.md)。试用包采用目录分发，复制整个 LectureFlow 文件夹后双击 LectureFlow.exe。模型和运行时均随包提供。
 
 ## 上课和复习
 
