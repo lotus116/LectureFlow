@@ -131,10 +131,12 @@ class App:
         self.cap = Capture(
             self.lib, self.lecture_id, session, self.args.assets, self.args.replay, self.cpu.get()
         )
-        self.current = None
+        self.current = self.previous = None
+        self.show_previous = False
         self.marked = set()
         self.first_en = self.first_zh = None
         self.samples = []
+        self.display_times = {} if self.args.metrics else None
         self.mark_label.set("标记当前")
         self.caption.set("正在加载本地模型")
         for widget in [
@@ -208,6 +210,39 @@ class App:
             if self.root.winfo_exists():
                 self.root.after(100, self.poll)
 
+    def display_caption(self, event):
+        """Keep a late first translation readable without moving the bookmark target."""
+        if self.current is None or event["start"] > self.current["start"]:
+            self.previous, self.current = self.current, event
+            self.show_previous = False
+        elif event["id"] == self.current["id"]:
+            self.current = event
+        elif self.previous and event["id"] == self.previous["id"]:
+            if not self.previous["chinese"] and event["chinese"]:
+                self.show_previous = True
+            self.previous = event
+            if not self.show_previous:
+                return
+        else:
+            return
+
+        text = self.current["english"] + "\n\n" + self.current["chinese"]
+        if self.show_previous:
+            text = ("当前句\n" + text.rstrip() + "\n\n上一句\n" + self.previous["english"]
+                    + "\n" + self.previous["chinese"])
+        self.caption.set(text)
+        self.mark_label.set("已标记" if self.current["id"] in self.marked else "标记当前")
+        elapsed = time.monotonic() - self.cap.started
+        if self.display_times is not None:
+            timing = self.display_times.setdefault(event["id"], {"start": event["start"]})
+            for field in ("english", "chinese"):
+                if event[field]:
+                    timing.setdefault(field, elapsed)
+        if self.first_en is None and event["english"]:
+            self.first_en = elapsed
+        if self.first_zh is None and event["chinese"]:
+            self.first_zh = elapsed
+
     def refresh(self):
         cap = self.cap
         while True:
@@ -216,14 +251,7 @@ class App:
             except queue.Empty:
                 break
             live_store.save(self.lib, cap.session, event, english=True, translate=True)
-            if self.current is None or event["start"] >= self.current["start"]:
-                self.current = event
-                self.caption.set(event["english"] + "\n\n" + event["chinese"])
-                self.mark_label.set("已标记" if event["id"] in self.marked else "标记当前")
-                if self.first_en is None and event["english"]:
-                    self.first_en = time.monotonic() - cap.started
-                if self.first_zh is None and event["chinese"]:
-                    self.first_zh = time.monotonic() - cap.started
+            self.display_caption(event)
         lag = (cap.frames - cap.consumed) / RATE
         elapsed = time.monotonic() - cap.started
         if not self.samples or elapsed - self.samples[-1][0] >= 10:
@@ -253,6 +281,7 @@ class App:
                             first_en=self.first_en,
                             first_zh=self.first_zh,
                             samples=self.samples,
+                            display_times=self.display_times,
                             overflows=cap.overflows,
                             errors=cap.errors,
                             progress=getattr(cap, "progress", {}),
