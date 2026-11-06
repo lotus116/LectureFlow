@@ -18,7 +18,7 @@
 ## 从上课到复习
 
 <p align="center">
-  <img src="docs/assets/lecture-review-story.jpg" alt="琪露诺听到「千万不要使用 /rm -rf *」，给这句忠告打了书签，戴上耳机回听时看到课件写着「作业还在！」。" width="100%">
+  <img src="docs/assets/lecture-review-story.jpg" alt="琪露诺听到「千万别运行 sudo rm -rf /」，给这句忠告打了书签，戴上耳机回听时看到课件写着「作业还在！」。" width="100%">
 </p>
 
 1. **开始记录。** 新建课程并开始一个 Lecture，选择录音与双语字幕、仅录音或仅字幕。课件可按需添加，也可以导入已有录音做课后转写。
