@@ -190,7 +190,12 @@ def extract(source: Path) -> list[dict]:
             for index, page in enumerate(reader.pages)
         ]
     if suffix == ".pptx":
-        return _pptx(source)
+        try:
+            return _pptx(source)
+        except (zipfile.BadZipFile, KeyError, ET.ParseError) as error:
+            raise ValueError(
+                "PPTX 文件损坏或内容不完整，请在演示文稿应用中另存为 PPTX 后重试"
+            ) from error
     if suffix == ".ppt":
         import olefile
 

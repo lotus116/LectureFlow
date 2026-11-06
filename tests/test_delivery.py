@@ -222,6 +222,25 @@ def test_lecture_material_import_belongs_to_course_and_skips_duplicates(library,
     assert all(term["confirmed"] == 1 for term in listing["terms"] if term["english"] == "Kernel")
 
 
+@pytest.mark.parametrize("damage", ["invalid_zip", "missing_parts", "invalid_xml"])
+def test_damaged_pptx_has_actionable_error_and_cleans_partial_copy(library, tmp_path, damage):
+    lib, course, _, _, _ = library
+    source = tmp_path / "broken.pptx"
+    if damage == "invalid_zip":
+        source.write_bytes(b"not a zip file")
+    else:
+        with zipfile.ZipFile(source, "w") as archive:
+            archive.writestr("unrelated.txt", "synthetic material")
+            if damage == "invalid_xml":
+                archive.writestr("ppt/_rels/presentation.xml.rels", "<broken>")
+    original = source.read_bytes()
+    with pytest.raises(ValueError, match="PPTX 文件损坏或内容不完整"):
+        documents.import_document(lib, "course", course, source)
+    assert source.read_bytes() == original
+    assert documents.listing(lib, "course", course)["documents"] == []
+    assert list(documents.owner_path(lib, "course", course).iterdir()) == []
+
+
 def test_document_import_rejects_external_symlinks(library, tmp_path):
     lib, course, _, _, _ = library
     external = tmp_path / "external"

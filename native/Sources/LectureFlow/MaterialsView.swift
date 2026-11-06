@@ -89,6 +89,8 @@ struct MaterialsView: View {
     @State private var forceOCR = false
     @State private var reloadID = UUID()
     @State private var error: String?
+    @State private var importReport: MaterialImportReport?
+    @State private var importForceOCR = false
     private var scopedDocuments: [CourseDocument] { materials.documents.filter { documentID == nil || $0.id == documentID } }
     private var visibleTerms: [GlossaryTerm] {
         materials.terms.filter { term in
@@ -117,6 +119,7 @@ struct MaterialsView: View {
                 .font(.system(size: LFChrome.captionSize))
                 .foregroundStyle(.secondary)
             if working { HStack { ProgressView().controlSize(.mini); Text(progress) }.font(.caption) }
+            if let report = importReport { importSummary(report) }
             HSplitView {
                 VStack(spacing: 0) {
                     List(selection: $documentID) {
@@ -310,26 +313,54 @@ struct MaterialsView: View {
             if let id = documentID, !loaded.documents.contains(where: { $0.id == id }) { documentID = nil }
         } catch { if !Task.isCancelled { self.error = error.localizedDescription } }
     }
-    private func importFiles(_ urls: [URL]) async {
-        guard !working else { return }
-        working = true; defer { working = false }
-        for (index, url) in urls.enumerated() {
-            let accessed = url.startAccessingSecurityScopedResource()
-            defer { if accessed { url.stopAccessingSecurityScopedResource() } }
-            progress = "正在导入 \(index + 1)/\(urls.count)：\(url.lastPathComponent)"
-            do {
-                var arguments = ["materials", "import", "course", courseID, url.path]
-                let temporary = FileManager.default.temporaryDirectory.appendingPathComponent("lectureflow-pages-\(UUID().uuidString).json")
-                defer { try? FileManager.default.removeItem(at: temporary) }
-                if url.pathExtension.lowercased() == "pdf" {
-                    let ocr = forceOCR
-                    let extraction = try await Task.detached(priority: .userInitiated) { try DocumentExtractor.pdf(url, forceOCR: ocr) }.value
-                    try JSONEncoder().encode(extraction).write(to: temporary, options: .atomic)
-                    arguments += ["--pages-file", temporary.path]
+    private func importSummary(_ report: MaterialImportReport) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text(report.summary).font(.caption)
+                Spacer()
+                if !report.retryItems.isEmpty {
+                    Button("重试未完成项") { Task { await retryImport() } }.disabled(working)
                 }
-                _ = try await workspace.backend.call(arguments)
-            } catch { self.error = "\(url.lastPathComponent)：\(error.localizedDescription)"; break }
-        }
+                Button("关闭", systemImage: "xmark") { importReport = nil }
+                    .labelStyle(.iconOnly).help("关闭导入结果").disabled(working)
+            }
+            DisclosureGroup("查看逐项结果") {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 6) {
+                        ForEach(report.items) { item in
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(item.url.lastPathComponent).fontWeight(.medium)
+                                Text(item.detail).foregroundStyle(item.needsRetry ? Color.orange : Color.secondary)
+                                    .textSelection(.enabled)
+                            }.frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                    }.padding(.top, 4)
+                }.frame(maxHeight: 130)
+            }.font(.caption)
+        }.padding(10).background(.quaternary, in: RoundedRectangle(cornerRadius: 8))
+    }
+
+    private func importFiles(_ urls: [URL]) async {
+        guard !working, !urls.isEmpty else { return }
+        importForceOCR = forceOCR
+        await runImport(MaterialImportBatch.pending(urls))
+    }
+
+    private func retryImport() async {
+        guard !working, let report = importReport, !report.retryItems.isEmpty else { return }
+        await runImport(report.items)
+    }
+
+    private func runImport(_ items: [MaterialImportItem]) async {
+        working = true; defer { working = false }
+        let ocr = importForceOCR
+        importReport = nil
+        importReport = await MaterialImportBatch.run(items, progress: { index, count, url in
+            progress = "正在导入 \(index)/\(count)：\(url.lastPathComponent)"
+        }, importFile: { url in
+            try await MaterialFileImporter.run(url, courseID: courseID, forceOCR: ocr,
+                call: { try await workspace.backend.call($0) })
+        })
         await reload(); await workspace.refresh()
     }
     private func batch(_ operation: String, ids: [String]? = nil) async {
