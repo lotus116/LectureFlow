@@ -3,12 +3,16 @@ import wave
 from types import SimpleNamespace
 
 import numpy as np
+import pytest
 
 from lectureflow.inference_policy import (
     ASR_INPUT_POLICY,
     decide_enhancement,
     matching_glossary,
+    page_draft_score,
     select_asr_hints,
+    term_draft_score,
+    tokens,
 )
 from lectureflow.library import Library
 from lectureflow.live import CaptionEngine
@@ -296,3 +300,75 @@ def test_live_model_switch_waits_for_boundary_and_acknowledges_actual_model(tmp_
     ]
     assert len([e for e in events if e["type"] == "model_pending"]) == 2
     assert events[-1]["type"] == "stopped"
+
+
+@pytest.mark.parametrize("term", ["Reversing Engineering", "Windows binary", "Windows Internals"])
+@pytest.mark.parametrize("draft", ["in", "We are in this example.", "I will be in the room."])
+def test_short_substrings_cannot_give_unrelated_terms_full_relevance(term, draft):
+    assert term_draft_score(term, tokens(draft)) < 0.8
+    selection = select_asr_hints([{"english": term, "confirmed": True}], [], draft)
+    assert selection.terms == () and selection.context == ""
+
+
+@pytest.mark.parametrize("term,draft", [
+    ("Export Directory", "We inspect the Export Directory"),
+    ("Export Directory", "We inspect the export directry"),
+    ("Reverse Engineering", "We study reverse engineering"),
+    ("Reversing Engineering", "We study reversing engineering"),
+    ("VirtualMemory", "We use virtural memry"),
+    ("CreateFile", "We call create file"),
+    ("MS17-010", "We inspect MS17-010"),
+    ("DLL", "Load the DLL"),
+])
+def test_whole_terms_and_existing_misspelling_tolerance_remain_available(term, draft):
+    selection = select_asr_hints([{"english": term, "confirmed": True}], [], draft)
+    assert term in selection.terms
+
+
+def test_related_page_score_cannot_turn_containment_into_exact_word_evidence():
+    assert page_draft_score("export directories imported packages", ["port", "rect", "pack"]) == 0
+    assert page_draft_score("virtual memory directories", ["virtual", "memry"]) == 2
+    assert page_draft_score("port reports", ["port", "reports"]) == 2
+
+
+def test_unrelated_filler_does_not_trigger_offline_second_pass(tmp_path):
+    calls = []
+    class ASR:
+        def transcribe(self, path, context):
+            calls.append(context)
+            assert not context, "Unrelated words must not trigger a guided model call"
+            return {"text": "We are in this example.", "truncated": False}
+    result, metadata = recognize_unit(ASR(), tmp_path / "synthetic.wav", {
+        "asr_input_policy": "guided_rerecognize_v1",
+        "hint_terms": [{"english": "Reversing Engineering", "confirmed": True}],
+        "documents": [],
+    })
+    assert calls == [""]
+    assert result == "We are in this example."
+    assert metadata["raw_english"] == result
+    assert metadata["enhancement"]["attempted"] is False
+
+
+def test_unrelated_filler_does_not_trigger_live_polish():
+    class Session(PrefixCopyingSession):
+        def init_streaming(self, **kwargs):
+            self.contexts.append(kwargs["context"])
+            return SimpleNamespace(text="We are in this example.")
+        def transcribe(self, *args, **kwargs):
+            pytest.fail("Unrelated filler must not trigger guided inference")
+    events = []
+    engine = CaptionEngine(Session(), None, lambda e,*_: events.append(e), translate=False,
+        hint_terms=[{"english": "Windows binary", "confirmed": True}])
+    engine.feed(np.full(4000, .1, dtype=np.float32), 0)
+    engine.finish()
+    engine.polish()
+    assert events and all(e["english"] == "We are in this example." for e in events)
+
+
+def test_retrieval_similarity_skips_comparisons_that_cannot_reach_threshold(monkeypatch):
+    from lectureflow import inference_policy
+    def unexpected_ratio(*_):
+        pytest.fail("The length upper bound should reject before sequence matching")
+    monkeypatch.setattr(inference_policy, "_ratio", unexpected_ratio)
+    assert not inference_policy._retrieval_similar("abcd", "abcdefghijkl", 0.82)
+    assert inference_policy._retrieval_similar("exact", "exact", 0.88)

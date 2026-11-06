@@ -113,7 +113,7 @@ class CaptionEngine:
         self.current = None
         self.state = None
         self.recent: deque = deque()
-        self.last_translation_at = time.monotonic()
+        self.last_temporary_translation_at = time.monotonic()
         self.last_temporary_text = ""
         self.chunk_progress = None
         self.chunk_progress_at = 0.0
@@ -175,6 +175,9 @@ class CaptionEngine:
             if not voiced:
                 self.pre_roll = (pcm.copy(), start)
                 return
+            # This utterance owns its wait budget, including ASR compute time.
+            # Completed translations of older captions must not restart it.
+            self.last_temporary_translation_at = time.monotonic()
             self.state = self.session.init_streaming(
                 language=self.language,
                 chunk_size_sec=1.0,
@@ -215,9 +218,9 @@ class CaptionEngine:
         if text and text != self.current["english"]:
             self.current["english"] = text
             if (not self.deferred and self.translate
-                    and time.monotonic() - self.last_translation_at >= 1):
+                    and time.monotonic() - self.last_temporary_translation_at >= 1):
                 self.current["chinese"] = self.translated(text, context=self.preceding_context())
-                self.last_translation_at = time.monotonic()
+                self.last_temporary_translation_at = time.monotonic()
             self.emit(self.current, "temporary")
         pause_limit = 0.65 if text.endswith((".", "?", "!", "。", "？", "！")) else 1.25
         if self.silence >= pause_limit or end - self.current["start"] >= 12:
@@ -299,7 +302,6 @@ class CaptionEngine:
         del self.pending_translations[key]
         self.translations_completed += 1
         self.context_translations_completed += bool(job.following)
-        self.last_translation_at = time.monotonic()
 
     def translation_progress(self) -> dict:
         return {
@@ -327,8 +329,9 @@ class CaptionEngine:
         """Required first translations and context revisions share a fair FIFO.
 
         Drain one job per turn when input catches up, or after six seconds of
-        queue age. Deadlines are never reset by newer context. Window eviction
-        and normal shutdown finish outstanding work before locking a caption.
+        queue age. Newer context never resets required-job age. Older translations
+        do not reset the current utterance's independent temporary timer. Window
+        eviction and normal shutdown finish outstanding work before locking a caption.
         """
         now = time.monotonic()
         if self.pending_translations:
@@ -340,12 +343,12 @@ class CaptionEngine:
             self.service_accent(backlog, closing=closing)
             return
         text = self.current["english"]
-        elapsed = now - self.last_translation_at
+        elapsed = now - self.last_temporary_translation_at
         if (text and text != self.last_temporary_text and elapsed >= 1
                 and (backlog <= 2 or elapsed >= 6)):
             self.current["chinese"] = self.translated(text, context=self.preceding_context())
             self.last_temporary_text = text
-            self.last_translation_at = time.monotonic()
+            self.last_temporary_translation_at = time.monotonic()
             self.emit(self.current, "temporary")
             return
         self.service_accent(backlog)

@@ -294,3 +294,104 @@ def test_production_input_buffer_retains_short_inference_stall_in_order():
     assert [queue.get()['start'] for _ in range(160)] == [i * .25 for i in range(160)]
     assert queue.get()['type'] == 'stop'
     assert queue.get() is None
+
+
+@pytest.mark.parametrize('backlog,deadline', [(0, 1), (3, 6), (8, 6)])
+@pytest.mark.parametrize('translation_cost', [0, .7])
+def test_older_context_revision_does_not_restart_current_translation_wait(
+    monkeypatch, backlog, deadline, translation_cost,
+):
+    engine, translator, events, clock = make_engine(monkeypatch)
+    finish_utterance(engine, 0)
+    engine.service(0)
+    finish_utterance(engine, 1)
+    engine.service(0)  # Second first-translation done, first's context revision remains.
+    key, revision = next(iter(engine.pending_translations.items()))
+    assert revision.following == 'Utterance 2'
+    engine.feed(np.full(4000, .1, dtype=np.float32), .5)
+    translate = translator.translate
+
+    def timed_translate(*args, **kwargs):
+        clock[0] += translation_cost
+        return translate(*args, **kwargs)
+
+    translator.translate = timed_translate
+    clock[0] = deadline
+    engine.service(backlog)  # Required FIFO still wins this turn.
+    assert key not in engine.pending_translations
+    assert translator.calls[-1] == ('Utterance 1', '', 'Utterance 2')
+    assert engine.current['chinese'] == ''
+    clock[0] += .25
+    engine.service(backlog)  # No additional one/six-second wait after older work.
+    assert translator.calls[-1] == ('Utterance 3', 'Utterance 1\nUtterance 2', '')
+    assert events[-1]['status'] == 'temporary' and events[-1]['chinese']
+    engine.finish()
+    engine.lock_all()
+    assert not engine.pending_translations
+    assert all(e['chinese'] for e in events if e['status'] == 'locked')
+
+
+@pytest.mark.parametrize('backlog,deadline', [(0, 1), (8, 6)])
+def test_new_utterance_does_not_inherit_an_idle_temporary_timer(monkeypatch, backlog, deadline):
+    engine, translator, events, clock = make_engine(monkeypatch)
+    clock[0] = 30  # Long idle before this utterance, not thirty seconds of draft waiting.
+    engine.feed(np.full(4000, .1, dtype=np.float32), 0)
+    clock[0] = 30 + deadline - .01
+    engine.service(backlog)
+    assert not translator.calls
+    clock[0] = 30 + deadline
+    engine.service(backlog)
+    assert len(translator.calls) == 1
+    assert events[-1]['chinese']
+
+
+@pytest.mark.parametrize('deferred', [True, False])
+def test_first_asr_compute_time_counts_toward_current_wait(monkeypatch, deferred):
+    engine, translator, events, clock = make_engine(monkeypatch, deferred=deferred)
+    initialize = engine.session.init_streaming
+
+    def slow_initialize(**options):
+        clock[0] += 1.5
+        return initialize(**options)
+
+    engine.session.init_streaming = slow_initialize
+    engine.feed(np.full(4000, .1, dtype=np.float32), 0)
+    if deferred:
+        engine.service(0)
+    assert len(translator.calls) == 1
+    assert events[-1]['chinese']
+
+
+def test_current_partial_changes_keep_their_translation_cooldown(monkeypatch):
+    engine, translator, events, clock = make_engine(monkeypatch)
+    engine.feed(np.full(4000, .1, dtype=np.float32), 0)
+    clock[0] = 1
+    engine.service(0)
+    clock[0] = 1.5
+    engine.state.text += ' continues'
+    engine.feed(np.full(4000, .1, dtype=np.float32), .25)
+    clock[0] = 1.99
+    engine.service(0)
+    assert len(translator.calls) == 1
+    clock[0] = 2
+    engine.service(0)
+    assert len(translator.calls) == 2
+    assert events[-1]['english'] == 'Utterance 1 continues'
+    engine.service(0)
+    assert len(translator.calls) == 2  # Identical partial still deduplicates.
+
+
+def test_failed_temporary_translation_does_not_restart_wait_or_mark_text_done(monkeypatch):
+    engine, translator, events, clock = make_engine(monkeypatch)
+    engine.feed(np.full(4000, .1, dtype=np.float32), 0)
+    clock[0] = 6
+    translator.fail = True
+    with pytest.raises(RuntimeError, match='synthetic'):
+        engine.service(8)
+    assert engine.last_temporary_translation_at == 0
+    assert engine.last_temporary_text == ''
+    assert not events[-1]['chinese']
+    translator.fail = False
+    engine.service(8)
+    assert events[-1]['chinese']
+    assert engine.last_temporary_translation_at == 6

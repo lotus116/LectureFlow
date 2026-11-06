@@ -117,6 +117,23 @@ def similar(a: str, b: str, threshold: float = 0.72) -> bool:
     return _ratio(left, right) >= threshold
 
 
+def _retrieval_similar(a: str, b: str, threshold: float) -> bool:
+    """Require whole-token evidence; short substrings are not course relevance.
+
+    Keep this separate from the existing candidate-acceptance policy: tightening
+    retrieval must not silently replace that policy or imply acoustic confidence.
+    """
+    left, right = _fold(a), _fold(b)
+    if not left or not right:
+        return False
+    if left == right:
+        return True
+    shorter = min(len(left), len(right))
+    if shorter < 4 or 2 * shorter / (len(left) + len(right)) < threshold:
+        return False  # Even a perfect alignment cannot reach the requested ratio.
+    return _ratio(left, right) >= threshold
+
+
 def _term_parts(english: str) -> list[str]:
     parts = re.findall(r"[A-Z]?[a-z]+|[A-Z]+(?![a-z])|\d+", english)
     if not parts:
@@ -173,7 +190,7 @@ def term_draft_score(english: str, draft_tokens: list[str]) -> float:
             for part in parts
             if any(
                 part == token
-                or (len(part) >= 4 and similar(part, token, 0.82))
+                or (len(part) >= 4 and _retrieval_similar(part, token, 0.82))
                 for token in folded
             )
         )
@@ -201,7 +218,7 @@ def page_draft_score(page_text: str, draft_tokens: list[str]) -> float:
         for page in page_tokens:
             page_fold = page.casefold()
             if folded == page_fold or (
-                len(page_fold) >= 5 and similar(draft, page, 0.88)
+                len(page_fold) >= 5 and _retrieval_similar(draft, page, 0.88)
             ):
                 hits += 1.0
                 break
