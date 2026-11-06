@@ -5,13 +5,13 @@ import queue
 import threading
 import time
 import wave
-from contextlib import ExitStack
+from contextlib import ExitStack, nullcontext
 
 import numpy as np
 
-from . import filelock, recordings
+from . import documents, filelock, recordings
 from .library import identity, now
-from .live import CaptionEngine
+from .live import CaptionEngine, InputBuffer
 from .runtime import write_json
 from .windows_models import Speech, translation_server
 
@@ -20,12 +20,46 @@ BLOCK = 4000
 
 
 class Capture:
-    def __init__(self, library, lecture, session, assets, replay=None, cpu=False):
+    def __init__(
+        self,
+        library,
+        lecture,
+        session,
+        assets,
+        replay=None,
+        cpu=False,
+        *,
+        audio=True,
+        english=True,
+        chinese=True,
+        device=None,
+        language="English",
+        asr="asr-small",
+        previous=None,
+    ):
         self.session = session
         self.assets, self.replay, self.cpu = assets, replay, cpu
-        self.directory = library.lecture_path(lecture) / "Audio" / ("live-" + session)
-        self.directory.mkdir()
-        self.file = self.directory / "chunk-00000.wav"
+        continuing = previous is not None and previous.audio and audio
+        self.directory = (
+            previous.directory
+            if continuing
+            else (
+                library.lecture_path(lecture)
+                / "Audio"
+                / ("live-" + (identity() if previous else session))
+            )
+        )
+        self.prior_frames = previous.prior_frames + previous.frames if previous else 0
+        self.audio, self.english, self.chinese = audio, english, chinese
+        self.device, self.language, self.asr = device, language, asr
+        self.ready = threading.Event()
+        self.buffer = None if audio else InputBuffer()
+        self.root = library.root
+        self.materials = documents.context(library, lecture) if english or chinese else {}
+        if audio and not continuing:
+            self.directory.mkdir()
+        index = len(list(self.directory.glob("chunk-*.wav"))) if continuing else 0
+        self.file = self.directory / f"chunk-{index:05}.wav"
         self.descriptor = dict(
             id=identity(), capture_id=session, created_at=now(), sealed=False, capture_ranges=[]
         )
@@ -35,12 +69,17 @@ class Capture:
         self.finished = threading.Event()
         self.condition = threading.Condition()
         self.frames = self.consumed = self.overflows = 0
+        self.level = 0.0
         self.errors = []
-        self.ranges = self.descriptor["capture_ranges"]
+        if continuing:
+            self.descriptor = dict(previous.descriptor, sealed=False)
+        self.prior_ranges = self.descriptor["capture_ranges"].copy()
+        self.ranges = []
         self.lock = filelock.recording_path(library.root, self.directory).open("a+")
         filelock.flock(self.lock, filelock.LOCK_EX | filelock.LOCK_NB)
-        write_json(self.directory / "capture.json", self.descriptor)
-        self.started = time.monotonic()
+        if audio:
+            write_json(self.directory / "capture.json", self.descriptor)
+        self.started = previous.started if previous else time.monotonic()
         self.reader = threading.Thread(target=self.infer)
         self.writer = threading.Thread(target=self.record)
         self.writer.start()
@@ -49,8 +88,14 @@ class Capture:
     def record(self):
         try:
             with ExitStack() as stack:
+                if not self.audio:
+                    while not self.ready.wait(0.1):
+                        if self.stop.is_set():
+                            return
                 if self.replay:
                     source = stack.enter_context(wave.open(str(self.replay), "rb"))
+                    if self.prior_frames:
+                        source.setpos(min(source.getnframes(), self.prior_frames))
                     if source.getparams()[:3] != (1, 2, RATE):
                         raise ValueError("回放文件需要单声道 16 kHz PCM16 WAV")
                 else:
@@ -58,12 +103,17 @@ class Capture:
 
                     source = stack.enter_context(
                         sd.RawInputStream(
-                            channels=1, samplerate=RATE, dtype="int16", blocksize=BLOCK
+                            channels=1,
+                            samplerate=RATE,
+                            dtype="int16",
+                            blocksize=BLOCK,
+                            device=self.device,
                         )
                     )
-                raw = stack.enter_context(self.file.open("w+b"))
-                out = stack.enter_context(wave.open(raw, "wb"))
-                out.setparams((1, 2, RATE, 0, "NONE", "not compressed"))
+                if self.audio:
+                    raw = stack.enter_context(self.file.open("w+b"))
+                    out = stack.enter_context(wave.open(raw, "wb"))
+                    out.setparams((1, 2, RATE, 0, "NONE", "not compressed"))
                 new_span = True
                 deadline = time.monotonic()
                 while not self.stop.is_set():
@@ -95,23 +145,44 @@ class Capture:
                     else:
                         data, overflow = source.read(BLOCK)
                         self.overflows += int(overflow)
-                    out.writeframes(data)
-                    raw.flush()
+                    if self.audio:
+                        out.writeframes(data)
+                        raw.flush()
+                    else:
+                        span = self.ranges[-1]
+                        self.buffer.put(
+                            dict(
+                                type="audio",
+                                pcm=bytes(data),
+                                start=span["capture_start"] + span["duration"],
+                                end_frame=self.frames + len(data) // 2,
+                            )
+                        )
+                    samples = np.frombuffer(data, dtype="<i2").astype("float32") / 32768
+                    self.level = float(np.sqrt(np.mean(samples * samples)))
                     with self.condition:
                         self.frames += len(data) // 2
                         span = self.ranges[-1]
                         span["duration"] = self.frames / RATE - span["source_start"]
                         self.condition.notify()
-                os.fsync(raw.fileno())
+                if self.audio:
+                    os.fsync(raw.fileno())
         except Exception as error:
             self.errors.append(f"录音：{error}")
         finally:
             try:
                 self.ranges[:] = [r for r in self.ranges if r["duration"] > 0]
+                offset = sum(r["duration"] for r in self.prior_ranges)
+                self.descriptor["capture_ranges"] = self.prior_ranges + [
+                    dict(r, source_start=r["source_start"] + offset) for r in self.ranges
+                ]
                 self.descriptor["sealed"] = True
-                write_json(self.directory / "capture.json", self.descriptor)
+                if self.audio:
+                    write_json(self.directory / "capture.json", self.descriptor)
             except Exception as error:
                 self.errors.append(f"封存：{error}")
+            if self.buffer is not None:
+                self.buffer.close()
             self.finished.set()
             with self.condition:
                 self.condition.notify()
@@ -123,12 +194,52 @@ class Capture:
         return span["capture_start"] + max(0, span["duration"] - 1 / RATE)
 
     def infer(self):
+        if not self.english and not self.chinese:
+            return
         try:
             models = self.assets / "models"
-            speech = Speech(models)
-            with translation_server(self.assets / "llama", models, self.cpu) as mt:
-                engine = CaptionEngine(speech, mt, self.publish, deferred=True)
+            with ExitStack() as stack:
+                priority = stack.enter_context((self.root / ".live-priority.lock").open("a+"))
+                filelock.flock(priority, filelock.LOCK_EX | filelock.LOCK_NB)
+                lease = stack.enter_context((self.root / ".model.lock").open("a+"))
                 while True:
+                    try:
+                        filelock.flock(lease, filelock.LOCK_EX | filelock.LOCK_NB)
+                        break
+                    except BlockingIOError:
+                        if not self.audio and self.stop.is_set():
+                            return
+                        time.sleep(0.1)
+                speech = Speech(models, self.asr)
+                speech.language = self.language
+                mt = stack.enter_context(
+                    translation_server(self.assets / "llama", models, self.cpu)
+                    if self.chinese
+                    else nullcontext(None)
+                )
+                engine = CaptionEngine(
+                    speech,
+                    mt,
+                    self.publish,
+                    deferred=True,
+                    english=self.english,
+                    translate=self.chinese,
+                    language=self.language,
+                    **self.materials,
+                )
+                self.ready.set()
+                while True:
+                    if self.buffer is not None:
+                        item = self.buffer.get()
+                        if item is None:
+                            break
+                        pcm = np.frombuffer(item["pcm"], dtype="<i2").astype("float32") / 32768
+                        engine.feed(pcm, item["start"])
+                        self.consumed = item["end_frame"]
+                        engine.service(self.buffer.backlog())
+                        if not self.buffer.backlog() and engine.state is None:
+                            engine.polish()
+                        continue
                     with self.condition:
                         self.condition.wait_for(
                             lambda: self.frames > self.consumed or self.finished.is_set()
@@ -151,16 +262,23 @@ class Capture:
                     engine.feed(pcm, start)
                     self.consumed += size
                     engine.service((self.frames - self.consumed) // BLOCK)
+                    if self.frames == self.consumed and engine.state is None:
+                        engine.polish()
                 engine.finish()
                 engine.lock_all()
                 self.progress = engine.translation_progress()
         except Exception as error:
-            self.errors.append(f"字幕：{error}；原音继续写盘")
+            self.errors.append(f"字幕：{error}" + ("；原音继续写盘" if self.audio else ""))
+            if not self.audio:
+                self.stop.set()
 
     def publish(self, entry, english, translate):
+        if not english:
+            entry["english"] = ""
+            entry.pop("_source_text", None)
         self.events.put((entry, time.monotonic() - self.started))
 
     def register(self, library, lecture):
         self.lock.close()
-        if self.frames:
+        if self.audio and (self.frames or self.prior_ranges):
             return recordings.register(library, lecture, self.directory)

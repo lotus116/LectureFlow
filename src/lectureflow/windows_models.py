@@ -1,24 +1,44 @@
 """Offline Windows inference using sherpa-onnx and a private loopback llama.cpp process."""
 
 import json
+import os
 import secrets
 import socket
 import subprocess
 import time
 import urllib.request
+import wave
 from contextlib import contextmanager
 from types import SimpleNamespace
 
 import numpy as np
 
 from .adapters import HyMTTranslator
+from .windows_weights import LARGE, large_path
+
+WINDOWS_CATALOG = {
+    "asr-large": LARGE,
+    "asr-small": {
+        "repo": "csukuangfj2/sherpa-onnx-qwen3-asr-0.6B-int8-2026-03-25",
+        "revision": "68818b2313fe77bd06f6a7c5068ff3ef59d02b8a",
+        "type": "asr",
+    },
+    "translate": {
+        "repo": "tencent/Hy-MT2-1.8B-GGUF",
+        "revision": "a0c709d9fac510f2c807aa3af52872340dc37a4a",
+        "type": "translation",
+    },
+}
 
 
 class Speech:
-    def __init__(self, root):
+    def __init__(self, root, alias="asr-small"):
         import sherpa_onnx
 
-        folder = root / "qwen"
+        self.language = "English"
+        folder = large_path() if alias == "asr-large" else root / "qwen"
+        if not (folder / "decoder.int8.onnx").is_file():
+            raise FileNotFoundError("请先在采集设置中安装所选模型")
         self.model = sherpa_onnx.OfflineRecognizer.from_qwen3_asr(
             str(folder / "conv_frontend.onnx"),
             str(folder / "encoder.int8.onnx"),
@@ -27,12 +47,20 @@ class Speech:
             num_threads=4,
         )
 
-    def recognize(self, pcm):
+    def recognize(self, pcm, context=""):
         stream = self.model.create_stream()
-        stream.set_option("language", "English")
+        if self.language:
+            stream.set_option("language", self.language)
+        if context:
+            stream.set_option(
+                "hotwords", context.removeprefix("University lecture. Prefer spellings: ")
+            )
         stream.accept_waveform(16000, pcm)
         self.model.decode_stream(stream)
         return stream.result.text.strip()
+
+    def transcribe(self, pcm, *, context="", **options):
+        return SimpleNamespace(text=self.recognize(pcm, context))
 
     def init_streaming(self, **options):
         return SimpleNamespace(parts=[], count=0, decoded=0, text="")
@@ -49,6 +77,18 @@ class Speech:
             state.text = self.recognize(np.concatenate(state.parts))
             state.decoded = state.count
         return state
+
+
+class FileSpeech:
+    def __init__(self, models, alias="asr-small"):
+        self.speech = Speech(models, alias)
+        self.language = "English"
+
+    def transcribe(self, audio, context=""):
+        with wave.open(str(audio), "rb") as source:
+            samples = np.frombuffer(source.readframes(source.getnframes()), dtype="<i2")
+        self.speech.language = self.language
+        return {"text": self.speech.recognize(samples.astype("float32") / 32768, context)}
 
 
 class Translation(HyMTTranslator):
@@ -105,8 +145,16 @@ def translation_server(folder, models, cpu=False):
         "-ngl",
         "0" if cpu else "99",
     ]
+    env = os.environ.copy()
+    env.pop("GGML_BACKEND_PATH", None)
+    if cpu:
+        command.extend(["--device", "none", "--no-op-offload", "--no-kv-offload"])
+        env["GGML_DISABLE_VULKAN"] = "1"
+    elif (folder / "vulkan" / "ggml-vulkan.dll").is_file():
+        env["GGML_BACKEND_PATH"] = str((folder / "vulkan" / "ggml-vulkan.dll").resolve())
     with subprocess.Popen(
         command,
+        env=env,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
         creationflags=subprocess.CREATE_NO_WINDOW,

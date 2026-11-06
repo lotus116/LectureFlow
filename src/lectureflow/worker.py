@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import signal
 import time
+from contextlib import nullcontext
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -147,7 +148,18 @@ def process_task(
             )
 
 
-def run_worker(root: Path, model_root: Path) -> dict:
+def run_worker(root: Path, model_root: Path, *, catalog=None, load_asr=None, load_mt=None,
+               exit_requested=lambda: False) -> dict:
+    if catalog is None:
+        catalog = CATALOG
+    if load_asr is None:
+        def load_asr(alias):
+            return QwenASR(Path(resolve(alias, model_root, "asr")["path"]))
+    if load_mt is None:
+        def load_mt():
+            spec = resolve("translate", model_root, "translation")
+            return nullcontext(HyMTTranslator(Path(spec["path"])))
+
     configure(model_root)
     root.mkdir(parents=True, exist_ok=True)
     with (root / ".worker.lock").open("a+") as lock:
@@ -169,6 +181,9 @@ def run_worker(root: Path, model_root: Path) -> dict:
             nonlocal stopped
             stopped = True
 
+        def should_stop():
+            return stopped or exit_requested() or live_requested(root)
+
         old_term = signal.signal(signal.SIGTERM, stop)
         old_int = signal.signal(signal.SIGINT, stop)
         processed = []
@@ -176,33 +191,22 @@ def run_worker(root: Path, model_root: Path) -> dict:
             with Library(root, worker_lock_owned=True) as library:
                 library.recover_worker_tasks()
                 library.db.execute("UPDATE knowledge_jobs SET state='queued' WHERE state='running'")
-                while not stopped and not live_requested(root) and (task := library.claim()):
+                while not should_stop() and (task := library.claim()):
                     try:
                         config = json.loads(library.row("versions", task["version_id"])["config"])
                         expected = {
-                            "asr": CATALOG[config["asr"]],
-                            "translation": CATALOG["translate"] if config["translate"] else None,
+                            "asr": catalog[config["asr"]],
+                            "translation": catalog["translate"] if config["translate"] else None,
                         }
                         if config["models"] != expected:
                             raise ValueError(
                                 "模型版本已改变；请使用原模型配置恢复，或创建新转写版本",
                             )
-                        asr_spec = resolve(config["asr"], model_root, "asr")
-                        mt_spec = (
-                            resolve("translate", model_root, "translation")
-                            if config["translate"]
-                            else None
-                        )
-                        engine = QwenASR(Path(asr_spec["path"]))
+                        engine = load_asr(config["asr"])
                         engine.language = source_language(config)
-                        translator = HyMTTranslator(Path(mt_spec["path"])) if mt_spec else None
-                        process_task(
-                            library,
-                            task,
-                            engine,
-                            translator,
-                            lambda: stopped or live_requested(root),
-                        )
+                        with load_mt() if config["translate"] else nullcontext(None) as translator:
+                            process_task(library, task, engine, translator,
+                                         should_stop)
                     except Exception as error:
                         library.finish(task["id"], f"{type(error).__name__}: {error}")
                     finally:
@@ -213,7 +217,7 @@ def run_worker(root: Path, model_root: Path) -> dict:
                         if mx := sys.modules.get("mlx.core"):
                             mx.clear_cache()
                     processed.append(library.row("tasks", task["id"]))
-                    if live_requested(root):
+                    if should_stop():
                         library.db.execute(
                             "UPDATE tasks SET state='queued',updated_at=? "
                             "WHERE id=? AND state='running'",
@@ -230,7 +234,7 @@ def run_worker(root: Path, model_root: Path) -> dict:
                         is not None
                     )
 
-                while not stopped and not live_requested(root):
+                while not should_stop():
                     if audio_waiting():
                         break
                     job = library.db.execute(
@@ -239,10 +243,11 @@ def run_worker(root: Path, model_root: Path) -> dict:
                     ).fetchone()
                     if not job:
                         break
-                    try:
-                        spec = resolve("translate", model_root, "translation")
-                    except (ValueError, FileNotFoundError):
-                        break
+                    if catalog is CATALOG:
+                        try:
+                            resolve("translate", model_root, "translation")
+                        except (ValueError, FileNotFoundError):
+                            break
                     library.db.execute(
                         "UPDATE knowledge_jobs SET state='running',error=NULL "
                         "WHERE id=? AND state='queued'",
@@ -250,13 +255,9 @@ def run_worker(root: Path, model_root: Path) -> dict:
                     )
                     translator = None
                     try:
-                        translator = HyMTTranslator(Path(spec["path"]))
-                        process_job(
-                            library,
-                            dict(job),
-                            translator,
-                            lambda: stopped or live_requested(root) or audio_waiting(),
-                        )
+                        with load_mt() as translator:
+                            process_job(library, dict(job), translator,
+                                        lambda: should_stop() or audio_waiting())
                     except Exception as error:
                         library.db.execute(
                             "UPDATE knowledge_jobs SET state='failed',error=?,updated_at=? "

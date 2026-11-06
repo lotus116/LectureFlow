@@ -282,7 +282,7 @@ class Library:
     def enqueue(
         self, lecture_id: str, *, asr: str = "asr-small", translate: bool = True,
         context: str = "", glossary: str = "", segment_ids: list[str] | None = None,
-        source_language: str = "English",
+        source_language: str = "English", model_catalog=None,
     ) -> dict:
         if source_language not in {"auto", "English"}:
             raise ValueError("不支持的讲话语言配置")
@@ -327,8 +327,9 @@ class Library:
             config["glossary_policy"] = materials["glossary_policy"]
             config["documents"] = materials["documents"]
             config["hint_terms"] = materials["hint_terms"]
+            catalog = CATALOG if model_catalog is None else model_catalog
             config["models"] = {
-                "asr": CATALOG[asr], "translation": CATALOG["translate"] if translate else None,
+                "asr": catalog[asr], "translation": catalog["translate"] if translate else None,
             }
             config["scope"] = "lecture" if segment_ids is None else "segments"
             self.db.execute("INSERT INTO versions VALUES(?,?,?,?,?,?)", (

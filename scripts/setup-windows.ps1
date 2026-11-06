@@ -5,7 +5,7 @@ if (!(Test-Path .venv/Scripts/python.exe)) {
     py -3.12 -m venv .venv
     if ($LASTEXITCODE) { throw "Python 3.12 x64 is required" }
 }
-uv pip install --python .venv/Scripts/python.exe -e ".[dev]" numpy==2.5.4 sherpa-onnx==2.0.1 sounddevice==0.5.6 psutil==7.2.2 pyinstaller==6.22.3
+uv pip install --python .venv/Scripts/python.exe -e ".[dev]" numpy==2.5.4 sherpa-onnx==2.0.1 sounddevice==0.5.6 psutil==7.2.2 pyinstaller==6.22.3 pystray==0.19.5 tkinterdnd2==0.7.0 pypdfium2==5.15.0 pillow winrt-Windows.Media.Ocr winrt-Windows.Graphics.Imaging winrt-Windows.Storage.Streams winrt-Windows.Globalization winrt-Windows.Foundation winrt-Windows.Foundation.Collections
 if ($LASTEXITCODE) { throw "Dependency installation failed" }
 
 function Fetch($url, $path, $sha) {
