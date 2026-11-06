@@ -206,3 +206,58 @@ def test_cli_roundtrip_and_remove_requires_confirmation(classroom):
     result = subprocess.run(command + ["detail", lecture, mark["id"]],
                             check=True, capture_output=True, text=True)
     assert json.loads(result.stdout)["mark"]["capture_time"] == 12.5
+
+
+def test_late_mark_replays_only_previous_and_current_across_files(classroom):
+    lib, lecture, capture = classroom
+    audio(lib, lecture, capture, [
+        {"capture_start": 100, "source_start": 0, "duration": 20}])
+    live_store.create(lib, lecture, capture)
+    for i, (start, end) in enumerate([(100, 104), (107, 111), (111, 116), (116, 120)]):
+        live_store.save(lib, capture, {"id": str(i), "start": start, "end": end,
+                        "english": f"Sentence {i}", "chinese": "", "status": "locked",
+                        "revision": 1}, english=True, translate=False)
+    mark = marks.create(lib, lecture, capture, 111.5, caption_id="2")
+    result = marks.detail(lib, lecture, mark["id"])
+    assert [c["id"] for c in result["captions"]] == ["1", "2"]
+    replay = result["audio"]
+    assert len(replay["files"]) == 2
+    assert (replay["offset"], replay["last_end"]) == (7, 6)
+    first = marks.create(lib, lecture, capture, 107, caption_id="1")
+    detail = marks.detail(lib, lecture, first["id"])
+    assert [c["id"] for c in detail["captions"]] == ["1"]
+    assert detail["audio"]["offset"] == 7
+
+
+def test_review_spelling_scopes_page_and_literal_evidence(classroom, tmp_path):
+    from lectureflow import documents
+    from lectureflow.runtime import sha256
+
+    lib, lecture, _ = classroom
+    course = lib.row("lectures", lecture)["course_id"]
+
+    def register(course_id, name, text):
+        path = tmp_path / name
+        path.write_bytes(name.encode())
+        return documents.import_document(lib, "course", course_id, path,
+            extracted={"sha256": sha256(path), "pages": [{"page": 3, "text": text}]})["id"]
+
+    doc = register(course, "A.pdf", "CoNLL-2003 annotation guidelines")
+    other = register(course, "B.pdf", "Different chapter")
+    foreign = register(lib.create_course("Elsewhere")["id"], "X.pdf", "Private foreign slide")
+    command = [sys.executable, "-m", "lectureflow.cli", "--library-root", str(lib.root),
+               "review"]
+    listed = json.loads(subprocess.check_output([*command, "materials", lecture]))
+    assert {d["id"] for d in listed} == {doc, other}
+    request = {"sentence": "Cornell 2003 annotation guidelines", "selection": "Cornell 2003"}
+    def query(document, **updates):
+        return subprocess.run([*command, "lookup", lecture], capture_output=True, text=True,
+            input=json.dumps(dict(request, document=document, **updates)))
+    for focus in ("", "Cornell 2003"):
+        result = json.loads(query(doc, selection=focus).stdout)
+        spelling = result["spelling"]
+        assert spelling["term"] == "CoNLL-2003" and spelling["term"] in spelling["line"]
+        assert spelling["source"]["document"] == doc and spelling["source"]["page"] == 3
+    for empty in (other, foreign):
+        assert json.loads(query(empty).stdout) == {"pages": [], "spelling": None}
+    assert query(doc, selection="not in caption").returncode != 0

@@ -182,6 +182,7 @@ final class Workspace: ObservableObject {
     }
 
     func openReviewMarks() {
+        if !reviewPresented { reviews.prepareForPresentation() }
         playback.stop()
         reviewPresented = true
         if !isMainWindowVisible { toggleMainWindow() }

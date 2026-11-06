@@ -27,6 +27,9 @@ final class AudioPlayback: ObservableObject {
             error = "对应原音不可用，文字与标记仍保留。"; return
         }
         let items = audio.files.map { AVPlayerItem(url: URL(fileURLWithPath: $0)) }
+        if let end = audio.last_end, end.isFinite, end > 0 {
+            items.last?.forwardPlaybackEndTime = CMTime(seconds: end, preferredTimescale: 16000)
+        }
         let queue = AVQueuePlayer(items: items)
         player = queue; segmentID = audio.segment_id; reviewID = markID
         finishedObserver = NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime,

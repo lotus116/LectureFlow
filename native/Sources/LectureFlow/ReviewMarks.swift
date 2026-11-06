@@ -44,6 +44,7 @@ struct ReviewAudio: Decodable {
     let files: [String]
     let offset: Double
     let position: Double
+    let last_end: Double?
     let pre_roll_seconds: Double
 }
 struct ReviewDetail: Decodable {
@@ -99,6 +100,11 @@ final class ReviewMarks: ObservableObject {
             if let key = selectedID, !marks.contains(where: { $0.id == key }) { selectedID = nil }
             if selectedID == nil { selectedID = marks.first(where: { $0.reviewed == 0 })?.id ?? marks.first?.id }
         } catch { if lectureID == id, loadToken == token { self.error = error.localizedDescription } }
+    }
+
+    func prepareForPresentation() {
+        detailToken = UUID()
+        detail = nil
     }
 
     func loadDetail() {
@@ -250,6 +256,7 @@ struct ReviewMarksView: View {
     @ObservedObject var store: ReviewMarks
     @ObservedObject var playback: AudioPlayback
     @State private var removing: ReviewMark?
+    @State private var attemptedPlayback: String?
     @Environment(\.dismiss) private var dismiss
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -294,7 +301,18 @@ struct ReviewMarksView: View {
         .padding(20).frame(minWidth: 620, idealWidth: 760, minHeight: 400, idealHeight: 540)
         .task { await store.refresh(); store.loadDetail() }
         .onDisappear { playback.stop() }
-        .onChange(of: store.selectedID) { _, _ in playback.stop() }
+        .onReceive(store.$detail) { updated in
+            guard let detail = updated else {
+                playback.stop()
+                attemptedPlayback = nil
+                return
+            }
+            guard detail.mark.removed != 1,
+                  let audio = detail.audio, audio.last_end != nil,
+                  !workspace.live.isCapturing, attemptedPlayback != detail.mark.id else { return }
+            attemptedPlayback = detail.mark.id
+            playback.playReview(audio, markID: detail.mark.id)
+        }
         .confirmationDialog("移除这个复习标记？", isPresented: Binding(
             get: { removing != nil }, set: { if !$0 { removing = nil } })) {
                 if let mark = removing {
@@ -320,31 +338,15 @@ struct ReviewMarksView: View {
                         Button(playback.reviewID == detail.mark.id ? "停止回听" : "回听原音") {
                             playback.playReview(audio, markID: detail.mark.id)
                         }.disabled(workspace.live.isCapturing)
-                        Text(workspace.live.isCapturing ? "结束采集后可回听" : "从标记前\(Int(audio.pre_roll_seconds))秒开始")
+                        Text(workspace.live.isCapturing ? "结束采集后可回听" : audio.last_end != nil ? "播放所示字幕对应的原音" : "从标记前\(Int(audio.pre_roll_seconds))秒开始")
                             .font(.caption).foregroundStyle(.secondary)
                     }
                 } else {
                     Text(detail.audio_message).font(.callout).foregroundStyle(.secondary)
                 }
                 if let error = playback.error { Text(error).foregroundStyle(.red) }
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 16) {
-                        if detail.captions.isEmpty {
-                            Text("此位置暂无已保存字幕；保存了原音时仍可回听。")
-                                .foregroundStyle(.secondary)
-                        }
-                        ForEach(detail.captions) { caption in
-                            VStack(alignment: .leading, spacing: 6) {
-                                Text(caption.id == detail.target_caption_id ? "标记附近" : "相邻内容")
-                                    .font(.caption).foregroundStyle(.secondary)
-                                if !caption.english.isEmpty { Text(caption.english) }
-                                if !caption.chinese.isEmpty { Text(caption.chinese).foregroundStyle(.secondary) }
-                            }.frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(10)
-                                .background(caption.id == detail.target_caption_id ? Color.accentColor.opacity(0.08) : .clear)
-                        }
-                    }.textSelection(.enabled)
-                }
+                ReviewSpellingView(backend: workspace.backend, detail: detail)
+                    .id(detail.mark.id)
                 Spacer(minLength: 0)
                 if detail.mark.removed == 1 {
                     Button("恢复标记") { store.restore(detail.mark) }.disabled(store.saving)

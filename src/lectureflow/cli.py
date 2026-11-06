@@ -107,12 +107,12 @@ def parser() -> argparse.ArgumentParser:
     commands.add_parser("worker", help="处理队列；关闭界面不会取消任务")
     review = commands.add_parser("review", help="本地复习标记")
     review_actions = review.add_subparsers(dest="review_action", required=True)
-    for name in ("list", "add", "detail", "done", "remove", "restore"):
+    for name in ("list", "add", "detail", "done", "remove", "restore", "materials", "lookup"):
         action = review_actions.add_parser(name)
         action.add_argument("lecture_id")
         if name == "list":
             action.add_argument("--removed", action="store_true")
-        if name not in {"list", "add"}:
+        if name not in {"list", "add", "materials", "lookup"}:
             action.add_argument("id")
         if name == "add":
             action.add_argument("capture_id")
@@ -323,6 +323,14 @@ def main() -> int:
                         args.time, caption_id=args.caption_id, key=args.id)
                 elif args.review_action == "list":
                     result = review_marks.listing(library, args.lecture_id, removed=args.removed)
+                elif args.review_action in {"materials", "lookup"}:
+                    from . import review_lookup
+
+                    if args.review_action == "materials":
+                        result = review_lookup.documents(library, args.lecture_id)
+                    else:
+                        result = review_lookup.lookup(
+                            library, args.lecture_id, json.load(sys.stdin))
                 elif args.review_action == "detail":
                     result = review_marks.detail(library, args.lecture_id, args.id)
                 else:

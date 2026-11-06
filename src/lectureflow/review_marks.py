@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 import math
 import uuid
-from pathlib import Path
 
 from .library import identity, now
 
@@ -91,7 +90,7 @@ def update(library, lecture_id, key, *, reviewed=None, remove=False, restore=Fal
     return get(library, lecture_id, key)
 
 
-def _audio(library, mark):
+def _audio(library, mark, captions=(), *, source_times=False):
     from .files import hidden
     from .recordings import chunks_for
     from .runtime import sha256
@@ -117,19 +116,37 @@ def _audio(library, mark):
         for span in ranges:
             if span['capture_start'] <= point < span['capture_start'] + span['duration']:
                 position = span['source_start'] + point - span['capture_start']
-                start = max(0, position - 5)
+                start, end = max(0, position - 5), None
+                if captions:
+                    lo, hi = captions[0]['start'], captions[-1]['end']
+                    if source_times and 0 <= lo <= position < hi <= segment['duration'] + 0.02:
+                        start, end = lo, min(hi, segment['duration'])
+                    elif not source_times:
+                        capture_end = span['capture_start'] + span['duration']
+                        # Never stretch across a pause or a separate audio segment.
+                        if span['capture_start'] <= lo < hi <= capture_end + 0.02:
+                            start = span['source_start'] + lo - span['capture_start']
+                            end = start + min(hi, capture_end) - lo
                 chunks = chunks_for(path)
-                cursor = 0.0
-                for i, chunk in enumerate(chunks):
-                    if start < cursor + chunk['duration']:
-                        files = [str(library.managed_path(path.parent / c['file']))
-                                 for c in chunks[i:]]
-                        if not all(Path(f).is_file() for f in files):
-                            return None, "对应录音文件缺失；标记与文字仍保留。"
-                        return {"segment_id": segment['id'], "files": files,
-                                "offset": start - cursor, "position": position,
-                                "pre_roll_seconds": position - start}, ""
-                    cursor += chunk['duration']
+                files = []
+                cursor = offset = 0.0
+                last_end = None
+                for chunk in chunks:
+                    file = library.managed_path(path.parent / chunk['file'])
+                    if not file.is_file():
+                        return None, "对应录音文件缺失；标记与文字仍保留。"
+                    following = cursor + chunk['duration']
+                    if start < following and (end is None or cursor < end):
+                        if not files:
+                            offset = max(0, start - cursor)
+                        files.append(str(file))
+                        if end is not None:
+                            last_end = min(end, following) - cursor
+                    cursor = following
+                if files:
+                    return {"segment_id": segment['id'], "files": files, "offset": offset,
+                            "position": position, "pre_roll_seconds": max(0, position - start),
+                            "last_end": last_end}, ""
     return None, reason
 
 
@@ -169,9 +186,11 @@ def detail(library, lecture_id, key):
         if min(abs(captions[nearest]['start'] - mark['capture_time']),
                abs(captions[nearest]['end'] - mark['capture_time'])) <= 3:
             target = nearest
-    nearby = captions[max(0, target - 1):target + 2] if target is not None else []
+    nearby = captions[max(0, target - 1):target + 1] if target is not None else []
+    if len(nearby) == 2 and nearby[1]['start'] - nearby[0]['end'] >= 2:
+        nearby = nearby[1:]
     try:
-        audio, reason = _audio(library, mark)
+        audio, reason = _audio(library, mark, nearby)
     except (OSError, ValueError, KeyError, TypeError):
         audio, reason = None, "对应录音暂不可读，文字与标记仍保留。"
     target_id = captions[target]['id'] if target is not None else None
@@ -182,9 +201,19 @@ def detail(library, lecture_id, key):
             AND u.source_start<=? AND u.source_end>? ORDER BY v.created_at DESC LIMIT 1""",
             (lecture_id, audio['segment_id'], audio['position'], audio['position'])).fetchone()
         if rows:
-            nearby = [{"id": f"{rows['version_id']}:{rows['sequence']}",
-                       "english": rows['english'], "chinese": rows['chinese'],
-                       "start": rows['source_start'], "end": rows['source_end']}]
-            target_id = nearby[0]['id']
+            previous = library.db.execute("""SELECT * FROM units WHERE version_id=?
+                AND segment_id=? AND sequence=?""",
+                (rows['version_id'], rows['segment_id'], rows['sequence'] - 1)).fetchone()
+            pair = [rows]
+            if previous and 0 <= rows['source_start'] - previous['source_end'] < 2:
+                pair.insert(0, previous)
+            nearby = [{"id": f"{unit['version_id']}:{unit['sequence']}",
+                       "english": unit['english'], "chinese": unit['chinese'],
+                       "start": unit['source_start'], "end": unit['source_end']} for unit in pair]
+            target_id = nearby[-1]['id']
+            try:
+                audio, reason = _audio(library, mark, nearby, source_times=True)
+            except (OSError, ValueError, KeyError, TypeError):
+                audio, reason = None, "对应录音暂不可读，文字与标记仍保留。"
     return {"mark": mark, "captions": nearby, "target_caption_id": target_id,
         "audio": audio, "audio_message": reason}

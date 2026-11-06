@@ -1,3 +1,4 @@
+import AVFoundation
 import Foundation
 import LectureFlowCore
 import XCTest
@@ -130,5 +131,36 @@ final class ReviewMarkTests: XCTestCase {
         XCTAssertTrue(store.marks.isEmpty)
         XCTAssertNil(store.selectedID)
         XCTAssertNil(store.detail)
+    }
+}
+
+extension ReviewMarkTests {
+    @MainActor func testBoundedReplayStopsOnSecondAudioChunk() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let format = try XCTUnwrap(AVAudioFormat(standardFormatWithSampleRate: 16000, channels: 1))
+        let buffer = try XCTUnwrap(AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 64000))
+        buffer.frameLength = 64000
+        buffer.floatChannelData?[0].initialize(repeating: 0, count: 64000)
+        var files: [String] = []
+        for name in ["a", "b"] {
+            let url = directory.appendingPathComponent(name + ".caf")
+            let file = try AVAudioFile(forWriting: url, settings: format.settings)
+            try file.write(from: buffer)
+            files.append(url.path)
+        }
+        let playback = AudioPlayback()
+        defer { playback.stop() }
+        let audio = ReviewAudio(segment_id: "test", files: files, offset: 3.85,
+                                position: 4, last_end: 0.20, pre_roll_seconds: 0.15)
+        playback.playReview(audio, markID: "late")
+        XCTAssertEqual(playback.reviewID, "late")
+        // Playing the entire last file would still be active after this deadline.
+        for _ in 0..<60 where playback.reviewID != nil {
+            try await Task.sleep(nanoseconds: 50_000_000)
+        }
+        XCTAssertNil(playback.error)
+        XCTAssertNil(playback.reviewID)
     }
 }
