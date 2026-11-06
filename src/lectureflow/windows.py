@@ -13,7 +13,7 @@ from tkinter import filedialog, messagebox, simpledialog, ttk
 
 from . import locking
 from .library import Library
-from .runtime import configure
+from .runtime import configure, sha256, write_json
 
 
 def transcribe(root, lecture_id, asr_path, translation_path, *, backend="whisper",
@@ -40,7 +40,12 @@ def transcribe(root, lecture_id, asr_path, translation_path, *, backend="whisper
             config['inference_device'] = 'cpu'
             config['model_memory'] = 'system_ram'
             config['asr_dtype'] = 'float32' if backend == 'qwen' else 'int8'
-            config['models'] = {'asr': str(asr_path), 'translation': str(translation_path)}
+            config['models'] = {
+                'asr': {'engine': backend, 'revision': 'local-unverified',
+                        'config_sha256': sha256(asr_path / 'config.json')
+                        if (asr_path / 'config.json').is_file() else None},
+                'translation': {'engine': 'marian', 'revision': 'local-unverified'},
+            }
             # No courseware enhancement is claimed for this experimental backend.
             config['hint_terms'] = []
             config['documents'] = []
@@ -81,8 +86,12 @@ class App:
         for label, action in [('新建课程', self.course), ('新建 Lecture', self.lecture),
                               ('导入音频', self.import_audio), ('开始录音', self.record),
                               ('结束录音', self.stop_recording), ('课后双语转写', self.run),
-                              ('查看最近结果', self.show_latest), ('打开导出目录', self.exports)]:
-            ttk.Button(bar, text=label, command=lambda a=action: self.safe(a)).pack(side='left')
+                              ('导入恢复录音', self.import_recovered),
+                              ('重试导出', self.retry_export), ('查看最近结果', self.show_latest),
+                              ('打开导出目录', self.exports)]:
+            index = len(bar.winfo_children())
+            ttk.Button(bar, text=label, command=lambda a=action: self.safe(a)).grid(
+                row=index // 6, column=index % 6, padx=2, pady=2)
         self.tree = ttk.Treeview(root, show='tree', height=8)
         self.tree.pack(fill='x', padx=12)
         self.tree.bind('<<TreeviewSelect>>', self.select)
@@ -92,6 +101,8 @@ class App:
         ttk.Label(root, textvariable=self.status).pack(fill='x', padx=12, pady=8)
         self.refresh()
         root.protocol('WM_DELETE_WINDOW', self.close)
+        self.recovered = []
+        root.after(0, self.check_recovery)
         root.after(150, self.poll)
 
     def safe(self, action):
@@ -151,6 +162,44 @@ class App:
             self.refresh()
             self.status.set('已保存受管副本；请重新选择 Lecture 开始转写。')
 
+    def check_recovery(self):
+        from .windows_recording import recover_recordings
+
+        try:
+            self.recovered = recover_recordings(self.library_root.parent / 'Recordings')
+            if self.recovered:
+                self.status.set(f'发现 {len(self.recovered)} 段可恢复原音；'
+                                '请选 Lecture 后导入恢复录音。')
+        except Exception as error:
+            messagebox.showerror('录音恢复失败，原文件保留', str(error))
+
+    def import_recovered(self):
+        lecture = self.require_lecture()
+        for path in list(self.recovered):
+            with Library(self.library_root) as lib:
+                digest = sha256(path)
+                if not any(s['sha256'] == digest for s in lib.segments(lecture)):
+                    lib.import_audio(lecture, [path])
+            original = path.with_name(path.name.removeprefix('recovered-'))
+            write_json(original.with_suffix('.recovery.json'), {'imported': True})
+            self.recovered.remove(path)
+        self.refresh()
+        self.status.set('恢复录音已导入；原文件和恢复副本保留。')
+
+    def retry_export(self):
+        from .exporting import export_version
+
+        lecture = self.require_lecture()
+        with Library(self.library_root) as lib:
+            row = lib.db.execute('SELECT id FROM versions WHERE lecture_id=? '
+                                 'ORDER BY created_at DESC LIMIT 1', (lecture,)).fetchone()
+            if row is None:
+                raise ValueError('还没有转写结果')
+            with lib.transaction():
+                lib.db.execute('UPDATE tasks SET error=NULL WHERE version_id=?', (row['id'],))
+                export_version(lib, row['id'])
+        self.status.set('导出重试成功；未重新识别录音。')
+
     def record(self):
         from .windows_recording import Recorder
 
@@ -170,6 +219,7 @@ class App:
         if recorder.frames:
             with Library(self.library_root) as lib:
                 lib.import_audio(self.recording_lecture, [recorder.path])
+            write_json(recorder.path.with_suffix('.recovery.json'), {'imported': True})
         self.refresh()
         self.status.set('录音已结束；原始 WAV 保留在实验资料库旁的 Recordings 目录。')
         if recorder.error:
@@ -203,6 +253,14 @@ class App:
         threading.Thread(target=work, daemon=False).start()
 
     def poll(self):
+        if self.recorder is not None and self.recorder.interrupted.is_set():
+            self.status.set('录音已中断，正在封存已保存原音。')
+            self.root.update_idletasks()
+            try:
+                self.stop_recording()
+            except Exception as error:
+                messagebox.showerror('录音中断，保存失败', str(error))
+            self.status.set(f'录音已中断；原音位于 {self.library_root.parent / "Recordings"}')
         try:
             kind, value = self.events.get_nowait()
             self.busy = False
@@ -211,7 +269,11 @@ class App:
                 messagebox.showerror('转写失败', value)
             else:
                 self.display(value)
-                self.status.set('已保存双语转写与 TXT / Markdown / SRT / JSON 导出。')
+                if value['task'].get('error'):
+                    self.status.set('转写已保存，导出失败；可点击重试导出，无需重新识别。')
+                    messagebox.showwarning('导出失败', value['task']['error'])
+                else:
+                    self.status.set('已保存双语转写与 TXT / Markdown / SRT / JSON 导出。')
         except queue.Empty:
             pass
         self.root.after(150, self.poll)
