@@ -13,6 +13,12 @@
 
 <p align="center"><sub>Apple Silicon · macOS 26+ ／ Windows 11 x64 · 安装无需 Python 或 Xcode</sub></p>
 
+## 30 秒认识 LectureFlow
+
+https://github.com/user-attachments/assets/bce2ea8e-fe6d-42c6-8753-bb23f85fd44c
+
+<p align="center"><sub>BGM：休憩うさぎ（<a href="https://x.com/QK_rabbit_2/status/1968963279730233345">@QK_rabbit_2 · 原作</a>）</sub></p>
+
 ---
 
 ## 从上课到复习
