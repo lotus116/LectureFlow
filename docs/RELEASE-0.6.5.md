@@ -7,7 +7,7 @@
 | 平台 | 选择与使用 |
 |---|---|
 | Apple Silicon，macOS 26 或以上 | 下载 `LectureFlow-0.6.5-macOS-arm64.zip`，解压后将应用放进“应用程序”。首次使用需准备本地模型；升级时沿用已有模型和资料库。应用使用本地签名，尚未经过 Apple 公证。 |
-| Windows 11 x64 | 下载 `LectureFlow-0.6.5-Windows-x64.zip`，完整解压后双击文件夹内的 `LectureFlow.exe`。若附件另列 `Windows-x64-translation.zip`，请把它解压到相同位置，合并两个 LectureFlow 文件夹。目录包含默认识别模型、翻译模型和运行环境。英文识别用 CPU；中文翻译可选 Vulkan 或纯 CPU。 |
+| Windows 11 x64 | 下载 `LectureFlow-0.6.5-Windows-x64.zip`，完整解压后双击文件夹内的 `LectureFlow.exe`。目录包含默认识别模型、翻译模型和运行环境。英文识别用 CPU；中文翻译可选 Vulkan 或纯 CPU。 |
 
 更新前请结束录音，等保存完成并退出应用。Windows 请解压到新目录，保留原有 LocalAppData 资料库。发布页中的 `SHA256SUMS` 可核对下载文件。
 

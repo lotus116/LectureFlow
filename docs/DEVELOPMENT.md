@@ -4,7 +4,7 @@
 
 ## 环境与常用命令
 
-使用项目隔离环境、固定 uv.lock；模型候选版本由 src/lectureflow/models.py 固定，不在恢复旧任务时静默换权重。独立应用面向 Apple Silicon / macOS 26+；无模型的 CI 不代表完整推理环境验收。
+使用项目隔离环境、固定 uv.lock；模型候选版本由 src/lectureflow/models.py 固定，不在恢复旧任务时静默换权重。正式包分别面向 Apple Silicon / macOS 26+ 和 Windows 11 x64。下列 zsh 命令适用于 Mac，Windows 构建命令见本页“独立打包与正式发布”。
 
 ```sh
 zsh scripts/setup
@@ -29,7 +29,7 @@ python3 scripts/check-docs.py
 
 ## 后台接口与数据
 
-本地 Python 子进程使用 JSON 命令，不开放网络推理端口：
+以下命令直接调用本机 Python 后台。Windows 翻译子进程只监听本机回环地址 127.0.0.1。
 
 ```sh
 .venv/bin/python -m lectureflow.cli library status
@@ -56,7 +56,7 @@ zsh scripts/package-app --zip
 
 输出 dist/LectureFlow.app 与版本 ZIP，包含可搬移 Python 和后端。默认不内置模型；首次准备模型可联网下载并复用应用支持目录缓存。`--with-models` 仅在明确要求离线分发时使用。logo、USER_GUIDE、licenses 路径为打包依赖，文档整理不能随意移动。
 
-VERSION、pyproject.toml 与 uv.lock 中项目版本保持一致。更新版本号不自动发布；用户明确要求正式交付后，集中验证再触发 Release macOS and Windows。工作流读取 `docs/RELEASE-版本号.md`，因此发布说明原路径保留；不要因整理文档触发发布或覆盖公开附件。
+VERSION、pyproject.toml、uv.lock 与 Python 包版本保持一致。更新版本号不自动发布；用户明确要求正式交付后，集中验证再触发 Release macOS and Windows。工作流读取 `docs/RELEASE-版本号.md`，因此发布说明原路径保留；不要因整理文档触发发布或覆盖公开附件。
 
 发布检查包括代码／数据保护、相关行为测试、独立构建、签名、包内后端启动与源文件一致性；发布后核对标签提交、CI、下载附件版本与 SHA256SUMS。应用尚未 Apple 公证。0.6.3 的一次发布授权不表示未来每次修改均可正式发布。
 

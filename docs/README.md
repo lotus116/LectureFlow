@@ -17,6 +17,7 @@ LectureFlow 是面向英语课堂的本地 macOS / Windows 录音、英文转写
 | 口音复核为何没收益、下一步依据 | [离线归因与候选对照](research/ACCENT_DIAGNOSIS-2026-11-05.md) |
 | 真实课堂的原音、课件与中文回改对照 | [课堂基线与有限对照](research/CLASSROOM_BASELINE-2026-11-05.md) |
 | 中文回改串段修复前后的具体结果 | [目标隔离修复与离线对照](research/TRANSLATION_ISOLATION-2026-11-05.md) |
+| 资料库能否帮助拼写核对 | [书签试验](research/MARK_SPELLING-2026-11-06.md) · [查页试验](research/REVIEW_PAGE_LOOKUP-2026-11-06.md) · [语境与课件对照](research/CONTEXT_PPT_EXPLORATION.md) · [实验协议](research/CONTEXT_PPT_EXPLORATION_PROTOCOL.md) |
 | 找旧文档、旧测试或原始 PRD | [整理对照](archive/2026-11-05/MIGRATION.md)与[历史入口](archive/README.md) |
 
 日常主文档只有本页、USER_GUIDE、PRODUCT、STATUS、ARCHITECTURE、DEVELOPMENT 六份。根目录保留 RELEASE 文件和旧研究链接入口以兼容公开链接及发布脚本，不作为另一套当前设计。

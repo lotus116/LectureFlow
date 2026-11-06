@@ -1,11 +1,21 @@
 # 当前状态与下一步
 
+## 当前正式发布 · [0.6.5](https://github.com/lotus116/LectureFlow/releases/tag/v0.6.5)
+
+macOS arm64 与 Windows x64 由同一标签提交 `ec57500` 构建。[主线检查](https://github.com/lotus116/LectureFlow/actions/runs/42245619161)和[双平台打包](https://github.com/lotus116/LectureFlow/actions/runs/42245651332)通过。Windows 运行 261 项测试，并以打包后的 EXE 初始化隔离资料库；Mac 通过 256 项 Python 测试（跳过 5 项 Windows 专用测试）、50 项原生测试、4 类实际退出检查和独立包签名校验。
+
+| 公开附件 | 字节数 | SHA-256 |
+|---|---:|---|
+| `LectureFlow-0.6.5-macOS-arm64.zip` | 153,900,346 | `0e541f46dd1032d4429835d6751aa15ccdd5d742a79eb929dd420dde264bef58` |
+| `LectureFlow-0.6.5-Windows-x64.zip` | 2,089,268,192 | `6c39e8952ab2a32660fc2971fc8bbe15a1d0e8ff80de078e9c1ec00519057510` |
+
+发布页下载的两个完整 ZIP 已分别与 SHA256SUMS 和 GitHub 附件摘要比对，包内版本、提交及入口均已核对。Windows 单一 ZIP 中的四个识别和翻译权重文件与固定摘要一致。Mac 下载包通过签名校验，包内后台在隔离的空库中成功启动，版本 0.6.5、构建号 7。平台使用方法及剩余验证项见[发布说明](RELEASE-0.6.5.md)。
+
 ## Windows x64 课堂版
 
 本次按用户授权移植 SD-04/05/06/07 及书签课件查证。最终包在 Ryzen 7 6800H / RTX 3060 Laptop 上完成 304.6 秒公开音频逐帧核对、重启后的两句书签回听和查拼写、独立麦克风短测。随后对同一段 600 秒 MIT 公开课以 1× 速度完成修复前后两次包内验收，修复上一句初译晚到后未显示的问题；修复包后半段中英文首次显示延迟未上升，原音逐帧一致，结束后 3.41 秒清空待办。本轮接回日常采集模式、课程资料、后台转写与历史版本，并按 Mac 冰蓝工作区重做界面。用户已决定将实验性口音复核保留为待移植；课堂远场质量和长课负载待验证。[Windows 试用、复现和验收记录](research/WINDOWS-TRIAL.md)
 
-
-本次获准发布 [0.6.5 双平台版](RELEASE-0.6.5.md)，以 [GitHub 发布页](https://github.com/lotus116/LectureFlow/releases/latest)为下载入口。这里是进度、未完成事项和批准状态的主要维护位置。[产品规则](PRODUCT.md)与实现状态分开维护。
+这里是进度、未完成事项和批准状态的主要维护位置。[产品规则](PRODUCT.md)与实现状态分开维护。
 
 ## 当前交付
 

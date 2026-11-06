@@ -4,7 +4,7 @@
 
 ## 安装
 
-**Windows 11 x64**　从[0.6.5 发布页](https://github.com/lotus116/LectureFlow/releases/tag/v0.6.5)下载 Windows ZIP，完整解压；若另有 translation 附件，将其解压到相同位置，再双击 `LectureFlow/LectureFlow.exe`。默认模型随目录分发，升级前结束采集并退出，解压到新目录。个人资料位于 `%LOCALAPPDATA%/LectureFlow/Library`。系统入口、CPU/Vulkan 和本地 OCR 见[Windows 使用与验证记录](research/WINDOWS-TRIAL.md)。
+**Windows 11 x64**　从[0.6.5 发布页](https://github.com/lotus116/LectureFlow/releases/tag/v0.6.5)下载 Windows ZIP，完整解压后双击 `LectureFlow/LectureFlow.exe`。默认模型随目录分发，升级前结束采集并退出，解压到新目录。个人资料位于 `%LOCALAPPDATA%/LectureFlow/Library`。系统入口、CPU/Vulkan 和本地 OCR 见[Windows 使用与验证记录](research/WINDOWS-TRIAL.md)。
 
 **macOS**
 
