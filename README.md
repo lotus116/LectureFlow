@@ -18,7 +18,7 @@
 ## 从上课到复习
 
 <p align="center">
-  <img src="docs/assets/lecture-review-story.jpg" alt="课堂复习流程插画：看实时双语字幕，点书签标记当前句，课后听原音并到课件里核对 Gradient 的拼写。" width="100%">
+  <img src="docs/assets/lecture-review-story.jpg" alt="琪露诺毛绒玩偶的课堂三联图：看双语字幕、标记当前句、戴上耳机回听并查课件。" width="100%">
 </p>
 
 1. **开始记录。** 新建课程并开始一个 Lecture，选择录音与双语字幕、仅录音或仅字幕。课件可按需添加，也可以导入已有录音做课后转写。
