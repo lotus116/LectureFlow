@@ -103,3 +103,5 @@ LF-01→SD-01/09；LF-02→SD-04；LF-03→SD-04/08；LF-04→SD-04/05；LF-05�
 ## Windows MVP 草稿贡献
 
 按贡献者用户本次明确选择的 Windows MVP 范围新增独立实验入口，允许课程／Lecture、录音与导入、CPU 课后双语转写及版本化导出。验证证据与未实现范围见 [Windows 说明](WINDOWS.md)。不替代 SD/LF/A 既有验收，不声明 Windows 全功能支持，不触发正式发行。
+
+Windows MVP追加：按贡献者批准加入可选Qwen3-ASR 1.7B课后入口，CPU FP32／系统RAM；未实现GPU加速，未移植Hy-MT2或验收实时性能。默认Whisper和Mac入口保留，验证范围见[Windows说明](WINDOWS.md)。

@@ -16,20 +16,30 @@ from .library import Library
 from .runtime import configure
 
 
-def transcribe(root, lecture_id, asr_path, translation_path):
-    from .windows_models import MarianTranslator, WhisperASR
+def transcribe(root, lecture_id, asr_path, translation_path, *, backend="whisper",
+               language="English"):
+    from .windows_models import MarianTranslator, QwenCPUASR, WhisperASR
     from .worker import process_task
 
+    if backend not in {'whisper', 'qwen'}:
+        raise ValueError('不支持的识别后端')
+    if language not in {'English', 'auto'} or (backend == 'whisper' and language != 'English'):
+        raise ValueError('Whisper 英语模型仅支持固定英语；自动语言仅用于 Qwen 实验')
     with (root / '.worker.lock').open('a+') as handle:
         locking.flock(handle, locking.LOCK_EX | locking.LOCK_NB)
         # Load before enqueueing; missing weights must not leave a misleading task.
-        asr = WhisperASR(asr_path)
+        asr = QwenCPUASR(asr_path, language) if backend == "qwen" else WhisperASR(asr_path)
         translator = MarianTranslator(translation_path)
         with Library(root, worker_lock_owned=True) as lib:
             task = lib.enqueue(lecture_id)
             version = lib.row('versions', task['version_id'])
             config = json.loads(version['config'])
             config['backend'] = 'windows-cpu-experimental'
+            config['asr_backend'] = backend
+            config['source_language'] = language
+            config['inference_device'] = 'cpu'
+            config['model_memory'] = 'system_ram'
+            config['asr_dtype'] = 'float32' if backend == 'qwen' else 'int8'
             config['models'] = {'asr': str(asr_path), 'translation': str(translation_path)}
             # No courseware enhancement is claimed for this experimental backend.
             config['hint_terms'] = []
@@ -54,9 +64,18 @@ class App:
         self.selected = None
         root.title('LectureFlow · Windows 实验版')
         root.geometry('980x680')
-        ttk.Label(root, text='Windows MVP · 本地音频 → 英文识别 → 中文翻译',
+        ttk.Label(root, text='Windows MVP · 本地音频 → 语音识别 → 中文翻译',
                   font=('', 16)).pack(pady=12)
         ttk.Label(root, text='独立实验资料库 · 课后转写预览版').pack()
+        options = ttk.Frame(root)
+        options.pack(pady=4)
+        self.asr_backend = tk.StringVar(value='whisper')
+        self.asr_language = tk.StringVar(value='English')
+        ttk.Label(options, text='识别后端（CPU / 系统 RAM，无 GPU 加速）：').pack(side='left')
+        ttk.Combobox(options, textvariable=self.asr_backend, state='readonly',
+                     values=['whisper', 'qwen'], width=10).pack(side='left')
+        ttk.Combobox(options, textvariable=self.asr_language, state='readonly',
+                     values=['English', 'auto'], width=10).pack(side='left')
         bar = ttk.Frame(root)
         bar.pack(fill='x', padx=12, pady=10)
         for label, action in [('新建课程', self.course), ('新建 Lecture', self.lecture),
@@ -158,8 +177,12 @@ class App:
 
     def run(self):
         lecture = self.require_lecture()
-        asr = filedialog.askdirectory(title='选择本地 faster-whisper 英语识别模型目录',
-                                         initialdir=self.library_root.parent / 'Models' / 'asr')
+        backend, language = self.asr_backend.get(), self.asr_language.get()
+        if backend == 'whisper' and language != 'English':
+            raise ValueError('auto 仅适用于 Qwen；Whisper tiny.en 为英语模型')
+        asr = filedialog.askdirectory(title=f'选择本地 {backend} 识别模型目录',
+                                         initialdir=self.library_root.parent / 'Models' /
+                                         ('qwen-asr' if backend == 'qwen' else 'asr'))
         if not asr:
             return
         translation = filedialog.askdirectory(title='选择本地 Marian 英译中模型目录',
@@ -172,7 +195,8 @@ class App:
 
         def work():
             try:
-                result = transcribe(self.library_root, lecture, Path(asr), Path(translation))
+                result = transcribe(self.library_root, lecture, Path(asr), Path(translation),
+                                    backend=backend, language=language)
                 self.events.put(('done', result))
             except Exception as error:
                 self.events.put(('error', str(error)))
@@ -235,7 +259,14 @@ def main():
                         'LectureFlow-Windows-Preview' / 'Library')
     parser.add_argument('--prepare-models', action='store_true',
                         help='联网下载固定版本模型后退出（约 0.4 GB）')
+    parser.add_argument('--prepare-qwen', action='store_true',
+                        help='下载 Qwen3-ASR 1.7B（约4.7 GB），CPU / 系统RAM')
     args = parser.parse_args()
+    if args.prepare_qwen:
+        from .windows_models import prepare_qwen
+
+        prepare_qwen(args.library_root.parent / 'Models')
+        return
     if args.prepare_models:
         from .windows_models import prepare
 

@@ -27,11 +27,12 @@ with open(sys.argv[1], 'a+') as handle:
     assert subprocess.run([sys.executable, '-c', code, str(path)]).returncode == 0
 
 
-def test_windows_pipeline_preserves_original_and_exports(tmp_path, monkeypatch):
+@pytest.mark.parametrize("backend", ["whisper", "qwen"])
+def test_windows_pipeline_preserves_original_and_exports(tmp_path, monkeypatch, backend):
     from lectureflow import windows_models
 
     class ASR:
-        def __init__(self, path):
+        def __init__(self, path, language="English"):
             pass
 
         def transcribe(self, audio, context=''):
@@ -45,6 +46,7 @@ def test_windows_pipeline_preserves_original_and_exports(tmp_path, monkeypatch):
             return {'text': '合成测试课程。', 'truncated': False}
 
     monkeypatch.setattr(windows_models, 'WhisperASR', ASR)
+    monkeypatch.setattr(windows_models, 'QwenCPUASR', ASR)
     monkeypatch.setattr(windows_models, 'MarianTranslator', Translator)
     source = tmp_path / '测试.wav'
     with wave.open(str(source), 'wb') as out:
@@ -57,10 +59,13 @@ def test_windows_pipeline_preserves_original_and_exports(tmp_path, monkeypatch):
         lecture = lib.create_lecture(course['id'], 'Lecture 01')
         lib.import_audio(lecture['id'], [source])
     for _ in range(2):
-        result = transcribe(root, lecture['id'], tmp_path, tmp_path)
+        result = transcribe(root, lecture['id'], tmp_path, tmp_path, backend=backend)
         assert result['task']['state'] == 'completed'
         assert result['units'][0]['chinese'] == '合成测试课程。'
         assert result['config']['backend'] == 'windows-cpu-experimental'
+        assert result['config']['asr_backend'] == backend
+        assert result['config']['inference_device'] == 'cpu'
+        assert result['config']['model_memory'] == 'system_ram'
     with Library(root) as lib:
         assert lib.db.execute('SELECT COUNT(*) FROM versions').fetchone()[0] == 2
         exports = list(lib.lecture_path(lecture['id']).rglob('transcript.json'))
@@ -80,3 +85,38 @@ def test_windows_ui_starts(tmp_path):
         assert app.recorder is None
     finally:
         root.destroy()
+
+
+def test_qwen_explicit_cpu_offline_and_language(tmp_path, monkeypatch):
+    import types
+
+    from lectureflow.windows_models import QwenCPUASR
+
+    calls = {}
+
+    class Model:
+        @classmethod
+        def from_pretrained(cls, path, **kwargs):
+            calls.update(kwargs)
+            return cls()
+
+        def transcribe(self, **kwargs):
+            calls['inference'] = kwargs
+            return [types.SimpleNamespace(text='Mixed speech', language='Chinese')]
+
+    monkeypatch.setitem(sys.modules, 'torch', types.SimpleNamespace(
+        float32='float32', set_num_threads=lambda n: None))
+    monkeypatch.setitem(sys.modules, 'qwen_asr', types.SimpleNamespace(Qwen3ASRModel=Model))
+    (tmp_path / 'config.json').write_text('{}')
+    adapter = QwenCPUASR(tmp_path, language='auto')
+    result = adapter.transcribe(tmp_path / 'clip.wav')
+    assert calls['device_map'] == 'cpu'
+    assert calls['local_files_only'] is True
+    assert calls['dtype'] == 'float32'
+    assert calls['inference']['language'] is None
+    assert result['truncation_status'] == 'not_exposed_by_qwen_wrapper'
+
+
+def test_invalid_backend_rejected_before_loading(tmp_path):
+    with pytest.raises(ValueError, match='识别后端'):
+        transcribe(tmp_path, 'unused', tmp_path, tmp_path, backend='cuda')

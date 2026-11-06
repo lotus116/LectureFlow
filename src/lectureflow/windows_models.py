@@ -65,3 +65,49 @@ def prepare(root: Path):
                                               "*.spm", "*.txt"])
     finally:
         configure(root / "Cache")
+
+
+QWEN_SPEC = ("Qwen/Qwen3-ASR-1.7B", "7278e1e70fe206f11671096ffdd38061171dd6e5")
+
+
+class QwenCPUASR:
+    """Explicit CPU/FP32 path. No CUDA selection or automatic GPU offload."""
+
+    def __init__(self, path: Path, language="English"):
+        if language not in {"English", "auto"}:
+            raise ValueError("不支持的语言设置")
+        if not (path / "config.json").is_file():
+            raise ValueError("请选择完整的本地 Qwen3-ASR 模型目录")
+        try:
+            import torch
+            from qwen_asr import Qwen3ASRModel
+        except ImportError as error:
+            raise ValueError("请安装 windows 与 windows-qwen 可选依赖") from error
+        torch.set_num_threads(8)
+        self.language = language
+        self.model = Qwen3ASRModel.from_pretrained(
+            str(path.resolve()), dtype=torch.float32, device_map="cpu",
+            max_inference_batch_size=1, max_new_tokens=512, local_files_only=True,
+        )
+
+    def transcribe(self, audio: Path, context: str = "") -> dict:
+        result = self.model.transcribe(
+            audio=str(audio), context=context,
+            language=None if self.language == "auto" else self.language,
+        )[0]
+        return {"text": result.text, "language": result.language,
+                "truncated": False, "truncation_status": "not_exposed_by_qwen_wrapper",
+                "device": "cpu", "dtype": "float32"}
+
+
+def prepare_qwen(root: Path):
+    from huggingface_hub import snapshot_download
+
+    from .runtime import configure
+
+    configure(root / "Cache", online=True)
+    try:
+        snapshot_download(QWEN_SPEC[0], revision=QWEN_SPEC[1], local_dir=root / "qwen-asr",
+                          allow_patterns=["*.json", "*.safetensors", "*.txt", "*.jinja"])
+    finally:
+        configure(root / "Cache")

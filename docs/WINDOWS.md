@@ -54,3 +54,24 @@ Windows 全量测试仍存在目录移动（打开的录音锁文件）、目录
 uv run --frozen --extra dev python -m pytest -q tests/test_windows.py
 uv run --frozen --extra dev ruff check src tests scripts/smoke-live.py
 ```
+
+
+## Qwen 课后识别与设备说明
+
+本PR新增可选 Qwen3-ASR 1.7B 后端，默认保留 Whisper。界面选择 qwen 后选择完整本地 Qwen 模型目录；默认固定英语，auto 是用于混合语种的实验选项。现有 Marian 翻译仍用于中文输出，不是 Hy-MT2，混合语种翻译质量未验收。
+
+```powershell
+uv sync --frozen --extra dev --extra windows --extra windows-qwen
+uv run --frozen --extra windows --extra windows-qwen lectureflow-windows --prepare-qwen
+uv run --frozen --extra windows --extra windows-qwen lectureflow-windows
+```
+
+**本PR没有GPU加速功能。** 两条Windows识别路径均显式使用CPU，不自动选择CUDA或进行显卡卸载。Qwen使用FP32和8线程，Whisper使用INT8；Marian也默认在CPU上运行。即使安装了CUDA版PyTorch，本入口仍使用CPU。
+
+权重文件保存在硬盘；推理时模型权重与中间张量加载到**系统RAM**，不使用GPU显存。官方Qwen 1.7B下载约4.7 GB，FP32理论权重占用可接近9.4 GB，实际进程还包括加载缓存、音频和中间张量。该估算不是实测峰值或最低内存承诺。本机32 GB RAM可运行六段30秒音频，识别合计约210秒，不含加载；不是实时性能或质量验收。GPU显存容量不等于可用系统RAM，也不保证本入口支持GPU。
+
+Qwen包装层不暴露结束原因，因此metadata明确标记截断状态未知；不能以无异常声明未截断。使用固定官方权重提交，local_files_only=True加载，不自动上传课堂内容。六段候选及上下文诊断留在本机私有目录，不提交课堂材料。专名仍可能识别错误，未报告WER。
+
+### Mac维护隔离
+
+Windows功能维护于独立贡献分支；合并前不改变上游main。新增界面与适配器位于windows*.py，Qwen只在主动选择时延迟导入。windows-qwen是可选依赖，不加入Mac默认安装命令；Mac SwiftUI、MLX适配器、模型目录及Release工作流未修改。公共锁与路径兼容改动仍需后端及Mac原生CI验证，不能承诺零风险。若维护者希望长期独立发布Windows，可将PR目标改为其windows集成分支；本PR不自行创建上游分支或改变Mac发版流程。

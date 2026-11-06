@@ -14,6 +14,8 @@ models = ["mlx-qwen3-asr==0.4.4; sys_platform == 'darwin'", "mlx-lm>=0.30,<0.32;
 dev = ["pytest>=8,<9", "ruff>=0.14,<0.15", "numpy>=2,<3"]
 windows = ["faster-whisper>=1.2,<2", "transformers>=4.45,<5; sys_platform == 'win32'", "torch>=2.6,<3", "sentencepiece>=0.2,<0.3", "sacremoses>=0.1,<0.2", "sounddevice>=0.5,<0.6"]
 
+windows-qwen = ["qwen-asr==0.0.6"]
+
 [project.scripts]
 lectureflow = "lectureflow.cli:main"
 lectureflow-windows = "lectureflow.windows:main"
@@ -32,4 +34,4 @@ line-length = 100
 select = ["E", "F", "I", "B"]
 
 [tool.uv]
-conflicts = [[{ extra = "models" }, { extra = "windows" }]]
+conflicts = [[{ extra = "models" }, { extra = "windows" }], [{ extra = "models" }, { extra = "windows-qwen" }]]
