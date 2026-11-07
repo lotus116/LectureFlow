@@ -17,7 +17,7 @@
 
 https://github.com/user-attachments/assets/bce2ea8e-fe6d-42c6-8753-bb23f85fd44c
 
-<p align="center"><sub>音轨来源：休憩うさぎ「おてんば恋娘 ～笛のテストに向けて～」（<a href="https://x.com/QK_rabbit_2/status/1968963279730233345">@QK_rabbit_2 · 原帖</a>，再用许可待核实）</sub></p>
+<p align="center"><sub>音轨来源：休憩うさぎ「おてんば恋娘 ～笛のテストに向けて～」（<a href="https://x.com/QK_rabbit_2/status/1968963279730233345">@QK_rabbit_2 · 原帖</a>）</sub></p>
 
 ---
 
