@@ -23,6 +23,7 @@ uv sync --frozen --extra dev
 uv run --frozen --extra dev ruff check src tests scripts/smoke-live.py
 uv run --frozen --extra dev pytest -q
 python3 scripts/check-docs.py
+python3 scripts/check-licenses.py
 ```
 
 已有项目环境可用 `.venv/bin/python -m pytest -q`；环境安装仍应通过 setup／uv 维护。生成目录 data、models、.venv、.cache、.tools、.build、dist、reports/private 不入库。不要用私人课堂音频、课件、转写或完整个人路径做测试夹具。
@@ -57,6 +58,8 @@ zsh scripts/package-app --zip
 输出 dist/LectureFlow.app 与版本 ZIP，包含可搬移 Python 和后端。默认不内置模型；首次准备模型可联网下载并复用应用支持目录缓存。`--with-models` 仅在明确要求离线分发时使用。logo、USER_GUIDE、licenses 路径为打包依赖，文档整理不能随意移动。
 
 VERSION、pyproject.toml、uv.lock 与 Python 包版本保持一致。更新版本号不自动发布；用户明确要求正式交付后，集中验证再触发 Release macOS and Windows。工作流读取 `docs/RELEASE-版本号.md`，因此发布说明原路径保留；不要因整理文档触发发布或覆盖公开附件。
+
+发布前先按[许可检查清单](licenses/RELEASE-CHECKLIST.md)核对对应源码、第三方声明与素材授权。`python3 scripts/check-licenses.py --release` 遇到未解决事项会阻止正式发行；普通结构检查通过不等于许可清理完成。两端打包生成 `Licenses/dependencies.json`，Windows 专用 pystray hook 外置源码仍需实际替换加载验收。
 
 发布检查包括代码／数据保护、相关行为测试、独立构建、签名、包内后端启动与源文件一致性；发布后核对标签提交、CI、下载附件版本与 SHA256SUMS。应用尚未 Apple 公证。0.6.3 的一次发布授权不表示未来每次修改均可正式发布。
 

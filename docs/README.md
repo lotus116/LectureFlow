@@ -11,6 +11,7 @@ LectureFlow 是面向英语课堂的本地 macOS / Windows 录音、英文转写
 | 软件应该怎样工作、哪些规则不能改 | [已确认需求](PRODUCT.md) |
 | 当前做到哪、有什么问题、下一步是否已批准 | [当前状态与需求追踪](STATUS.md) |
 | 模块和数据如何协作 | [架构](ARCHITECTURE.md) → 按主题深入 |
+| 开源许可、第三方权利与发布门槛 | [许可入口](licenses/README.md) · [本轮审计](licenses/AUDIT-2026-11-07.md) |
 | 如何开发、检查和发布 | [开发指南](DEVELOPMENT.md) |
 | 为什么这样决定、旧需求是否仍有效 | [决定依据](design/DECISIONS.md) |
 | 声音实验具体测了什么 | [语音增强研究](research/SPEECH_RESEARCH-2026-11-05.md) |

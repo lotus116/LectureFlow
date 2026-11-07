@@ -11,7 +11,20 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  license-review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - name: Require completed redistribution review
+        run: python scripts/check-licenses.py --release
+
   macos:
+    needs: license-review
     runs-on: macos-26
     env:
       UV_CACHE_DIR: ${{ github.workspace }}/.cache/uv
@@ -27,7 +40,7 @@ jobs:
           .tools/bin/uv sync --frozen --extra models --extra dev --python .tools/python/cpython-3.12.12-macos-aarch64-none/bin/python3.12
       - name: Check code and data protection
         run: |
-          .venv/bin/ruff check src tests scripts/smoke-live.py scripts/package_app.py
+          .venv/bin/ruff check src tests scripts/smoke-live.py scripts/package_app.py scripts/collect_licenses.py scripts/check-licenses.py scripts/check_windows_licenses.py scripts/pyinstaller-hooks
           .venv/bin/pytest -q
           zsh scripts/test-native
       - name: Build standalone app
@@ -41,6 +54,7 @@ jobs:
           retention-days: 1
 
   windows:
+    needs: license-review
     runs-on: windows-2025
     env:
       PYTHONUTF8: '1'

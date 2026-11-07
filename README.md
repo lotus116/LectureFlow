@@ -17,7 +17,7 @@
 
 https://github.com/user-attachments/assets/bce2ea8e-fe6d-42c6-8753-bb23f85fd44c
 
-<p align="center"><sub>BGM：休憩うさぎ（<a href="https://x.com/QK_rabbit_2/status/1968963279730233345">@QK_rabbit_2 · 原作</a>）</sub></p>
+<p align="center"><sub>音轨来源：休憩うさぎ「おてんば恋娘 ～笛のテストに向けて～」（<a href="https://x.com/QK_rabbit_2/status/1968963279730233345">@QK_rabbit_2 · 原帖</a>，再用许可待核实）</sub></p>
 
 ---
 
@@ -75,6 +75,12 @@ zsh scripts/run
 已有项目时，保留本地改动并同步代码后运行 `zsh scripts/run`。开发版依赖项目目录；构建、测试与独立打包见[开发指南](docs/DEVELOPMENT.md)。
 
 </details>
+
+## 开源许可
+
+自有代码采用 [GPL-3.0-only](LICENSE)：允许使用、修改和商业使用，向他人分发受 GPL 约束的修改版时需要提供相应源码并保留 GPL 权利。模型、依赖、同人图像和视频音乐分别遵循其权利来源，不会因代码开源而自动获得授权。[许可范围](NOTICE.md) · [第三方审计与发布待办](docs/licenses/AUDIT-2026-11-07.md)
+
+当前安装包的对应源码、部分第三方声明和素材许可仍有待补项，不将其标记为已全面完成合规。
 
 ## 体验版的当前边界
 

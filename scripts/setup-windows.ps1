@@ -27,7 +27,10 @@ $weights = @{
     "tokenizer/vocab.json" = "CA10D7E9FB3ED18575DD1E277A2579C16D108E32F27439684AFA0E10B1440910"
 }
 foreach ($name in $weights.Keys) { Fetch "$base/$name" "models/qwen/$name" $weights[$name] }
-Copy-Item docs/licenses/Apache-2.0.txt models/qwen/LICENSE.txt -Force
+# This is the original model license text, not a license supplied by the ONNX mirror.
+Copy-Item docs/licenses/Apache-2.0.txt models/qwen/UPSTREAM-APACHE-2.0.txt -Force
+Copy-Item docs/licenses/model-cards/windows-qwen-README.txt models/qwen/README.txt -Force
+Copy-Item docs/licenses/MODELS.md models/qwen/PROVENANCE.md -Force
 $mt = "https://huggingface.co/tencent/Hy-MT2-1.8B-GGUF/resolve/a0c709d9fac510f2c807aa3af52872340dc37a4a"
 Fetch "$mt/Hy-MT2-1.8B-Q4_K_M.gguf" models/Hy-MT2-Q4.gguf DC5F44FCF1FA496EE7AD725982C0C8C553A4DE00259B53AF84C4B89FB0C06699
 Fetch "$mt/LICENSE.txt" models/Hy-MT2-LICENSE.txt A1D52D448F81C584A47C583E19DFAB2D3851C7C84431B07BAEE093C1113ED114

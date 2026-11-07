@@ -7,6 +7,8 @@ name = "lectureflow"
 version = "0.6.5"
 description = "Local-first macOS and Windows classroom assistant"
 requires-python = ">=3.11"
+license = "GPL-3.0-only"
+license-files = ["LICENSE", "NOTICE.md", "docs/licenses/*.txt", "docs/licenses/*.md", "docs/licenses/model-cards/*"]
 dependencies = ["imageio-ffmpeg==0.6.0", "pypdf>=6,<7", "olefile>=0.47,<0.48"]
 
 [project.optional-dependencies]
@@ -28,3 +30,9 @@ line-length = 100
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B"]
+
+# Python sdist is not the complete desktop Corresponding Source archive.
+# Keep local research and unrelated assets out; full desktop releases use the
+# exact reviewed Git commit plus the third-party source materials in the checklist.
+[tool.hatch.build.targets.sdist]
+only-include = ["src/lectureflow", "pyproject.toml", "VERSION", "README.md", "LICENSE", "NOTICE.md", "CONTRIBUTING.md", "docs/licenses"]

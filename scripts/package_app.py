@@ -13,6 +13,8 @@ import sys
 import tempfile
 from pathlib import Path
 
+from collect_licenses import collect
+
 PROJECT = Path(__file__).resolve().parent.parent
 VERSION = (PROJECT / "VERSION").read_text().strip()
 
@@ -160,7 +162,10 @@ def package(with_models: bool, archive: bool, test_build: bool = False,
         }, indent=2))
         info_path.write_bytes(plistlib.dumps(info))
         shutil.copy2(PROJECT / "docs/USER_GUIDE.md", resources / "使用说明.md")
-        shutil.copytree(PROJECT / "docs/licenses", resources / "Licenses")
+        collect(resources / "Licenses", site, runtime=runtime,
+                scope="Packaged Python site-packages; native dependencies need separate review")
+        shutil.copy2(PROJECT / "LICENSE", resources / "LICENSE")
+        shutil.copy2(PROJECT / "NOTICE.md", resources / "NOTICE.md")
         run(["codesign", "--force", "--deep", "--sign", "-", app])
         run(["codesign", "--verify", "--deep", "--strict", app])
         # Start the packaged backend away from the checkout, using only synthetic empty data.

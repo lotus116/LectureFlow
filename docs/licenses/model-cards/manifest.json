@@ -1,0 +1,98 @@
+[
+  {
+    "file": "mac-qwen-06-README.txt",
+    "url": "https://huggingface.co/moona3k/mlx-qwen3-asr-0.6b-8bit/raw/83ce2a8ef9a382d2ba2209aab383bc51fff366f5/README.md",
+    "sha256": "9eee01c419d4e67f8001008bcb968ac9153cd21b738754b9997bd19dba79d0a3",
+    "bytes": 2676,
+    "upstream_filename": "mac-qwen-06-README.md",
+    "retrieved_on": "2026-11-07"
+  },
+  {
+    "file": "mac-qwen-17-README.txt",
+    "url": "https://huggingface.co/moona3k/mlx-qwen3-asr-1.7b-8bit/raw/22c8abe6a6772122dda5905967d7496d1d3e8dd2/README.md",
+    "sha256": "1d5a1320139af1967cc4f439aef0b2c4c1036d29ba32a8cbbdeed16f529a0c37",
+    "bytes": 2676,
+    "upstream_filename": "mac-qwen-17-README.md",
+    "retrieved_on": "2026-11-07"
+  },
+  {
+    "file": "mac-hymt2-README.txt",
+    "url": "https://huggingface.co/mlx-community/Hy-MT2-1.8B-4bit/raw/e5c6fe56c7b3bc77fae5ae92db31f2178f1e6912/README.md",
+    "sha256": "2ac8526b4f6eaa01014ac4bf052d91726efef63c8ddc8249de0ac8811379e702",
+    "bytes": 3595,
+    "upstream_filename": "mac-hymt2-README.md",
+    "retrieved_on": "2026-11-07"
+  },
+  {
+    "file": "mac-hymt2-LICENSE.txt",
+    "url": "https://huggingface.co/mlx-community/Hy-MT2-1.8B-4bit/raw/e5c6fe56c7b3bc77fae5ae92db31f2178f1e6912/LICENSE.txt",
+    "sha256": "1af3c6dc0c697277cbb6b68720787c1caa43a79c5626bf9f19cd8c00de9c8cd4",
+    "bytes": 11629,
+    "upstream_filename": "mac-hymt2-LICENSE.txt",
+    "retrieved_on": "2026-11-07"
+  },
+  {
+    "file": "windows-qwen-README.txt",
+    "url": "https://huggingface.co/csukuangfj2/sherpa-onnx-qwen3-asr-0.6B-int8-2026-03-25/raw/68818b2313fe77bd06f6a7c5068ff3ef59d02b8a/README.md",
+    "sha256": "bbc6dbeb9dce5b4ed0e839057137e9cba4bf05c5797277d36a80e22594414e14",
+    "bytes": 328,
+    "upstream_filename": "windows-qwen-README.md",
+    "retrieved_on": "2026-11-07"
+  },
+  {
+    "file": "windows-hymt2-README.txt",
+    "url": "https://huggingface.co/tencent/Hy-MT2-1.8B-GGUF/raw/a0c709d9fac510f2c807aa3af52872340dc37a4a/README.md",
+    "sha256": "6811073b8b3d20a9a4db959c2b3f36e39e66bdb953cfecbdd8223fc20cc9a05b",
+    "bytes": 15305,
+    "upstream_filename": "windows-hymt2-README.md",
+    "retrieved_on": "2026-11-07"
+  },
+  {
+    "file": "windows-hymt2-LICENSE.txt",
+    "url": "https://huggingface.co/tencent/Hy-MT2-1.8B-GGUF/raw/a0c709d9fac510f2c807aa3af52872340dc37a4a/LICENSE.txt",
+    "sha256": "a1d52d448f81c584a47c583e19dfab2d3851c7c84431b07baee093c1113ed114",
+    "bytes": 11639,
+    "upstream_filename": "windows-hymt2-LICENSE.txt",
+    "retrieved_on": "2026-11-07"
+  },
+  {
+    "file": "base-qwen-06-README.txt",
+    "url": "https://huggingface.co/Qwen/Qwen3-ASR-0.6B/raw/5eb144179a02acc5e5ba31e748d22b0cf3e303b0/README.md",
+    "sha256": "5058416891bc47a2051557765997e8c42f8eb78a0e33c3e775bd17d4b0ba4d50",
+    "bytes": 57456,
+    "upstream_filename": "base-qwen-06-README.md",
+    "retrieved_on": "2026-11-07"
+  },
+  {
+    "file": "base-qwen-17-README.txt",
+    "url": "https://huggingface.co/Qwen/Qwen3-ASR-1.7B/raw/7278e1e70fe206f11671096ffdd38061171dd6e5/README.md",
+    "sha256": "5058416891bc47a2051557765997e8c42f8eb78a0e33c3e775bd17d4b0ba4d50",
+    "bytes": 57456,
+    "upstream_filename": "base-qwen-17-README.md",
+    "retrieved_on": "2026-11-07"
+  },
+  {
+    "file": "base-hymt2-README.txt",
+    "url": "https://huggingface.co/tencent/Hy-MT2-1.8B/raw/9a341cd1b679d3efd23b46e847b01745a71ed792/README.md",
+    "sha256": "c81edecabcbf5c9f312680dd928485dd44830424986e42f450c52864babe5d81",
+    "bytes": 14763,
+    "upstream_filename": "base-hymt2-README.md",
+    "retrieved_on": "2026-11-07"
+  },
+  {
+    "file": "base-hymt2-LICENSE.txt",
+    "url": "https://huggingface.co/tencent/Hy-MT2-1.8B/raw/9a341cd1b679d3efd23b46e847b01745a71ed792/LICENSE.txt",
+    "sha256": "1af3c6dc0c697277cbb6b68720787c1caa43a79c5626bf9f19cd8c00de9c8cd4",
+    "bytes": 11629,
+    "upstream_filename": "base-hymt2-LICENSE.txt",
+    "retrieved_on": "2026-11-07"
+  },
+  {
+    "file": "windows-qwen-modelscope-api.json",
+    "url": "https://www.modelscope.cn/api/v1/models/zengshuishui/Qwen3-ASR-onnx",
+    "sha256": "adc9edf0803a51d4a1a44f54c4f7a6797006404013552dd8eedff5b53bbfa849",
+    "bytes": 4180,
+    "upstream_filename": "windows-qwen-modelscope-api.json",
+    "retrieved_on": "2026-11-07"
+  }
+]

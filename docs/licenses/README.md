@@ -1,11 +1,39 @@
-# 第三方材料
+# 许可与第三方材料
 
-应用运行环境保留 Python 和各依赖包随附的许可文件。默认模型转换仓库标注 Apache-2.0，发布包同时保留模型仓库的 README/许可及来源说明；此处附 Apache 2.0 标准许可文本。
+LectureFlow 自有代码采用 **GPL-3.0-only**，全文见根目录 [LICENSE](../../LICENSE)，
+覆盖范围和素材例外见 [NOTICE](../../NOTICE.md)。允许商业使用；向他人分发受 GPL
+约束的修改版时，需要履行相应源码、许可与声明义务。自用修改不要求公开。
 
-- [Qwen3-ASR-0.6B MLX 转换](https://huggingface.co/moona3k/mlx-qwen3-asr-0.6b-8bit/tree/83ce2a8ef9a382d2ba2209aab383bc51fff366f5)，基于 Qwen/Qwen3-ASR-0.6B。
-- [Hy-MT2-1.8B MLX 转换](https://huggingface.co/mlx-community/Hy-MT2-1.8B-4bit/tree/e5c6fe56c7b3bc77fae5ae92db31f2178f1e6912)，基于 Tencent-Hunyuan/Hy-MT2-1.8B。
-- [Apache License 2.0 原文](https://www.apache.org/licenses/LICENSE-2.0.txt)。
+**源码有了许可证，不代表既有安装包、模型和宣传素材已经全部完成合规核查。**
+[本轮审计](AUDIT-2026-11-07.md)区分已证实事实、尚缺材料和待确认的使用权；
+[发布清单](RELEASE-CHECKLIST.md)规定后续二进制交付门槛。
 
-第三方权利不因本项目发布而转移。模型文件只进入用户选择的本地模型目录或应用发布包，不提交到源码树。
+## 模型
 
-Windows 目录随附默认模型及许可。识别模型来自 [sherpa-onnx Qwen3-ASR INT8](https://huggingface.co/csukuangfj2/sherpa-onnx-qwen3-asr-0.6B-int8-2026-03-25/tree/68818b2313fe77bd06f6a7c5068ff3ef59d02b8a)，翻译模型来自[腾讯 Hy-MT2 GGUF](https://huggingface.co/tencent/Hy-MT2-1.8B-GGUF/tree/a0c709d9fac510f2c807aa3af52872340dc37a4a)，本机翻译服务来自 [llama.cpp b9000](https://github.com/ggml-org/llama.cpp/releases/tag/b9000)。
+模型权重不由 LectureFlow 重新授权。完整来源链、固定 revision、原始模型卡与
+许可证据见 [模型来源](MODELS.md) 和 `model-cards/`。
+
+- Mac 两个 Qwen3-ASR MLX 转换仓库的固定模型卡均声明 Apache-2.0。
+- Mac Hy-MT2 MLX 与 Windows 官方 Hy-MT2 GGUF 的固定许可文本为 Apache-2.0，
+  带腾讯原始版权声明，不能与其他 Hunyuan 产品的许可混为一谈。
+- Windows Qwen ONNX 镜像固定版本没有 LICENSE 或许可元数据。其指向的 ModelScope
+  转换源当前标注 Apache-2.0，但未记录镜像对应的准确源 revision。原始 Qwen 模型
+  的 Apache 声明与这条来源证据需分别保存，不能把复制一份标准 Apache 文本当成
+  镜像作者的授权声明。
+
+## 软件依赖
+
+以每次实际构建的 `Licenses/dependencies.json` 和 `Licenses/dependencies/`
+为版本与声明清单。这个清单反映构建环境，不自动证明所有原生库或源码义务已满足。
+
+- imageio-ffmpeg 的 Python 封装为 BSD-2-Clause；实际 Mac FFmpeg 7.1 为
+  GPL-2.0-or-later，Windows Gyan FFmpeg 7.1 为 GPL-3.0-or-later。
+- Windows pystray 0.19.5 为 LGPL-3.0-or-later；冻结进 EXE 仍需提供许可、对应源码
+  和适用的修改／重新构建途径。不能只复制许可证而遗漏这些义务。
+- llama.cpp 为 MIT，sherpa-onnx 为 Apache-2.0；随附 DLL、PDFium、TkDND、
+  PortAudio 等仍需保留各自完整声明。PyInstaller 有自己的分发例外。
+- tqdm 的许可包含 MPL-2.0 与 MIT；regex 的元数据包含 Apache-2.0 与 CNRI-Python。
+  不能把所有 Python 包统称为 MIT/Apache，也不能只依赖元数据作兼容性结论。
+
+保留的标准文本：[GPL v2](GPL-2.0.txt)、[LGPL v3](LGPL-3.0.txt)、
+[Apache 2.0](Apache-2.0.txt)。GPL v3 见根目录 LICENSE。

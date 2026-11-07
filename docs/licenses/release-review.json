@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "review_date": "2026-11-07",
+  "application_license": "GPL-3.0-only",
+  "issues": [
+    {"id": "ffmpeg-corresponding-source", "status": "blocked", "evidence": "AUDIT-2026-11-07.md", "reason": "Match both actual FFmpeg builds, linked libraries, patches and build scripts to complete corresponding source and distribute it appropriately."},
+    {"id": "windows-frozen-source-notices", "status": "blocked", "evidence": "AUDIT-2026-11-07.md", "reason": "Verify the final frozen pystray source/rebuild route and complete native-library notices on Windows."},
+    {"id": "windows-qwen-provenance", "status": "blocked", "evidence": "MODELS.md", "reason": "Match the pinned ONNX mirror to the Apache-declared ModelScope conversion source revision."},
+    {"id": "regex-license-provenance", "status": "blocked", "evidence": "AUDIT-2026-11-07.md", "reason": "Resolve the exact inherited CNRI Python terms and GPL compatibility rather than infer from metadata."},
+    {"id": "artwork-and-music-rights", "status": "blocked", "evidence": "AUDIT-2026-11-07.md", "reason": "Document the distribution rights for branded imagery and promotional music, or obtain approval for verified replacements."}
+  ]
+}
