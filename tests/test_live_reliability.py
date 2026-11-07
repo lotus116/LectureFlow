@@ -81,19 +81,19 @@ def test_chinese_is_exact_and_mixed_speech_goes_through_translation():
     assert len(prompts) == 1 and "不是 cache，是 buffer。" in prompts[0]
 
 
-def test_auto_language_and_adaptive_pause_keep_pre_roll_and_time_mapping():
+def test_auto_language_and_pause_keep_pre_roll_and_time_mapping():
     session = Session()
     engine = CaptionEngine(session, None, lambda *_: None, language=None, translate=False)
     engine.feed(np.zeros(4000, dtype=np.float32), 0)
     engine.feed(np.full(4000, 0.004, dtype=np.float32), 0.25)
     assert engine.current["start"] == 0
-    for start in [0.5, 0.75, 1.0, 1.25]:
+    for start in [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0]:
         engine.feed(np.zeros(4000, dtype=np.float32), start)
     assert engine.state is not None
-    engine.feed(np.zeros(4000, dtype=np.float32), 1.5)
+    engine.feed(np.zeros(4000, dtype=np.float32), 2.25)
     assert engine.state is None
     assert session.languages == [None]
-    assert engine.recent[0]["end"] == 1.75
+    assert engine.recent[0]["end"] == 2.5
 
 
 def test_stuck_upstream_chunk_progress_is_distinct_from_repeated_words():

@@ -121,6 +121,8 @@ class CaptionEngine:
         self.chunk_progress = None
         self.chunk_progress_at = 0.0
         self.silence = 0.0
+        self.stream_prefix = ""
+        self.stream_start = 0.0
         self.last_end = None
         self.pre_roll = None
         self.context, self.glossary, self.documents = context, glossary, documents or []
@@ -187,6 +189,8 @@ class CaptionEngine:
                 max_context_sec=12,
                 context="",
             )
+            self.stream_prefix = ""
+            self.stream_start = start
             self.current = {
                 "id": identity(),
                 "start": start,
@@ -217,7 +221,7 @@ class CaptionEngine:
                 self.chunk_progress, self.chunk_progress_at = chunk, end
             elif end - self.chunk_progress_at > 4:
                 raise RuntimeError("识别处理进度停止，等待字幕链路恢复")
-        text = self.state.text.strip()
+        text = self.stream_text()
         if text and text != self.current["english"]:
             self.current["english"] = text
             if (not self.deferred and self.translate
@@ -225,18 +229,35 @@ class CaptionEngine:
                 self.current["chinese"] = self.translated(text, context=self.preceding_context())
                 self.last_temporary_translation_at = time.monotonic()
             self.emit(self.current, "temporary")
-        pause_limit = 0.65 if text.endswith((".", "?", "!", "。", "？", "！")) else 1.25
-        if self.silence >= pause_limit or end - self.current["start"] >= 12:
+        # ASR punctuation is provisional: a guessed period is not a speech endpoint.
+        if self.silence >= 2.0 or end - self.current["start"] >= 24:
             self.finish()
+        elif end - self.stream_start >= 12:
+            # Bound ASR work independently of the visible/translated utterance.
+            # No overlap is replayed, so timestamps and repeated words remain literal.
+            self.state = self.session.finish_streaming(self.state)
+            prefix = self.stream_text()
+            next_state = self.session.init_streaming(
+                language=self.language, chunk_size_sec=1.0, max_context_sec=12, context="",
+            )
+            self.stream_prefix, self.state, self.stream_start = prefix, next_state, end
+            self.chunk_progress, self.chunk_progress_at = None, end
+            self.current["english"] = prefix
+            self.emit(self.current, "temporary")
+
+    def stream_text(self) -> str:
+        return " ".join(part for part in (self.stream_prefix, self.state.text.strip()) if part)
 
     def finish(self) -> None:
         if self.state is None:
             return
         import numpy as np
 
-        self.state = self.session.finish_streaming(self.state)
+        # A stop exactly at rollover has no samples in the new ASR state.
+        if self.current["end"] > self.stream_start:
+            self.state = self.session.finish_streaming(self.state)
         entry = self.current
-        text = self.state.text.strip()
+        text = self.stream_text()
         pcm_parts = self.utterance_pcm or []
         self.state, self.current, self.silence, self.utterance_pcm = None, None, 0, None
         if not text:

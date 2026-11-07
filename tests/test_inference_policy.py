@@ -270,13 +270,13 @@ def test_live_model_switch_waits_for_boundary_and_acknowledges_actual_model(tmp_
                 packet("asr-small", 0),
                 {"type": "configure", "asr": "asr-large", "english": True, "translate": False},
             ]
-            items += [packet("asr-large", n / 4, False) for n in range(1, 4)]
+            items += [packet("asr-large", n / 4, False) for n in range(1, 9)]
             items += [
-                packet("asr-large", 1),
+                packet("asr-large", 2.25),
                 {"type": "configure", "asr": "asr-small", "english": True, "translate": False},
             ]
-            items += [packet("asr-small", n / 4, False) for n in range(5, 8)]
-            items += [packet("asr-small", 2), {"type": "stop"}]
+            items += [packet("asr-small", n / 4, False) for n in range(10, 18)]
+            items += [packet("asr-small", 4.5), {"type": "stop"}]
             for item in items:
                 input_lines.put(json.dumps(item).encode() + b"\n")
 

@@ -239,8 +239,8 @@ def test_real_protocol_uses_required_revision_queue_and_flushes_on_stop(tmp_path
     queue = InputBuffer(capacity=64)
     flags = {'english': True, 'translate': True, 'asr': 'asr-large'}
     queue.put({'type': 'configure', **flags})
-    for i in range(28):  # Four utterances, each followed by silence; never await idle polish.
-        pcm = np.full(4000, .1 if i % 7 == 0 else 0, dtype='<f4')
+    for i in range(36):  # Four utterances, each followed by silence; never await idle polish.
+        pcm = np.full(4000, .1 if i % 9 == 0 else 0, dtype='<f4')
         queue.put({'type': 'audio', 'start': i * .25,
                    'pcm': base64.b64encode(pcm.tobytes()).decode(), **flags})
     queue.put({'type': 'stop'})
