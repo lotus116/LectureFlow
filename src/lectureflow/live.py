@@ -16,6 +16,7 @@ from lectureflow import filelock as fcntl
 
 from .accent import AccentReviewer, ReviewQueue, SourceStamp
 from .adapters import HyMTTranslator, QwenASR, contains_only_chinese_speech, source_language
+from .caption_boundary import BoundaryPolicy, EndpointEnergy
 from .inference_policy import decide_enhancement, matching_glossary, select_asr_hints
 from .library import Library, identity
 from .live_store import configuration, save, validate_session
@@ -94,7 +95,10 @@ class CaptionEngine:
         glossary_policy=GLOSSARY_POLICY,
         accent=False,
         audit=None,
+        boundary_policy: BoundaryPolicy | None = None,
     ):
+        self.boundary_policy = boundary_policy or BoundaryPolicy()
+        self.endpoint_energy = EndpointEnergy(self.boundary_policy)
         self.accent = accent
         self.audit = audit or (lambda event: None)
         self.accent_queue = ReviewQueue(capacity=4)
@@ -174,6 +178,7 @@ class CaptionEngine:
         energy = float(np.sqrt(np.mean(pcm * pcm)))
         threshold = min(0.008, max(0.002, self.noise_floor * 3))
         voiced = energy >= threshold * (0.7 if self.state is not None else 1)
+        endpoint_quiet = self.endpoint_energy.quiet(energy, threshold * 0.7)
         if not voiced:
             self.noise_floor = 0.95 * self.noise_floor + 0.05 * min(energy, 0.003)
         if self.state is None:
@@ -186,7 +191,7 @@ class CaptionEngine:
             self.state = self.session.init_streaming(
                 language=self.language,
                 chunk_size_sec=1.0,
-                max_context_sec=12,
+                max_context_sec=self.boundary_policy.asr_window_seconds,
                 context="",
             )
             self.stream_prefix = ""
@@ -210,7 +215,7 @@ class CaptionEngine:
                     self.state = self.session.feed_audio(previous, self.state)
                     self.utterance_pcm.append(previous.copy())
                 self.pre_roll = None
-        self.silence = 0 if voiced else self.silence + len(pcm) / 16000
+        self.silence = self.silence + len(pcm) / 16000 if endpoint_quiet else 0
         self.state = self.session.feed_audio(pcm, self.state)
         if self.utterance_pcm is not None:
             self.utterance_pcm.append(pcm.copy())
@@ -230,15 +235,18 @@ class CaptionEngine:
                 self.last_temporary_translation_at = time.monotonic()
             self.emit(self.current, "temporary")
         # ASR punctuation is provisional: a guessed period is not a speech endpoint.
-        if self.silence >= 2.0 or end - self.current["start"] >= 24:
+        if self.boundary_policy.should_finish(
+            end - self.current["start"], self.silence, text,
+        ):
             self.finish()
-        elif end - self.stream_start >= 12:
+        elif end - self.stream_start >= self.boundary_policy.asr_window_seconds:
             # Bound ASR work independently of the visible/translated utterance.
             # No overlap is replayed, so timestamps and repeated words remain literal.
             self.state = self.session.finish_streaming(self.state)
             prefix = self.stream_text()
             next_state = self.session.init_streaming(
-                language=self.language, chunk_size_sec=1.0, max_context_sec=12, context="",
+                language=self.language, chunk_size_sec=1.0,
+                max_context_sec=self.boundary_policy.asr_window_seconds, context="",
             )
             self.stream_prefix, self.state, self.stream_start = prefix, next_state, end
             self.chunk_progress, self.chunk_progress_at = None, end

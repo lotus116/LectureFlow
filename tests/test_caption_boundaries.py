@@ -4,6 +4,7 @@ from types import SimpleNamespace
 import numpy as np
 import pytest
 
+from lectureflow.caption_boundary import BoundaryPolicy
 from lectureflow.live import CaptionEngine
 
 
@@ -40,7 +41,10 @@ class Translator:
 
 def setup(punctuated=True):
     events, speech, translator = [], Speech(punctuated), Translator()
-    engine = CaptionEngine(speech, translator, lambda row, *_: events.append(row.copy()))
+    engine = CaptionEngine(
+        speech, translator, lambda row, *_: events.append(row.copy()),
+        boundary_policy=BoundaryPolicy(asr_window_seconds=12),
+    )
     return engine, speech, translator, events
 
 
@@ -89,22 +93,22 @@ def test_twelve_second_asr_rollover_preserves_id_text_and_audio():
     assert engine.current['english'].startswith(prefix + ' ')
     feed(engine, 15, 2, False)
     stable = [row for row in events if row['status'] == 'stable']
-    assert len(stable) == 1 and stable[0]['start'] == 0 and stable[0]['end'] == 17
+    assert len(stable) == 1 and stable[0]['start'] == 0 and stable[0]['end'] == 16.25
     assert stable[0]['english'].count('part 0') == 1
     assert stable[0]['english'].count('part 1') == 1
-    assert [s.packets for s in speech.sessions] == [48, 20]
+    assert [s.packets for s in speech.sessions] == [48, 17]
     assert translator.calls[-1][0] == stable[0]['english']
 
 
 def test_continuous_speech_is_bounded_and_next_caption_has_no_old_prefix():
     engine, speech, _, events = setup()
-    feed(engine, 0, 24)
+    feed(engine, 0, 20)
     assert engine.current is None and engine.utterance_pcm is None
     stable = [row for row in events if row['status'] == 'stable']
-    assert len(stable) == 1 and stable[0]['end'] == 24
-    assert [s.packets for s in speech.sessions] == [48, 48]
-    feed(engine, 24, 1)
-    assert engine.current['start'] == 24
+    assert len(stable) == 1 and stable[0]['end'] == 20
+    assert [s.packets for s in speech.sessions] == [48, 32]
+    feed(engine, 20, 1)
+    assert engine.current['start'] == 20
     assert 'part 0' not in engine.current['english']
     engine.finish()
     engine.lock_all()
@@ -141,3 +145,18 @@ def test_stop_exactly_at_rollover_does_not_finalize_empty_asr():
     stable = [row for row in events if row['status'] == 'stable']
     assert len(stable) == 1 and stable[0]['end'] == 12
     assert stable[0]['english'] == 'part 0 words 48.'
+
+
+def test_aligned_window_keeps_asr_context_until_caption_boundary():
+    speech, events = Speech(), []
+    engine = CaptionEngine(speech, None, lambda row, *_: events.append(row.copy()),
+                           translate=False)
+    feed(engine, 0, 19.75)
+    assert len(speech.sessions) == 1
+    assert not any(row['status'] == 'stable' for row in events)
+    feed(engine, 19.75, .25)
+    assert engine.current is None
+    assert len(speech.sessions) == 1
+    stable = [row for row in events if row['status'] == 'stable']
+    assert len(stable) == 1 and stable[0]['end'] == 20
+    assert speech.sessions[0].packets == 80
