@@ -9,7 +9,7 @@ from contextlib import ExitStack, nullcontext
 
 import numpy as np
 
-from . import documents, filelock, recordings
+from . import documents, filelock, live_store, recordings
 from .library import identity, now
 from .live import CaptionEngine, InputBuffer
 from .runtime import write_json
@@ -225,6 +225,7 @@ class Capture:
                     english=self.english,
                     translate=self.chinese,
                     language=self.language,
+                    translation_audit=self.translation_audit,
                     **self.materials,
                 )
                 self.ready.set()
@@ -278,7 +279,32 @@ class Capture:
             entry.pop("_source_text", None)
         self.events.put((entry, time.monotonic() - self.started))
 
+    def translation_audit(self, event):
+        clean = dict(event)
+        if not self.english:
+            for field in ("source_text", "context", "following"):
+                clean.pop(field, None)
+        # Same FIFO as captions: recovery is acknowledged after its caption is saved.
+        self.events.put(({"type": "translation_audit", "event": clean},
+                         time.monotonic() - self.started))
+
     def register(self, library, lecture):
         self.lock.close()
         if self.audio and (self.frames or self.prior_ranges):
             return recordings.register(library, lecture, self.directory)
+
+
+def persist_capture_event(library, capture, event):
+    """Persist on the UI thread; audit events must never become visible caption rows."""
+    if event.get("type") == "translation_audit":
+        audit = event["event"]
+        live_store.save_translation_failure(
+            library, capture.session, audit, english=capture.english,
+        )
+        warning = "部分中文未完成，已有字幕保留，可用已保存录音课后转写。"
+        if audit["state"] == "deferred" and warning not in capture.errors:
+            capture.errors.append(warning)
+        return False
+    live_store.save(library, capture.session, event,
+                    english=capture.english, translate=capture.chinese)
+    return True

@@ -75,6 +75,8 @@ class TranslationJob:
     queued_at: float
     source_text: str
     source_version: int
+    attempts: int = 0
+    retry_at: float = 0.0
 
 
 class CaptionEngine:
@@ -96,7 +98,16 @@ class CaptionEngine:
         accent=False,
         audit=None,
         boundary_policy: BoundaryPolicy | None = None,
+        temporary_refresh_seconds: float = 1.0,
+        translation_audit=None,
     ):
+        if not math.isfinite(temporary_refresh_seconds) or temporary_refresh_seconds < 1:
+            raise ValueError("临时翻译刷新间隔不得小于一秒")
+        self.temporary_refresh_seconds = temporary_refresh_seconds
+        self.translation_audit = translation_audit or (lambda event: None)
+        self.translation_failures = 0
+        self.translations_deferred = 0
+        self.temporary_failure = None
         self.boundary_policy = boundary_policy or BoundaryPolicy()
         self.endpoint_energy = EndpointEnergy(self.boundary_policy)
         self.accent = accent
@@ -152,6 +163,9 @@ class CaptionEngine:
         entry["status"] = status
         entry["revision"] += 1
         self.publish(entry.copy(), self.english, self.translate)
+        if entry.pop("_translation_recovered", False):
+            self.translation_audit({"id": entry["id"], "state": "resolved"})
+            entry.pop("translation_incomplete", None)
 
     def translated(self, text: str, *, context: str = "", following: str = "") -> str:
         if not self.translate or not text:
@@ -206,6 +220,7 @@ class CaptionEngine:
             }
             self.utterance_pcm = []
             self.last_temporary_text = ""
+            self.temporary_failure = None
             self.chunk_progress = None
             self.chunk_progress_at = start
             if self.pre_roll is not None:
@@ -230,9 +245,9 @@ class CaptionEngine:
         if text and text != self.current["english"]:
             self.current["english"] = text
             if (not self.deferred and self.translate
-                    and time.monotonic() - self.last_temporary_translation_at >= 1):
-                self.current["chinese"] = self.translated(text, context=self.preceding_context())
-                self.last_temporary_translation_at = time.monotonic()
+                    and time.monotonic() - self.last_temporary_translation_at
+                    >= self.temporary_interval()):
+                self.translate_temporary()
             self.emit(self.current, "temporary")
         # ASR punctuation is provisional: a guessed period is not a speech endpoint.
         if self.boundary_policy.should_finish(
@@ -312,12 +327,36 @@ class CaptionEngine:
             previous.queued_at if previous else time.monotonic(),
             entry["english"], entry.get("source_version", 0),
         )
+        job = self.pending_translations[key]
+        if previous and (previous.source_text, previous.context, previous.following) == (
+            job.source_text, job.context, job.following,
+        ):
+            job.attempts, job.retry_at = previous.attempts, previous.retry_at
 
     def complete_translation(self, key: str) -> None:
         job = self.pending_translations[key]
-        translated = self.translated(
-            job.source_text, context=job.context, following=job.following,
-        )
+        # Catch inference failures only: persistence/publishing errors must stay visible.
+        try:
+            translated = self.translated(
+                job.source_text, context=job.context, following=job.following,
+            )
+            chosen = self.revision_guard.choose(
+                key, job.source_text, translated, job.context, job.following,
+                lambda: self.translated(job.source_text),
+            )
+        except Exception as error:
+            job.attempts += 1
+            job.retry_at = time.monotonic() + 6
+            self.translation_failures += 1
+            job.entry["translation_incomplete"] = True
+            self.translation_audit({
+                "id": key, "state": "retrying", "kind": "required",
+                "attempts": job.attempts, "error_type": type(error).__name__,
+                "source_text": job.source_text, "context": job.context,
+                "following": job.following, "source_version": job.source_version,
+                "start": job.entry["start"], "end": job.entry["end"],
+            })
+            return
         if self.pending_translations.get(key) is not job:
             return
         if job.entry.get("edited") or job.entry["status"] == "locked":
@@ -327,12 +366,9 @@ class CaptionEngine:
                 or job.entry.get("source_version", 0) != job.source_version):
             self.queue_translation(job.entry)  # Retain age, translate the new source on next turn.
             return
-        # Only remove acknowledged work. Failed inference remains pending, and
-        # the caption must never be locked while its revision is outstanding.
-        job.entry["chinese"] = self.revision_guard.choose(
-            key, job.source_text, translated, job.context, job.following,
-            lambda: self.translated(job.source_text),
-        )
+        if job.entry.get("translation_incomplete"):
+            job.entry["_translation_recovered"] = True
+        job.entry["chinese"] = chosen
         self.emit(job.entry, "revised")
         del self.pending_translations[key]
         self.translations_completed += 1
@@ -346,6 +382,8 @@ class CaptionEngine:
             "accent_oldest_seconds": self.accent_queue.age(time.monotonic()),
             "accent_audio_bytes": sum(p.nbytes for p in self.accent_audio.values()),
             "translation_pending": len(self.pending_translations),
+            "translation_failures": self.translation_failures,
+            "translations_deferred": self.translations_deferred,
             "translations_completed": self.translations_completed,
             "context_translations_completed": self.context_translations_completed,
         }
@@ -353,9 +391,9 @@ class CaptionEngine:
     def retire_oldest(self) -> None:
         entry = self.recent[0]
         self.review_accent(entry)
-        while entry["id"] in self.pending_translations:
-            self.complete_translation(entry["id"])
-        self.emit(entry, "locked")
+        self.drain_translation(entry["id"])
+        if not entry.get("translation_incomplete"):
+            self.emit(entry, "locked")
         self.recent.popleft()
         self.translation_context.pop(entry["id"], None)
         self.accent_audio.pop(entry["id"], None)
@@ -370,23 +408,82 @@ class CaptionEngine:
         """
         now = time.monotonic()
         if self.pending_translations:
-            key, job = next(iter(self.pending_translations.items()))
-            if closing or backlog <= 2 or now - job.queued_at >= 6:
-                self.complete_translation(key)
-            return
+            for key, job in list(self.pending_translations.items()):
+                if closing:
+                    self.drain_translation(key)
+                    return
+                if job.attempts >= 2 or now < job.retry_at:
+                    continue
+                if backlog <= 2 or now - job.queued_at >= 6:
+                    self.complete_translation(key)
+                return
+            # Failed/cooling work must not prevent a new utterance's first Chinese.
+
         if closing or not self.translate or self.current is None:
             self.service_accent(backlog, closing=closing)
             return
         text = self.current["english"]
         elapsed = now - self.last_temporary_translation_at
-        if (text and text != self.last_temporary_text and elapsed >= 1
+        if (text and text != self.last_temporary_text and elapsed >= self.temporary_interval()
                 and (backlog <= 2 or elapsed >= 6)):
-            self.current["chinese"] = self.translated(text, context=self.preceding_context())
-            self.last_temporary_text = text
-            self.last_temporary_translation_at = time.monotonic()
-            self.emit(self.current, "temporary")
+            if self.translate_temporary():
+                self.emit(self.current, "temporary")
             return
         self.service_accent(backlog)
+
+    def drain_translation(self, key: str) -> None:
+        # Shutdown/eviction may use the one remaining retry without a six-second wait.
+        while key in self.pending_translations:
+            job = self.pending_translations[key]
+            if job.attempts >= 2:
+                self.translation_audit({
+                    "id": key, "state": "deferred", "kind": "required",
+                    "attempts": job.attempts, "source_text": job.source_text,
+                    "context": job.context, "following": job.following,
+                    "source_version": job.source_version,
+                    "start": job.entry["start"], "end": job.entry["end"],
+                })
+                # Persist unresolved work before releasing the bounded live window.
+                job.entry["translation_incomplete"] = True
+                self.emit(job.entry, "stable")
+                del self.pending_translations[key]
+                self.translations_deferred += 1
+                return
+            self.complete_translation(key)
+
+    def temporary_interval(self) -> float:
+        return self.temporary_refresh_seconds if self.current.get("chinese") else 1.0
+
+    def translate_temporary(self) -> bool:
+        text, context = self.current["english"], self.preceding_context()
+        now = time.monotonic()
+        failed = self.temporary_failure
+        if failed and (failed[0], failed[1]) == (text, context):
+            if failed[2] >= 2 or now < failed[3]:
+                return False
+        else:
+            failed = (text, context, 0, 0)
+        try:
+            translated = self.translated(text, context=context)
+        except Exception as error:
+            attempts = failed[2] + 1
+            self.temporary_failure = (text, context, attempts, now + 6)
+            self.translation_failures += 1
+            self.current["translation_incomplete"] = True
+            self.translation_audit({
+                "id": self.current["id"], "state": "retrying", "kind": "temporary",
+                "attempts": attempts, "error_type": type(error).__name__,
+                "start": self.current["start"], "end": self.current["end"],
+                "source_text": text, "context": context, "following": "",
+            })
+            return False
+        if self.current.get("translation_incomplete"):
+            self.current["_translation_recovered"] = True
+        self.current["chinese"] = translated
+        self.last_temporary_text = text
+        self.last_temporary_translation_at = time.monotonic()
+        self.temporary_failure = None
+        return True
 
     def source_stamp(self, entry):
         return SourceStamp(entry["id"], self.accent_generation,
@@ -510,7 +607,10 @@ def output(event: dict) -> None:
     print(json.dumps(event, ensure_ascii=False, allow_nan=False), flush=True)
 
 
-def run_live(root: Path, model_root: Path, lecture_id: str, session_id: str, asr: str) -> None:
+def run_live(
+    root: Path, model_root: Path, lecture_id: str, session_id: str, asr: str,
+    *, temporary_refresh_seconds: float = 1.0,
+) -> None:
     configure(model_root)
     buffer = InputBuffer()
 
@@ -574,8 +674,17 @@ def run_live(root: Path, model_root: Path, lecture_id: str, session_id: str, asr
                     output({"type": "warning",
                             "message": "口音复核未完成，原字幕保留；已保存录音可课后转写。"})
 
+            def translation_audit(event):
+                from .live_store import save_translation_failure
+                save_translation_failure(library, session_id, event, english=captions.english)
+                if event["state"] == "deferred":
+                    output({"type": "warning",
+                            "message": "部分中文未完成，已有字幕保留；后续识别继续。"})
+
             captions = CaptionEngine(
                 engine.session, None, publish, english=False, translate=False, deferred=True,
+                translation_audit=translation_audit,
+                temporary_refresh_seconds=temporary_refresh_seconds,
                 language=source_language(configuration(library, session_id)),
                 audit=audit, **materials
             )

@@ -95,8 +95,8 @@ def test_leaked_revision_keeps_previous_translation_pending_and_can_retry(monkey
     translator._generate = lambda _: {
         'text': '后续讲话（仅作消歧参考，不要翻译或补写）：邻段', 'truncated': False,
     }
-    with pytest.raises(ValueError, match='上下文提示'):
-        engine.complete_translation(key)
+    engine.complete_translation(key)
+    assert job.attempts == 1
     assert entry['chinese'] == '已有译文'
     assert entry['status'] != 'locked'
     assert engine.pending_translations[key] is job
@@ -197,18 +197,22 @@ def test_queue_pressure_persists_context_revision_before_locking_and_export(tmp_
 
 def test_failure_preserves_pending_work_and_never_falsely_locks_caption(monkeypatch):
     engine, translator, events, _ = make_engine(monkeypatch)
+    audit = []
+    engine.translation_audit = audit.append
     for i in range(3):
         finish_utterance(engine, i)
     translator.fail = True
-    with pytest.raises(RuntimeError, match='synthetic'):
-        finish_utterance(engine, 3)
-    assert events[-1]['english'] == 'Utterance 4' and events[-1]['status'] == 'stable'
+    finish_utterance(engine, 3)
+    assert any(e['english'] == 'Utterance 4' and e['status'] == 'stable' for e in events)
     assert not any(e['status'] == 'locked' for e in events)
+    assert audit[-1]['state'] == 'deferred' and audit[-1]['attempts'] == 2
+    assert audit[-1]['following'] == 'Utterance 2\nUtterance 3'
     translator.fail = False
     engine.lock_all()
     locked = [e for e in events if e['status'] == 'locked']
-    assert len(locked) == 4 and all(e['chinese'] for e in locked)
-    assert 'Utterance 2\nUtterance 3' in locked[0]['chinese']
+    assert len(locked) == 3 and all(e['chinese'] for e in locked)
+    assert engine.translations_deferred == 1
+    assert not engine.pending_translations
 
 
 def test_mode_switch_completes_revisions_using_original_save_flags(tmp_path, monkeypatch):
@@ -231,7 +235,10 @@ def test_mode_switch_completes_revisions_using_original_save_flags(tmp_path, mon
         assert len(translator.calls) == calls
 
 
-def test_real_protocol_uses_required_revision_queue_and_flushes_on_stop(tmp_path, monkeypatch):
+@pytest.mark.parametrize("translation_failure", [False, True])
+def test_real_protocol_uses_required_revision_queue_and_flushes_on_stop(
+    tmp_path, monkeypatch, translation_failure,
+):
     root = tmp_path / 'library'
     with Library(root) as lib:
         lecture = lib.create_lecture(lib.create_course('Synthetic')['id'], 'Synthetic')
@@ -246,6 +253,7 @@ def test_real_protocol_uses_required_revision_queue_and_flushes_on_stop(tmp_path
     queue.put({'type': 'stop'})
     model = Session()
     translator = Translator()
+    translator.fail = translation_failure
     monkeypatch.setattr(live, 'InputBuffer', lambda: queue)
     monkeypatch.setattr(live.threading, 'Thread', lambda **_: SimpleNamespace(start=lambda: None))
     monkeypatch.setattr(live, 'QwenASR', lambda _: SimpleNamespace(session=model))
@@ -262,9 +270,18 @@ def test_real_protocol_uses_required_revision_queue_and_flushes_on_stop(tmp_path
     assert model.languages == ['English'] * 4
     with Library(root) as lib:
         rows = live_store.history(lib, lecture['id'])['captions']
-        assert len(rows) == 4 and all(r['status'] == 'locked' for r in rows)
-        assert '后文 Utterance 2\nUtterance 3' in rows[0]['chinese']
-        assert '后文 Utterance 3\nUtterance 4' in rows[1]['chinese']
+        assert len(rows) == 4
+        if translation_failure:
+            assert all(r['status'] == 'stable' and not r['chinese'] for r in rows)
+            assert len(live_store.translation_failures(lib, session['id'])) == 4
+            assert messages[-1]['translations_deferred'] == 4
+            assert messages[-1]['translation_pending'] == 0
+            assert any(m['type'] == 'warning' for m in messages)
+            assert not any(m['type'] == 'error' for m in messages)
+        else:
+            assert all(r['status'] == 'locked' for r in rows)
+            assert '后文 Utterance 2\nUtterance 3' in rows[0]['chinese']
+            assert '后文 Utterance 3\nUtterance 4' in rows[1]['chinese']
 
 
 def test_repeated_phrase_in_new_utterance_still_gets_a_temporary_translation(monkeypatch):
@@ -362,8 +379,10 @@ def test_first_asr_compute_time_counts_toward_current_wait(monkeypatch, deferred
     assert events[-1]['chinese']
 
 
-def test_current_partial_changes_keep_their_translation_cooldown(monkeypatch):
+@pytest.mark.parametrize("interval", [1, 3])
+def test_current_partial_changes_keep_their_translation_cooldown(monkeypatch, interval):
     engine, translator, events, clock = make_engine(monkeypatch)
+    engine.temporary_refresh_seconds = interval
     engine.feed(np.full(4000, .1, dtype=np.float32), 0)
     clock[0] = 1
     engine.service(0)
@@ -373,7 +392,10 @@ def test_current_partial_changes_keep_their_translation_cooldown(monkeypatch):
     clock[0] = 1.99
     engine.service(0)
     assert len(translator.calls) == 1
-    clock[0] = 2
+    clock[0] = 1 + interval - .01
+    engine.service(0)
+    assert len(translator.calls) == 1
+    clock[0] = 1 + interval
     engine.service(0)
     assert len(translator.calls) == 2
     assert events[-1]['english'] == 'Utterance 1 continues'
@@ -386,15 +408,18 @@ def test_failed_temporary_translation_does_not_restart_wait_or_mark_text_done(mo
     engine.feed(np.full(4000, .1, dtype=np.float32), 0)
     clock[0] = 6
     translator.fail = True
-    with pytest.raises(RuntimeError, match='synthetic'):
-        engine.service(8)
+    engine.service(8)
+    assert engine.translation_failures == 1
     assert engine.last_temporary_translation_at == 0
     assert engine.last_temporary_text == ''
     assert not events[-1]['chinese']
     translator.fail = False
     engine.service(8)
+    assert not events[-1]['chinese']  # Retry cooldown does not count as success.
+    clock[0] = 12
+    engine.service(8)
     assert events[-1]['chinese']
-    assert engine.last_temporary_translation_at == 6
+    assert engine.last_temporary_translation_at == 12
 
 
 def test_reject_neighbour_echo_after_required_revision_and_clean_up(monkeypatch):

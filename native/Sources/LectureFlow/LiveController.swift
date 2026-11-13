@@ -481,7 +481,11 @@ final class LiveController: NSObject, ObservableObject {
             return
         }
         guard sourceLecture == lectureID else { return }
-        if token != pipeToken && kind != "caption" { return }
+        if token != pipeToken && kind != "caption" {
+            // A draining process can still report persisted, incomplete translations.
+            // Keep its warning visible without accepting unrelated stale-session events.
+            guard kind == "warning", drainingTokens[token] != nil else { return }
+        }
         switch event["type"] as? String {
         case "progress": break
         case "ready":

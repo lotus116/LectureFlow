@@ -47,6 +47,8 @@ python3 scripts/check-licenses.py
 
 源文件使用受管副本、哈希与源时间映射；重排保留旧版本。JSON 保留元数据，英文／中文保存边界仍适用。exporting 提供纯转写导出，不提供总结 Prompt 或云调用。模块入口见 ARCHITECTURE，具体实时队列／退出协议见 [REALTIME](design/REALTIME.md)。
 
+实时后台的 `live run` 支持 `--temporary-refresh-seconds 1|3`，默认1；3为显式实验节流，仅影响已经显示中文后的临时刷新，首次中文和必要回改保持。正常桌面调用不加该参数，保持原刷新频率。省计算不代表首译一定更快，证据见 STATUS。
+
 ## 独立打包与正式发布
 
 Windows x64 使用原生 PowerShell、Python 3.12 与 uv，运行 `scripts/setup-windows.ps1`、`scripts/build-windows.ps1` 和 `scripts/package-windows-release.ps1`。默认模型下载后按固定 SHA-256 核对；打包 EXE 用临时资料库检查后台启动。双平台手动工作流从同一提交构建，两个任务成功后统一生成 SHA256SUMS 并发布。

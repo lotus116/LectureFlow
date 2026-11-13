@@ -175,10 +175,12 @@ def test_translation_failure_cannot_lose_newly_finalized_original():
         engine.feed(np.full(4000, 0.1, dtype=np.float32), i * 0.25)
         engine.finish()
     engine.feed(np.full(4000, 0.1, dtype=np.float32), 0.75)
-    with pytest.raises(RuntimeError, match="synthetic failure"):
-        engine.finish()
-    assert events[-1]["status"] == "stable"
-    assert events[-1]["english"] == "not corrected 4"
+    engine.finish()
+    assert any(e["status"] == "stable" and e["english"] == "not corrected 4" for e in events)
+    engine.lock_all()
+    assert engine.translations_deferred == 4
+    assert not engine.pending_translations
+    assert not any(e["status"] == "locked" for e in events)
 
 
 def test_english_classroom_defaults_are_used_by_cli_and_new_live_session(tmp_path):

@@ -116,7 +116,8 @@ def history(library, lecture_id: str) -> dict:
     sessions = library.db.execute("SELECT id FROM live_sessions WHERE lecture_id=?", (lecture_id,))
     return {"captions": captions, "sessions": [
         {"id": row[0], "config": configuration(library, row[0]),
-         "accent_reviews": accent_audits(library, row[0])} for row in sessions
+         "accent_reviews": accent_audits(library, row[0]),
+         "translation_failures": translation_failures(library, row[0])} for row in sessions
     ]}
 
 
@@ -171,3 +172,40 @@ def accent_audits(library, session_id):
     return [json.loads(row[0]) for row in library.db.execute(
         "SELECT event FROM live_accent_audit WHERE session_id=? ORDER BY caption_id",
         (session_id,))]
+
+
+def save_translation_failure(library, session_id, event, *, english):
+    """Durable unresolved work, never an acknowledgement of successful translation."""
+    library.db.execute("""CREATE TABLE IF NOT EXISTS live_translation_failures (
+        session_id TEXT NOT NULL REFERENCES live_sessions(id) ON DELETE CASCADE,
+        caption_id TEXT NOT NULL, event TEXT NOT NULL,
+        PRIMARY KEY(session_id,caption_id))""")
+    with library.transaction():
+        if event["state"] == "resolved":
+            library.db.execute(
+                "DELETE FROM live_translation_failures WHERE session_id=? AND caption_id=?",
+                (session_id, event["id"]),
+            )
+            return
+        clean = {k: event[k] for k in (
+            "id", "state", "kind", "attempts", "error_type", "start", "end", "source_version",
+        ) if k in event}
+        if english:
+            clean.update({k: event[k] for k in (
+                "source_text", "context", "following",
+            ) if k in event})
+        library.db.execute("""INSERT INTO live_translation_failures VALUES(?,?,?)
+            ON CONFLICT(session_id,caption_id) DO UPDATE SET event=excluded.event""",
+            (session_id, event["id"], json.dumps(clean, ensure_ascii=False)))
+
+
+def translation_failures(library, session_id):
+    exists = library.db.execute(
+        "SELECT 1 FROM sqlite_master WHERE name='live_translation_failures' AND type='table'",
+    ).fetchone()
+    if not exists:
+        return []
+    return [json.loads(row[0]) for row in library.db.execute(
+        "SELECT event FROM live_translation_failures WHERE session_id=? ORDER BY caption_id",
+        (session_id,),
+    )]

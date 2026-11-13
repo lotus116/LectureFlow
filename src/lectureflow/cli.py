@@ -100,6 +100,8 @@ def parser() -> argparse.ArgumentParser:
     run.add_argument("lecture_id")
     run.add_argument("session_id")
     run.add_argument("--asr", choices=["asr-small", "asr-large"], default="asr-small")
+    run.add_argument("--temporary-refresh-seconds", type=int, choices=[1, 3], default=1,
+                     help="已有临时中文的刷新间隔；3秒为实验节流，首次中文不变")
     retry = live_actions.add_parser("retry-accent", help="从已封存原音补做口音候选；不覆盖旧字幕")
     retry.add_argument("lecture_id")
     retry.add_argument("session_id")
@@ -295,6 +297,7 @@ def main() -> int:
                     args.lecture_id,
                     args.session_id,
                     args.asr,
+                    temporary_refresh_seconds=args.temporary_refresh_seconds,
                 )
             else:
                 from . import live_store

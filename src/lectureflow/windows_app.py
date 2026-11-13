@@ -14,7 +14,7 @@ from tkinter import filedialog, messagebox, simpledialog
 from . import documents, filelock, live_store, review_marks, windows_settings
 from .library import Library
 from .runtime import write_json
-from .windows_capture import RATE, Capture
+from .windows_capture import RATE, Capture, persist_capture_event
 from .windows_commands import Commands
 from .windows_models import WINDOWS_CATALOG, FileSpeech, translation_server
 from .windows_review import Review
@@ -457,9 +457,8 @@ class App:
                 event, at = cap.events.get_nowait()
             except queue.Empty:
                 break
-            live_store.save(
-                self.lib, cap.session, event, english=cap.english, translate=cap.chinese
-            )
+            if not persist_capture_event(self.lib, cap, event):
+                continue
             self.view.update_row(dict(event, session_id=cap.session))
             matching = next((i for i, r in enumerate(self.recent) if r["id"] == event["id"]), None)
             if matching is not None:
