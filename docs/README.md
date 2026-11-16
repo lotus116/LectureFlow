@@ -8,6 +8,7 @@ LectureFlow 是面向英语课堂的本地 macOS / Windows 录音、英文转写
 |---|---|
 | 0.6.5 双平台发行及差异 | [版本说明](RELEASE-0.6.5.md) · [Windows 实机记录](research/WINDOWS-TRIAL.md) |
 | 安装并开始使用 | [使用指南](USER_GUIDE.md) |
+| Android 离线验证包与整堂课试用 | [Android 试用说明](research/ANDROID-TRIAL-2026-11-17.md) |
 | 软件应该怎样工作、哪些规则不能改 | [已确认需求](PRODUCT.md) |
 | 当前做到哪、有什么问题、下一步是否已批准 | [当前状态与需求追踪](STATUS.md) |
 | 模块和数据如何协作 | [架构](ARCHITECTURE.md) → 按主题深入 |

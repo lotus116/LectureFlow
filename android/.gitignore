@@ -1,0 +1,9 @@
+.gradle/
+**/build/
+**/.cxx/
+local.properties
+app/libs/*.aar
+*.keystore
+!app/src/main/java/local/
+!app/src/test/java/local/
+!app/src/androidTest/java/local/

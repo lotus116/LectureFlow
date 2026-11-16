@@ -1,0 +1,18 @@
+LectureFlow Android validation prototype
+Application source: GPL-3.0-only, repository android/.
+
+sherpa-onnx 2.0.1 official Android AAR (Apache-2.0)
+https://github.com/k2-fsa/sherpa-onnx/tree/v2.0.1
+AAR SHA256 a8d09d1d32f3eb8520482c6d3d43fae674681c5b050385967c70a3c2c9bf0ee7
+Contains ONNX Runtime and native dependencies distributed by upstream.
+
+llama.cpp b9000, commit 1a03cf47f67be591699d1f0f7ca28e1ed6eb8c7e (MIT)
+https://github.com/ggml-org/llama.cpp/tree/b9000
+Built from source through android/app/src/main/cpp/CMakeLists.txt.
+
+Kotlin stdlib 2.1.0 (Apache-2.0)
+
+Models download separately on explicit request. Fixed upstream revisions and
+SHA-256 checks are in ModelFiles.java. Qwen3-ASR 0.6B is Apache-2.0.
+Hy-MT2-1.8B has its upstream model license included in this directory.
+No classroom audio or text is sent to a network inference service.
