@@ -15,7 +15,7 @@ LectureFlow 是面向英语课堂的本地 macOS / Windows 录音、英文转写
 | 开源许可、第三方权利与发布门槛 | [许可入口](licenses/README.md) · [本轮审计](licenses/AUDIT-2026-11-07.md) |
 | 如何开发、检查和发布 | [开发指南](DEVELOPMENT.md) |
 | 为什么这样决定、旧需求是否仍有效 | [决定依据](design/DECISIONS.md) |
-| 课程报告：实验全流程、结果、限制与证据索引 | [报告写作底稿](research/COURSE_REPORT_PREPARATION-2026-11-13.md) |
+| NLP 课程实验进度与后续安排 | [11 月 21 日实验简报](research/COURSE_EXPERIMENT_BRIEF-2026-11-21.md) · [阶段 1–10 报告底稿](research/COURSE_REPORT_PREPARATION-2026-11-13.md) |
 | 声音实验具体测了什么 | [语音增强研究](research/SPEECH_RESEARCH-2026-11-05.md) |
 | 口音复核为何没收益、下一步依据 | [离线归因与候选对照](research/ACCENT_DIAGNOSIS-2026-11-05.md) |
 | 真实课堂的原音、课件与中文回改对照 | [课堂基线与有限对照](research/CLASSROOM_BASELINE-2026-11-05.md) |
