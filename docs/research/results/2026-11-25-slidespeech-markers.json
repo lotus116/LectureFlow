@@ -1,0 +1,1384 @@
+{
+  "study": "SlideSpeech selective re-decoding, paired lexical marker audit",
+  "design_sha256": "6769eb409e44ab968d03c3d9646bbf4c2a0ffa0c4e945ca4c36b31c31678eb38",
+  "inputs_sha256": {
+    "freeze.json": "53049e82c1e5422eaf17c8f154c2550f66038c16faa5fb10bd65fd0e2b3910e8",
+    "calls.jsonl": "d09417a77b35d9e30c2e2d8dd0d4b4cd08189545ae2ac65f8a4c18e422a69734",
+    "private-references.json": "25b2120074ff77227ed00a08c99bd7da11d8ad5da1a2a122229fab262338323f",
+    "decode-metadata.json": "cd434d774bf28c8387281a76a4654888fe275aed3cf45b44cbad15c129a81067",
+    "reference-provenance.json": "0f64472b5cb7c0b55a29f9fa2404f4b5eadd28b35a18c977bd45004cef639c41",
+    "freeze-first-attempt-exit-status.txt": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+    "freeze-first-attempt.log": "8e0be1587696add14c58d638eec82b87d8dd3faefe1169809a8573078298abb0",
+    "supplement/replayed.json": "a7245c1664e6d9ef75de00df63370a5996be684982c98a6fd84a697a416a8d20"
+  },
+  "successful_model_calls": {
+    "warmup": 1,
+    "short": 81,
+    "full": 24
+  },
+  "failed_model_calls": 0,
+  "first_preparation_attempt": {
+    "exit_status": 1,
+    "failure": "FileNotFoundError for the audio extraction parent directory",
+    "model_calls": 0
+  },
+  "original_word_error_comparison": {
+    "ref_words": 1212,
+    "short": 144,
+    "energy": 136,
+    "full": 121
+  },
+  "windows": 24,
+  "source_videos": 6,
+  "energy_selected_windows": 9,
+  "marker_id_encoding": "Equality only. IDs are local to a window and marker type. Original marker strings and their dictionaries are omitted.",
+  "interpretation": {
+    "number": "A disappeared English numeric insertion is counted as a lexical repair. Semantic correctness remains undetermined.",
+    "negation": "Counts cover lexical markers. Negation scope and meaning remain ungraded."
+  },
+  "energy": {
+    "number": {
+      "reference_markers": 14,
+      "first_edits": {
+        "substitution": 0,
+        "deletion": 1,
+        "insertion": 1
+      },
+      "candidate_edits": {
+        "substitution": 0,
+        "deletion": 2,
+        "insertion": 0
+      },
+      "repairs": 1,
+      "regressions": 1,
+      "net_gain": 0,
+      "windows_by_net_change": {
+        "improved": 1,
+        "tied": 22,
+        "worsened": 1
+      },
+      "examples": {
+        "repair": {
+          "window_id": "test:tradition_culture_0003-00042:tradition_culture_0003-00043",
+          "first_index": 1,
+          "first": "insertion",
+          "full": "absent"
+        },
+        "regression": {
+          "window_id": "test:tradition_culture_0003-00094:tradition_culture_0003-00095",
+          "reference_index": 2,
+          "first": "exact",
+          "full": "deletion"
+        }
+      }
+    },
+    "negation": {
+      "reference_markers": 12,
+      "first_edits": {
+        "substitution": 0,
+        "deletion": 0,
+        "insertion": 0
+      },
+      "candidate_edits": {
+        "substitution": 0,
+        "deletion": 0,
+        "insertion": 0
+      },
+      "repairs": 0,
+      "regressions": 0,
+      "net_gain": 0,
+      "windows_by_net_change": {
+        "improved": 0,
+        "tied": 24,
+        "worsened": 0
+      },
+      "examples": {
+        "repair": null,
+        "regression": null
+      }
+    }
+  },
+  "full": {
+    "number": {
+      "reference_markers": 14,
+      "first_edits": {
+        "substitution": 0,
+        "deletion": 1,
+        "insertion": 1
+      },
+      "candidate_edits": {
+        "substitution": 0,
+        "deletion": 2,
+        "insertion": 0
+      },
+      "repairs": 1,
+      "regressions": 1,
+      "net_gain": 0,
+      "windows_by_net_change": {
+        "improved": 1,
+        "tied": 22,
+        "worsened": 1
+      },
+      "examples": {
+        "repair": {
+          "window_id": "test:tradition_culture_0003-00042:tradition_culture_0003-00043",
+          "first_index": 1,
+          "first": "insertion",
+          "full": "absent"
+        },
+        "regression": {
+          "window_id": "test:tradition_culture_0003-00094:tradition_culture_0003-00095",
+          "reference_index": 2,
+          "first": "exact",
+          "full": "deletion"
+        }
+      }
+    },
+    "negation": {
+      "reference_markers": 12,
+      "first_edits": {
+        "substitution": 0,
+        "deletion": 0,
+        "insertion": 0
+      },
+      "candidate_edits": {
+        "substitution": 0,
+        "deletion": 0,
+        "insertion": 0
+      },
+      "repairs": 0,
+      "regressions": 0,
+      "net_gain": 0,
+      "windows_by_net_change": {
+        "improved": 0,
+        "tied": 24,
+        "worsened": 0
+      },
+      "examples": {
+        "repair": null,
+        "regression": null
+      }
+    }
+  },
+  "rows": [
+    {
+      "window_id": "dev:medical_0004-00028:medical_0004-00029",
+      "video_id": "tt9pmMkBnwY",
+      "selected": false,
+      "markers": {
+        "number": {
+          "ids": {
+            "reference": [
+              1,
+              2
+            ],
+            "first": [
+              1,
+              2
+            ],
+            "full": [
+              1,
+              2
+            ]
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        },
+        "negation": {
+          "ids": {
+            "reference": [
+              1
+            ],
+            "first": [
+              1
+            ],
+            "full": [
+              1
+            ]
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        }
+      }
+    },
+    {
+      "window_id": "dev:medical_0004-00021:medical_0004-00022",
+      "video_id": "tt9pmMkBnwY",
+      "selected": false,
+      "markers": {
+        "number": {
+          "ids": {
+            "reference": [],
+            "first": [],
+            "full": []
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        },
+        "negation": {
+          "ids": {
+            "reference": [],
+            "first": [],
+            "full": []
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        }
+      }
+    },
+    {
+      "window_id": "dev:medical_0004-00015:medical_0004-00016",
+      "video_id": "tt9pmMkBnwY",
+      "selected": false,
+      "markers": {
+        "number": {
+          "ids": {
+            "reference": [
+              1
+            ],
+            "first": [
+              1
+            ],
+            "full": [
+              1
+            ]
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        },
+        "negation": {
+          "ids": {
+            "reference": [],
+            "first": [],
+            "full": []
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        }
+      }
+    },
+    {
+      "window_id": "dev:medical_0004-00044:medical_0004-00045",
+      "video_id": "tt9pmMkBnwY",
+      "selected": false,
+      "markers": {
+        "number": {
+          "ids": {
+            "reference": [
+              1,
+              2,
+              3
+            ],
+            "first": [
+              1,
+              2,
+              3
+            ],
+            "full": [
+              1,
+              2,
+              3
+            ]
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        },
+        "negation": {
+          "ids": {
+            "reference": [
+              1
+            ],
+            "first": [
+              1
+            ],
+            "full": [
+              1
+            ]
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        }
+      }
+    },
+    {
+      "window_id": "dev:health_0002-00046:health_0002-00047",
+      "video_id": "LaXbkENZKgs",
+      "selected": false,
+      "markers": {
+        "number": {
+          "ids": {
+            "reference": [],
+            "first": [],
+            "full": []
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        },
+        "negation": {
+          "ids": {
+            "reference": [
+              1,
+              1,
+              1,
+              2
+            ],
+            "first": [
+              1,
+              1,
+              1,
+              2
+            ],
+            "full": [
+              1,
+              1,
+              1,
+              2
+            ]
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        }
+      }
+    },
+    {
+      "window_id": "dev:health_0002-00015:health_0002-00016",
+      "video_id": "LaXbkENZKgs",
+      "selected": true,
+      "markers": {
+        "number": {
+          "ids": {
+            "reference": [
+              1,
+              1
+            ],
+            "first": [
+              1,
+              1
+            ],
+            "full": [
+              1,
+              1
+            ]
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        },
+        "negation": {
+          "ids": {
+            "reference": [
+              1
+            ],
+            "first": [
+              1
+            ],
+            "full": [
+              1
+            ]
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        }
+      }
+    },
+    {
+      "window_id": "dev:health_0002-00134:health_0002-00135",
+      "video_id": "LaXbkENZKgs",
+      "selected": false,
+      "markers": {
+        "number": {
+          "ids": {
+            "reference": [],
+            "first": [],
+            "full": []
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        },
+        "negation": {
+          "ids": {
+            "reference": [],
+            "first": [],
+            "full": []
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        }
+      }
+    },
+    {
+      "window_id": "dev:health_0002-00013:health_0002-00014",
+      "video_id": "LaXbkENZKgs",
+      "selected": false,
+      "markers": {
+        "number": {
+          "ids": {
+            "reference": [
+              1
+            ],
+            "first": [
+              1
+            ],
+            "full": [
+              1
+            ]
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        },
+        "negation": {
+          "ids": {
+            "reference": [
+              1
+            ],
+            "first": [
+              1
+            ],
+            "full": [
+              1
+            ]
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        }
+      }
+    },
+    {
+      "window_id": "dev:dance_0002-00035:dance_0002-00036",
+      "video_id": "VVJLEacmlGs",
+      "selected": true,
+      "markers": {
+        "number": {
+          "ids": {
+            "reference": [],
+            "first": [],
+            "full": []
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        },
+        "negation": {
+          "ids": {
+            "reference": [
+              1
+            ],
+            "first": [
+              1
+            ],
+            "full": [
+              1
+            ]
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        }
+      }
+    },
+    {
+      "window_id": "dev:dance_0002-00092:dance_0002-00093",
+      "video_id": "VVJLEacmlGs",
+      "selected": false,
+      "markers": {
+        "number": {
+          "ids": {
+            "reference": [],
+            "first": [],
+            "full": []
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        },
+        "negation": {
+          "ids": {
+            "reference": [],
+            "first": [],
+            "full": []
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        }
+      }
+    },
+    {
+      "window_id": "dev:dance_0002-00064:dance_0002-00065",
+      "video_id": "VVJLEacmlGs",
+      "selected": false,
+      "markers": {
+        "number": {
+          "ids": {
+            "reference": [],
+            "first": [],
+            "full": []
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        },
+        "negation": {
+          "ids": {
+            "reference": [
+              1
+            ],
+            "first": [
+              1
+            ],
+            "full": [
+              1
+            ]
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        }
+      }
+    },
+    {
+      "window_id": "dev:dance_0002-00086:dance_0002-00087",
+      "video_id": "VVJLEacmlGs",
+      "selected": false,
+      "markers": {
+        "number": {
+          "ids": {
+            "reference": [],
+            "first": [],
+            "full": []
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        },
+        "negation": {
+          "ids": {
+            "reference": [],
+            "first": [],
+            "full": []
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        }
+      }
+    },
+    {
+      "window_id": "test:tradition_culture_0003-00054:tradition_culture_0003-00055",
+      "video_id": "KwlOulzoWlI",
+      "selected": false,
+      "markers": {
+        "number": {
+          "ids": {
+            "reference": [],
+            "first": [],
+            "full": []
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        },
+        "negation": {
+          "ids": {
+            "reference": [],
+            "first": [],
+            "full": []
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        }
+      }
+    },
+    {
+      "window_id": "test:tradition_culture_0003-00042:tradition_culture_0003-00043",
+      "video_id": "KwlOulzoWlI",
+      "selected": true,
+      "markers": {
+        "number": {
+          "ids": {
+            "reference": [],
+            "first": [
+              1
+            ],
+            "full": []
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 1
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [
+            {
+              "first_index": 1,
+              "first": "insertion",
+              "full": "absent"
+            }
+          ],
+          "regressions": []
+        },
+        "negation": {
+          "ids": {
+            "reference": [
+              1
+            ],
+            "first": [
+              1
+            ],
+            "full": [
+              1
+            ]
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        }
+      }
+    },
+    {
+      "window_id": "test:tradition_culture_0003-00094:tradition_culture_0003-00095",
+      "video_id": "KwlOulzoWlI",
+      "selected": true,
+      "markers": {
+        "number": {
+          "ids": {
+            "reference": [
+              1,
+              2
+            ],
+            "first": [
+              2
+            ],
+            "full": []
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 1,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 2,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": [
+            {
+              "reference_index": 2,
+              "first": "exact",
+              "full": "deletion"
+            }
+          ]
+        },
+        "negation": {
+          "ids": {
+            "reference": [],
+            "first": [],
+            "full": []
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        }
+      }
+    },
+    {
+      "window_id": "test:tradition_culture_0003-00100:tradition_culture_0003-00101",
+      "video_id": "KwlOulzoWlI",
+      "selected": true,
+      "markers": {
+        "number": {
+          "ids": {
+            "reference": [],
+            "first": [],
+            "full": []
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        },
+        "negation": {
+          "ids": {
+            "reference": [],
+            "first": [],
+            "full": []
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        }
+      }
+    },
+    {
+      "window_id": "test:fitness_0000-00016:fitness_0000-00017",
+      "video_id": "EjFWpH1gP3U",
+      "selected": true,
+      "markers": {
+        "number": {
+          "ids": {
+            "reference": [],
+            "first": [],
+            "full": []
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        },
+        "negation": {
+          "ids": {
+            "reference": [],
+            "first": [],
+            "full": []
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        }
+      }
+    },
+    {
+      "window_id": "test:fitness_0000-00002:fitness_0000-00003",
+      "video_id": "EjFWpH1gP3U",
+      "selected": true,
+      "markers": {
+        "number": {
+          "ids": {
+            "reference": [],
+            "first": [],
+            "full": []
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        },
+        "negation": {
+          "ids": {
+            "reference": [],
+            "first": [],
+            "full": []
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        }
+      }
+    },
+    {
+      "window_id": "test:fitness_0000-00042:fitness_0000-00043",
+      "video_id": "EjFWpH1gP3U",
+      "selected": true,
+      "markers": {
+        "number": {
+          "ids": {
+            "reference": [
+              1,
+              2
+            ],
+            "first": [
+              1,
+              2
+            ],
+            "full": [
+              1,
+              2
+            ]
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        },
+        "negation": {
+          "ids": {
+            "reference": [],
+            "first": [],
+            "full": []
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        }
+      }
+    },
+    {
+      "window_id": "test:fitness_0000-00009:fitness_0000-00010",
+      "video_id": "EjFWpH1gP3U",
+      "selected": false,
+      "markers": {
+        "number": {
+          "ids": {
+            "reference": [],
+            "first": [],
+            "full": []
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        },
+        "negation": {
+          "ids": {
+            "reference": [
+              1
+            ],
+            "first": [
+              1
+            ],
+            "full": [
+              1
+            ]
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        }
+      }
+    },
+    {
+      "window_id": "test:tradition_culture_0000-00006:tradition_culture_0000-00007",
+      "video_id": "1YcQOQ8Oonw",
+      "selected": false,
+      "markers": {
+        "number": {
+          "ids": {
+            "reference": [
+              1
+            ],
+            "first": [
+              1
+            ],
+            "full": [
+              1
+            ]
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        },
+        "negation": {
+          "ids": {
+            "reference": [],
+            "first": [],
+            "full": []
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        }
+      }
+    },
+    {
+      "window_id": "test:tradition_culture_0000-00013:tradition_culture_0000-00014",
+      "video_id": "1YcQOQ8Oonw",
+      "selected": false,
+      "markers": {
+        "number": {
+          "ids": {
+            "reference": [],
+            "first": [],
+            "full": []
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        },
+        "negation": {
+          "ids": {
+            "reference": [],
+            "first": [],
+            "full": []
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        }
+      }
+    },
+    {
+      "window_id": "test:tradition_culture_0000-00040:tradition_culture_0000-00041",
+      "video_id": "1YcQOQ8Oonw",
+      "selected": false,
+      "markers": {
+        "number": {
+          "ids": {
+            "reference": [],
+            "first": [],
+            "full": []
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        },
+        "negation": {
+          "ids": {
+            "reference": [],
+            "first": [],
+            "full": []
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        }
+      }
+    },
+    {
+      "window_id": "test:tradition_culture_0000-00003:tradition_culture_0000-00004",
+      "video_id": "1YcQOQ8Oonw",
+      "selected": true,
+      "markers": {
+        "number": {
+          "ids": {
+            "reference": [],
+            "first": [],
+            "full": []
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        },
+        "negation": {
+          "ids": {
+            "reference": [],
+            "first": [],
+            "full": []
+          },
+          "first_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "full_edits": {
+            "substitution": 0,
+            "deletion": 0,
+            "insertion": 0
+          },
+          "repairs": [],
+          "regressions": []
+        }
+      }
+    }
+  ]
+}
