@@ -1,0 +1,271 @@
+{
+  "id": "C11",
+  "date": "2026-11-26",
+  "protocol": "Cached C03 same-window candidates. Exact meet-in-the-middle enumeration of feasible subset counts; uniformly draw up to 1,000 unique subsets per route and matching definition, enumerate all for smaller supports. Both exact audio frames and separate ±max(1s,2%) within the initial 40% cap. Cached comparisons are not independent utterances or inferential p values.",
+  "results": {
+    "A1-room": {
+      "selected_standard": 83,
+      "selected_raw": 86,
+      "selected_seconds": 121.75,
+      "reference_words": 640,
+      "raw_reference_words": 639,
+      "designs": {
+        "exact": {
+          "total_subset_count": 1497,
+          "sampled": 1000,
+          "mean_standard": 95.701,
+          "mean_raw": 99.431,
+          "mean_seconds": 121.75,
+          "standard_random_better_equal_worse": [
+            17,
+            10,
+            973
+          ]
+        },
+        "near": {
+          "total_subset_count": 13411,
+          "sampled": 1000,
+          "mean_standard": 96.006,
+          "mean_raw": 100.015,
+          "mean_seconds": 120.9745,
+          "standard_random_better_equal_worse": [
+            22,
+            14,
+            964
+          ]
+        }
+      }
+    },
+    "A1-zoom": {
+      "selected_standard": 41,
+      "selected_raw": 67,
+      "selected_seconds": 116.25,
+      "reference_words": 640,
+      "raw_reference_words": 639,
+      "designs": {
+        "exact": {
+          "total_subset_count": 1176,
+          "sampled": 1000,
+          "mean_standard": 46.024,
+          "mean_raw": 74.303,
+          "mean_seconds": 116.25,
+          "standard_random_better_equal_worse": [
+            0,
+            5,
+            995
+          ]
+        },
+        "near": {
+          "total_subset_count": 18683,
+          "sampled": 1000,
+          "mean_standard": 46.319,
+          "mean_raw": 75.305,
+          "mean_seconds": 116.28075,
+          "standard_random_better_equal_worse": [
+            2,
+            15,
+            983
+          ]
+        }
+      }
+    },
+    "A2-room": {
+      "selected_standard": 91,
+      "selected_raw": 111,
+      "selected_seconds": 111.5,
+      "reference_words": 549,
+      "raw_reference_words": 545,
+      "designs": {
+        "exact": {
+          "total_subset_count": 1002,
+          "sampled": 1000,
+          "mean_standard": 92.221,
+          "mean_raw": 110.932,
+          "mean_seconds": 111.5,
+          "standard_random_better_equal_worse": [
+            400,
+            58,
+            542
+          ]
+        },
+        "near": {
+          "total_subset_count": 16233,
+          "sampled": 1000,
+          "mean_standard": 93.119,
+          "mean_raw": 112.287,
+          "mean_seconds": 111.6495,
+          "standard_random_better_equal_worse": [
+            341,
+            57,
+            602
+          ]
+        }
+      }
+    },
+    "A2-zoom": {
+      "selected_standard": 75,
+      "selected_raw": 108,
+      "selected_seconds": 109.25,
+      "reference_words": 549,
+      "raw_reference_words": 545,
+      "designs": {
+        "exact": {
+          "total_subset_count": 2072,
+          "sampled": 1000,
+          "mean_standard": 76.682,
+          "mean_raw": 102.389,
+          "mean_seconds": 109.25,
+          "standard_random_better_equal_worse": [
+            173,
+            175,
+            652
+          ]
+        },
+        "near": {
+          "total_subset_count": 68321,
+          "sampled": 1000,
+          "mean_standard": 76.816,
+          "mean_raw": 102.627,
+          "mean_seconds": 109.39475,
+          "standard_random_better_equal_worse": [
+            139,
+            158,
+            703
+          ]
+        }
+      }
+    },
+    "B1-room": {
+      "selected_standard": 103,
+      "selected_raw": 105,
+      "selected_seconds": 120,
+      "reference_words": 517,
+      "raw_reference_words": 514,
+      "designs": {
+        "exact": {
+          "total_subset_count": 8390,
+          "sampled": 1000,
+          "mean_standard": 107.94,
+          "mean_raw": 110.12,
+          "mean_seconds": 120,
+          "standard_random_better_equal_worse": [
+            160,
+            59,
+            781
+          ]
+        },
+        "near": {
+          "total_subset_count": 154394,
+          "sampled": 1000,
+          "mean_standard": 108.458,
+          "mean_raw": 110.68,
+          "mean_seconds": 118.82645025000001,
+          "standard_random_better_equal_worse": [
+            149,
+            42,
+            809
+          ]
+        }
+      }
+    },
+    "B1-zoom": {
+      "selected_standard": 70,
+      "selected_raw": 76,
+      "selected_seconds": 119.0424375,
+      "reference_words": 517,
+      "raw_reference_words": 514,
+      "designs": {
+        "exact": {
+          "total_subset_count": 1596,
+          "sampled": 1000,
+          "mean_standard": 68.457,
+          "mean_raw": 73.771,
+          "mean_seconds": 119.0424375,
+          "standard_random_better_equal_worse": [
+            696,
+            168,
+            136
+          ]
+        },
+        "near": {
+          "total_subset_count": 54427,
+          "sampled": 1000,
+          "mean_standard": 68.298,
+          "mean_raw": 73.552,
+          "mean_seconds": 118.383087625,
+          "standard_random_better_equal_worse": [
+            742,
+            146,
+            112
+          ]
+        }
+      }
+    },
+    "B2-room": {
+      "selected_standard": 97,
+      "selected_raw": 95,
+      "selected_seconds": 113.808,
+      "reference_words": 556,
+      "raw_reference_words": 551,
+      "designs": {
+        "exact": {
+          "total_subset_count": 417,
+          "sampled": 417,
+          "mean_standard": 102.02877697841727,
+          "mean_raw": 101.43884892086331,
+          "mean_seconds": 113.808,
+          "standard_random_better_equal_worse": [
+            33,
+            19,
+            365
+          ]
+        },
+        "near": {
+          "total_subset_count": 8127,
+          "sampled": 1000,
+          "mean_standard": 106.534,
+          "mean_raw": 105.197,
+          "mean_seconds": 113.940194,
+          "standard_random_better_equal_worse": [
+            37,
+            17,
+            946
+          ]
+        }
+      }
+    },
+    "B2-zoom": {
+      "selected_standard": 71,
+      "selected_raw": 72,
+      "selected_seconds": 121.25,
+      "reference_words": 556,
+      "raw_reference_words": 551,
+      "designs": {
+        "exact": {
+          "total_subset_count": 240,
+          "sampled": 240,
+          "mean_standard": 70.7,
+          "mean_raw": 71.7,
+          "mean_seconds": 121.25,
+          "standard_random_better_equal_worse": [
+            100,
+            66,
+            74
+          ]
+        },
+        "near": {
+          "total_subset_count": 7416,
+          "sampled": 1000,
+          "mean_standard": 70.573,
+          "mean_raw": 71.573,
+          "mean_seconds": 120.451614,
+          "standard_random_better_equal_worse": [
+            476,
+            239,
+            285
+          ]
+        }
+      }
+    }
+  }
+}
