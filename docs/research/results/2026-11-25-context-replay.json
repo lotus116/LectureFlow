@@ -1,0 +1,218 @@
+{
+  "protocol_sha256": "e09eb8ddd79e977ea825c8d7204087f67aea26c214c81f81a6879c91ce118534",
+  "scope": "two previously studied public clips; new Mac MLX English-only 1x backend inference; metrics descriptive, own boundaries differ; grid frontier includes silence",
+  "clips": [
+    {
+      "clip": 1,
+      "audio_seconds": 59.296,
+      "reference_sha256": "2893ca9cbac735f2b47b20624a2f523a5681946e7425e5b151a42d972ac2257f",
+      "runs": [
+        {
+          "cap_seconds": 20,
+          "status": "complete",
+          "sha256": "4260bb4b535014c6e8f8674e7b8cfb9da702f7fe8cd36af072a76a414a2e49b5",
+          "standard": {
+            "errors": 8,
+            "substitutions": 6,
+            "deletions": 0,
+            "insertions": 2
+          },
+          "standard_reference_words": 149,
+          "raw": {
+            "errors": 16,
+            "substitutions": 8,
+            "deletions": 4,
+            "insertions": 4
+          },
+          "raw_reference_words": 147,
+          "end_flush_captions": 1,
+          "first_english_from_own_start": {
+            "n": 4,
+            "median": 1.2181374380597845,
+            "min": 1.1477922080084682,
+            "max": 1.3013828750699759
+          },
+          "stable_from_own_end": {
+            "n": 4,
+            "median": 0.26171116693876684,
+            "min": 0.22200058307498693,
+            "max": 0.35779525013640523
+          },
+          "last_change_from_own_end": {
+            "n": 4,
+            "median": 0.26167608343530446,
+            "min": -0.49570745788514614,
+            "max": 0.3576938749756664
+          },
+          "stable_frontier_age_shared_five_second_grid": {
+            "n": 11,
+            "median": 10.254816709086299,
+            "min": 0.2546221672091633,
+            "max": 20.25502045918256
+          },
+          "dropped": 0,
+          "power": [
+            "Now drawing from 'AC Power'",
+            "Now drawing from 'AC Power'"
+          ]
+        },
+        {
+          "cap_seconds": 26,
+          "status": "complete",
+          "sha256": "8f1e033363cd918cc69a081aaa289ffdf13ce66b50ca76095412ea32603ae144",
+          "standard": {
+            "errors": 8,
+            "substitutions": 6,
+            "deletions": 0,
+            "insertions": 2
+          },
+          "standard_reference_words": 149,
+          "raw": {
+            "errors": 15,
+            "substitutions": 9,
+            "deletions": 3,
+            "insertions": 3
+          },
+          "raw_reference_words": 147,
+          "end_flush_captions": 1,
+          "first_english_from_own_start": {
+            "n": 4,
+            "median": 1.1834304163930938,
+            "min": 1.1525719577912241,
+            "max": 1.2437113330233842
+          },
+          "stable_from_own_end": {
+            "n": 4,
+            "median": 0.2636070209555328,
+            "min": 0.22721349983476102,
+            "max": 0.3535828748717904
+          },
+          "last_change_from_own_end": {
+            "n": 4,
+            "median": -0.0606735625769943,
+            "min": -0.7017062501981854,
+            "max": 0.3534769997932017
+          },
+          "stable_frontier_age_shared_five_second_grid": {
+            "n": 11,
+            "median": 10.255030332831666,
+            "min": 0.2545771668665111,
+            "max": 25.254756500013173
+          },
+          "dropped": 0,
+          "power": [
+            "Now drawing from 'AC Power'",
+            "Now drawing from 'AC Power'"
+          ]
+        }
+      ],
+      "raw_disagreement_blocks": 4
+    },
+    {
+      "clip": 2,
+      "audio_seconds": 58.861125,
+      "reference_sha256": "ffb2e3beb9a98c63dd630c8396ddb9c5efa05771610d811d475d38da11ab1e36",
+      "runs": [
+        {
+          "cap_seconds": 20,
+          "status": "complete",
+          "sha256": "7dac0115ed12dbc9b5014d2043c22a27d8088117183334e9a08020967725fd57",
+          "standard": {
+            "errors": 22,
+            "substitutions": 13,
+            "deletions": 8,
+            "insertions": 1
+          },
+          "standard_reference_words": 151,
+          "raw": {
+            "errors": 31,
+            "substitutions": 15,
+            "deletions": 16,
+            "insertions": 0
+          },
+          "raw_reference_words": 155,
+          "end_flush_captions": 1,
+          "first_english_from_own_start": {
+            "n": 4,
+            "median": 1.1697578955208883,
+            "min": 1.1332122501917183,
+            "max": 1.250582333188504
+          },
+          "stable_from_own_end": {
+            "n": 4,
+            "median": 0.29315597855020314,
+            "min": 0.2119079998228699,
+            "max": 0.3816429581493139
+          },
+          "last_change_from_own_end": {
+            "n": 4,
+            "median": 0.2786640414269641,
+            "min": -1.14454699982889,
+            "max": 0.3815912501886487
+          },
+          "stable_frontier_age_shared_five_second_grid": {
+            "n": 11,
+            "median": 10.005042916163802,
+            "min": 4.505035000154749,
+            "max": 20.005043250042945
+          },
+          "dropped": 0,
+          "power": [
+            "Now drawing from 'AC Power'",
+            "Now drawing from 'AC Power'"
+          ]
+        },
+        {
+          "cap_seconds": 26,
+          "status": "complete",
+          "sha256": "26772e2ccc7128c65eaf5f427c5868768b77fd6d12bf1697ee95e1461052aa72",
+          "standard": {
+            "errors": 22,
+            "substitutions": 13,
+            "deletions": 8,
+            "insertions": 1
+          },
+          "standard_reference_words": 151,
+          "raw": {
+            "errors": 31,
+            "substitutions": 15,
+            "deletions": 16,
+            "insertions": 0
+          },
+          "raw_reference_words": 155,
+          "end_flush_captions": 1,
+          "first_english_from_own_start": {
+            "n": 3,
+            "median": 1.1879850002005696,
+            "min": 1.1792256669141352,
+            "max": 1.2541360419709235
+          },
+          "stable_from_own_end": {
+            "n": 3,
+            "median": 0.2857051251921803,
+            "min": 0.23761766706593335,
+            "max": 0.29331133305095136
+          },
+          "last_change_from_own_end": {
+            "n": 3,
+            "median": 0.2857051251921803,
+            "min": -0.9042762077879161,
+            "max": 0.2931925831362605
+          },
+          "stable_frontier_age_shared_five_second_grid": {
+            "n": 11,
+            "median": 10.005054875044152,
+            "min": 4.005054167006165,
+            "max": 25.000881624873728
+          },
+          "dropped": 0,
+          "power": [
+            "Now drawing from 'AC Power'",
+            "Now drawing from 'AC Power'"
+          ]
+        }
+      ],
+      "raw_disagreement_blocks": 0
+    }
+  ]
+}
