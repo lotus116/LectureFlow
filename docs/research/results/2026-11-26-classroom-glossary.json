@@ -1,0 +1,547 @@
+{
+  "date": "2026-11-26",
+  "protocol": "Eight paired classroom routes; no new independent classrooms. C06 copies complete frozen C01 windows, fixed English and model, fresh 12-term match vs wrong-course inference. Cached neutral first block per route exactly replicated. C07 exploratory post-C06 near-spelling trigger from neutral text, at most two terms; unselected windows stay neutral. Same post-hoc team glossary may have benefited from seeing the target, no holdout. Counts are capped by term occurrence in whole shared reference; overlapping terms and reference uncertainty apply. Timings for new compute only; baseline cached.",
+  "C06": {
+    "A1-room": {
+      "none": {
+        "standard_errors": 55,
+        "standard_N": 640,
+        "raw_errors": 65,
+        "raw_N": 639,
+        "term_N": 10,
+        "covered_occurrences": 10,
+        "excess_same_course_occurrences": 0,
+        "other_course_occurrences_with_zero_reference": 0,
+        "truncated": 0,
+        "candidate_compute_s": null,
+        "blocks": 17
+      },
+      "match": {
+        "standard_errors": 77,
+        "standard_N": 640,
+        "raw_errors": 87,
+        "raw_N": 639,
+        "term_N": 10,
+        "covered_occurrences": 10,
+        "excess_same_course_occurrences": 3,
+        "other_course_occurrences_with_zero_reference": 0,
+        "truncated": 0,
+        "candidate_compute_s": 16.41409266879782,
+        "blocks": 17
+      },
+      "mismatch": {
+        "standard_errors": 58,
+        "standard_N": 640,
+        "raw_errors": 74,
+        "raw_N": 639,
+        "term_N": 10,
+        "covered_occurrences": 9,
+        "excess_same_course_occurrences": 0,
+        "other_course_occurrences_with_zero_reference": 0,
+        "truncated": 0,
+        "candidate_compute_s": 16.221273628994823,
+        "blocks": 17
+      }
+    },
+    "A1-zoom": {
+      "none": {
+        "standard_errors": 33,
+        "standard_N": 640,
+        "raw_errors": 57,
+        "raw_N": 639,
+        "term_N": 10,
+        "covered_occurrences": 10,
+        "excess_same_course_occurrences": 0,
+        "other_course_occurrences_with_zero_reference": 0,
+        "truncated": 0,
+        "candidate_compute_s": null,
+        "blocks": 17
+      },
+      "mismatch": {
+        "standard_errors": 37,
+        "standard_N": 640,
+        "raw_errors": 66,
+        "raw_N": 639,
+        "term_N": 10,
+        "covered_occurrences": 10,
+        "excess_same_course_occurrences": 0,
+        "other_course_occurrences_with_zero_reference": 0,
+        "truncated": 0,
+        "candidate_compute_s": 17.190725042950362,
+        "blocks": 17
+      },
+      "match": {
+        "standard_errors": 52,
+        "standard_N": 640,
+        "raw_errors": 83,
+        "raw_N": 639,
+        "term_N": 10,
+        "covered_occurrences": 10,
+        "excess_same_course_occurrences": 4,
+        "other_course_occurrences_with_zero_reference": 0,
+        "truncated": 0,
+        "candidate_compute_s": 16.6657799994573,
+        "blocks": 17
+      }
+    },
+    "A2-room": {
+      "none": {
+        "standard_errors": 89,
+        "standard_N": 549,
+        "raw_errors": 106,
+        "raw_N": 545,
+        "term_N": 10,
+        "covered_occurrences": 0,
+        "excess_same_course_occurrences": 0,
+        "other_course_occurrences_with_zero_reference": 0,
+        "truncated": 0,
+        "candidate_compute_s": null,
+        "blocks": 16
+      },
+      "match": {
+        "standard_errors": 107,
+        "standard_N": 549,
+        "raw_errors": 126,
+        "raw_N": 545,
+        "term_N": 10,
+        "covered_occurrences": 5,
+        "excess_same_course_occurrences": 11,
+        "other_course_occurrences_with_zero_reference": 0,
+        "truncated": 0,
+        "candidate_compute_s": 15.712033457821235,
+        "blocks": 16
+      },
+      "mismatch": {
+        "standard_errors": 112,
+        "standard_N": 549,
+        "raw_errors": 128,
+        "raw_N": 545,
+        "term_N": 10,
+        "covered_occurrences": 0,
+        "excess_same_course_occurrences": 0,
+        "other_course_occurrences_with_zero_reference": 12,
+        "truncated": 0,
+        "candidate_compute_s": 15.328987251967192,
+        "blocks": 16
+      }
+    },
+    "A2-zoom": {
+      "none": {
+        "standard_errors": 65,
+        "standard_N": 549,
+        "raw_errors": 96,
+        "raw_N": 545,
+        "term_N": 10,
+        "covered_occurrences": 0,
+        "excess_same_course_occurrences": 0,
+        "other_course_occurrences_with_zero_reference": 0,
+        "truncated": 0,
+        "candidate_compute_s": null,
+        "blocks": 16
+      },
+      "mismatch": {
+        "standard_errors": 99,
+        "standard_N": 549,
+        "raw_errors": 128,
+        "raw_N": 545,
+        "term_N": 10,
+        "covered_occurrences": 0,
+        "excess_same_course_occurrences": 0,
+        "other_course_occurrences_with_zero_reference": 12,
+        "truncated": 0,
+        "candidate_compute_s": 15.876899334136397,
+        "blocks": 16
+      },
+      "match": {
+        "standard_errors": 84,
+        "standard_N": 549,
+        "raw_errors": 119,
+        "raw_N": 545,
+        "term_N": 10,
+        "covered_occurrences": 4,
+        "excess_same_course_occurrences": 9,
+        "other_course_occurrences_with_zero_reference": 0,
+        "truncated": 0,
+        "candidate_compute_s": 15.742381791118532,
+        "blocks": 16
+      }
+    },
+    "B1-room": {
+      "none": {
+        "standard_errors": 96,
+        "standard_N": 517,
+        "raw_errors": 99,
+        "raw_N": 514,
+        "term_N": 28,
+        "covered_occurrences": 21,
+        "excess_same_course_occurrences": 0,
+        "other_course_occurrences_with_zero_reference": 0,
+        "truncated": 0,
+        "candidate_compute_s": null,
+        "blocks": 18
+      },
+      "match": {
+        "standard_errors": 87,
+        "standard_N": 517,
+        "raw_errors": 94,
+        "raw_N": 514,
+        "term_N": 28,
+        "covered_occurrences": 22,
+        "excess_same_course_occurrences": 0,
+        "other_course_occurrences_with_zero_reference": 0,
+        "truncated": 0,
+        "candidate_compute_s": 13.684343290748075,
+        "blocks": 18
+      },
+      "mismatch": {
+        "standard_errors": 97,
+        "standard_N": 517,
+        "raw_errors": 104,
+        "raw_N": 514,
+        "term_N": 28,
+        "covered_occurrences": 21,
+        "excess_same_course_occurrences": 0,
+        "other_course_occurrences_with_zero_reference": 0,
+        "truncated": 0,
+        "candidate_compute_s": 13.573794041294605,
+        "blocks": 18
+      }
+    },
+    "B1-zoom": {
+      "none": {
+        "standard_errors": 67,
+        "standard_N": 517,
+        "raw_errors": 71,
+        "raw_N": 514,
+        "term_N": 28,
+        "covered_occurrences": 21,
+        "excess_same_course_occurrences": 0,
+        "other_course_occurrences_with_zero_reference": 0,
+        "truncated": 0,
+        "candidate_compute_s": null,
+        "blocks": 15
+      },
+      "mismatch": {
+        "standard_errors": 70,
+        "standard_N": 517,
+        "raw_errors": 80,
+        "raw_N": 514,
+        "term_N": 28,
+        "covered_occurrences": 22,
+        "excess_same_course_occurrences": 0,
+        "other_course_occurrences_with_zero_reference": 0,
+        "truncated": 0,
+        "candidate_compute_s": 13.288592373719439,
+        "blocks": 15
+      },
+      "match": {
+        "standard_errors": 71,
+        "standard_N": 517,
+        "raw_errors": 80,
+        "raw_N": 514,
+        "term_N": 28,
+        "covered_occurrences": 22,
+        "excess_same_course_occurrences": 0,
+        "other_course_occurrences_with_zero_reference": 0,
+        "truncated": 0,
+        "candidate_compute_s": 13.221924206707627,
+        "blocks": 15
+      }
+    },
+    "B2-room": {
+      "none": {
+        "standard_errors": 91,
+        "standard_N": 556,
+        "raw_errors": 91,
+        "raw_N": 551,
+        "term_N": 16,
+        "covered_occurrences": 12,
+        "excess_same_course_occurrences": 1,
+        "other_course_occurrences_with_zero_reference": 0,
+        "truncated": 0,
+        "candidate_compute_s": null,
+        "blocks": 16
+      },
+      "match": {
+        "standard_errors": 86,
+        "standard_N": 556,
+        "raw_errors": 87,
+        "raw_N": 551,
+        "term_N": 16,
+        "covered_occurrences": 15,
+        "excess_same_course_occurrences": 2,
+        "other_course_occurrences_with_zero_reference": 0,
+        "truncated": 0,
+        "candidate_compute_s": 14.593066417379305,
+        "blocks": 16
+      },
+      "mismatch": {
+        "standard_errors": 94,
+        "standard_N": 556,
+        "raw_errors": 95,
+        "raw_N": 551,
+        "term_N": 16,
+        "covered_occurrences": 12,
+        "excess_same_course_occurrences": 1,
+        "other_course_occurrences_with_zero_reference": 0,
+        "truncated": 0,
+        "candidate_compute_s": 14.545012792106718,
+        "blocks": 16
+      }
+    },
+    "B2-zoom": {
+      "none": {
+        "standard_errors": 66,
+        "standard_N": 556,
+        "raw_errors": 67,
+        "raw_N": 551,
+        "term_N": 16,
+        "covered_occurrences": 12,
+        "excess_same_course_occurrences": 1,
+        "other_course_occurrences_with_zero_reference": 0,
+        "truncated": 0,
+        "candidate_compute_s": null,
+        "blocks": 18
+      },
+      "mismatch": {
+        "standard_errors": 69,
+        "standard_N": 556,
+        "raw_errors": 71,
+        "raw_N": 551,
+        "term_N": 16,
+        "covered_occurrences": 12,
+        "excess_same_course_occurrences": 1,
+        "other_course_occurrences_with_zero_reference": 0,
+        "truncated": 0,
+        "candidate_compute_s": 14.75553183350712,
+        "blocks": 18
+      },
+      "match": {
+        "standard_errors": 67,
+        "standard_N": 556,
+        "raw_errors": 69,
+        "raw_N": 551,
+        "term_N": 16,
+        "covered_occurrences": 13,
+        "excess_same_course_occurrences": 2,
+        "other_course_occurrences_with_zero_reference": 0,
+        "truncated": 0,
+        "candidate_compute_s": 14.736241041217,
+        "blocks": 18
+      }
+    }
+  },
+  "C07": {
+    "A1-room": {
+      "blocks": 17,
+      "redecoded": 2,
+      "valid": 2,
+      "audio_s": 39.8524375,
+      "compute_s": 1.729171957820654,
+      "baseline": {
+        "errors": 55,
+        "N": 640,
+        "raw_errors": 65,
+        "raw_N": 639,
+        "term_N": 10,
+        "term_recovered": 10,
+        "term_excess": 0
+      },
+      "targeted": {
+        "errors": 63,
+        "N": 640,
+        "raw_errors": 73,
+        "raw_N": 639,
+        "term_N": 10,
+        "term_recovered": 10,
+        "term_excess": 3
+      }
+    },
+    "A1-zoom": {
+      "blocks": 17,
+      "redecoded": 3,
+      "valid": 3,
+      "audio_s": 55.588,
+      "compute_s": 2.646717208204791,
+      "baseline": {
+        "errors": 33,
+        "N": 640,
+        "raw_errors": 57,
+        "raw_N": 639,
+        "term_N": 10,
+        "term_recovered": 10,
+        "term_excess": 0
+      },
+      "targeted": {
+        "errors": 42,
+        "N": 640,
+        "raw_errors": 69,
+        "raw_N": 639,
+        "term_N": 10,
+        "term_recovered": 10,
+        "term_excess": 3
+      }
+    },
+    "A2-room": {
+      "blocks": 16,
+      "redecoded": 8,
+      "valid": 8,
+      "audio_s": 162.178,
+      "compute_s": 8.310376626206562,
+      "baseline": {
+        "errors": 89,
+        "N": 549,
+        "raw_errors": 106,
+        "raw_N": 545,
+        "term_N": 10,
+        "term_recovered": 0,
+        "term_excess": 0
+      },
+      "targeted": {
+        "errors": 84,
+        "N": 549,
+        "raw_errors": 102,
+        "raw_N": 545,
+        "term_N": 10,
+        "term_recovered": 4,
+        "term_excess": 1
+      }
+    },
+    "A2-zoom": {
+      "blocks": 16,
+      "redecoded": 8,
+      "valid": 8,
+      "audio_s": 181.97412500000002,
+      "compute_s": 9.16668429132551,
+      "baseline": {
+        "errors": 65,
+        "N": 549,
+        "raw_errors": 96,
+        "raw_N": 545,
+        "term_N": 10,
+        "term_recovered": 0,
+        "term_excess": 0
+      },
+      "targeted": {
+        "errors": 58,
+        "N": 549,
+        "raw_errors": 95,
+        "raw_N": 545,
+        "term_N": 10,
+        "term_recovered": 0,
+        "term_excess": 0
+      }
+    },
+    "B1-room": {
+      "blocks": 18,
+      "redecoded": 3,
+      "valid": 3,
+      "audio_s": 48.3296875,
+      "compute_s": 2.0592040431220084,
+      "baseline": {
+        "errors": 96,
+        "N": 517,
+        "raw_errors": 99,
+        "raw_N": 514,
+        "term_N": 28,
+        "term_recovered": 21,
+        "term_excess": 0
+      },
+      "targeted": {
+        "errors": 96,
+        "N": 517,
+        "raw_errors": 99,
+        "raw_N": 514,
+        "term_N": 28,
+        "term_recovered": 21,
+        "term_excess": 0
+      }
+    },
+    "B1-zoom": {
+      "blocks": 15,
+      "redecoded": 4,
+      "valid": 4,
+      "audio_s": 72.7480625,
+      "compute_s": 3.1447028757538646,
+      "baseline": {
+        "errors": 67,
+        "N": 517,
+        "raw_errors": 71,
+        "raw_N": 514,
+        "term_N": 28,
+        "term_recovered": 21,
+        "term_excess": 0
+      },
+      "targeted": {
+        "errors": 68,
+        "N": 517,
+        "raw_errors": 72,
+        "raw_N": 514,
+        "term_N": 28,
+        "term_recovered": 21,
+        "term_excess": 0
+      }
+    },
+    "B2-room": {
+      "blocks": 16,
+      "redecoded": 1,
+      "valid": 1,
+      "audio_s": 11.7375,
+      "compute_s": 0.6518357500899583,
+      "baseline": {
+        "errors": 91,
+        "N": 556,
+        "raw_errors": 91,
+        "raw_N": 551,
+        "term_N": 16,
+        "term_recovered": 12,
+        "term_excess": 1
+      },
+      "targeted": {
+        "errors": 90,
+        "N": 556,
+        "raw_errors": 90,
+        "raw_N": 551,
+        "term_N": 16,
+        "term_recovered": 12,
+        "term_excess": 1
+      }
+    },
+    "B2-zoom": {
+      "blocks": 18,
+      "redecoded": 4,
+      "valid": 4,
+      "audio_s": 61.077125,
+      "compute_s": 3.032161541748792,
+      "baseline": {
+        "errors": 66,
+        "N": 556,
+        "raw_errors": 67,
+        "raw_N": 551,
+        "term_N": 16,
+        "term_recovered": 12,
+        "term_excess": 1
+      },
+      "targeted": {
+        "errors": 66,
+        "N": 556,
+        "raw_errors": 67,
+        "raw_N": 551,
+        "term_N": 16,
+        "term_recovered": 12,
+        "term_excess": 1
+      }
+    }
+  },
+  "case_counts": {
+    "room:other:correct": 121,
+    "room:other:wrong": 40,
+    "room:glossary_term:correct": 13,
+    "zoom:other:correct": 24,
+    "zoom:glossary_term:correct": 7,
+    "zoom:other:wrong": 9,
+    "room:glossary_term:wrong": 4,
+    "zoom:glossary_term:wrong": 1,
+    "room:explicit_negation:correct": 1
+  }
+}
