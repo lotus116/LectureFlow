@@ -1,0 +1,121 @@
+{
+  "id": "C09",
+  "date": "2026-11-26",
+  "protocol": "1× 250 ms, 1.7B English plus Hy-MT2, single archived continuous class; no WER, translation quality, mic or screen measurements.",
+  "status": "complete",
+  "input_frames": 52960125,
+  "consumed_frames": 52960125,
+  "dropped": 0,
+  "seconds": 3310.0078125,
+  "flush_s": 1.159776333021,
+  "queued_input": {
+    "n": 13241,
+    "median": 0,
+    "p95": 4,
+    "max": 7
+  },
+  "pending_translation": {
+    "n": 13241,
+    "median": 0,
+    "p95": 1,
+    "max": 3
+  },
+  "worker_lag_s": {
+    "n": 13241,
+    "median": 0.15898054209537804,
+    "p95": 1.056449000025168,
+    "max": 1.7784329170826823
+  },
+  "arrival_late_s": {
+    "n": 13241,
+    "median": 0.010007582837715745,
+    "p95": 0.010521290823817253,
+    "max": 0.04948029085062444
+  },
+  "captions": {
+    "english": 194,
+    "han_final": 194,
+    "locked": 194,
+    "incomplete": 0
+  },
+  "timing": {
+    "english_first_from_start_s": {
+      "n": 194,
+      "median": 1.846920812386088,
+      "p95": 2.3669465000275522,
+      "max": 2.6084587078075856
+    },
+    "english_stable_from_end_s": {
+      "n": 194,
+      "median": 0.31972408352885395,
+      "p95": 0.7125235830899328,
+      "max": 0.9656637909356505
+    },
+    "chinese_first_from_start_s": {
+      "n": 194,
+      "median": 2.6330571254948154,
+      "p95": 3.664169375086203,
+      "max": 6.744854666991159
+    },
+    "chinese_last_change_from_end_s": {
+      "n": 194,
+      "median": 31.466469625593163,
+      "p95": 42.49464437481947,
+      "max": 93.66722549987026
+    }
+  },
+  "first_english_by_time_thirds": {
+    "0": {
+      "n": 58,
+      "median": 1.2741976249963045,
+      "p95": 2.2050446660723537,
+      "max": 2.238040833035484
+    },
+    "1": {
+      "n": 73,
+      "median": 1.8650062091182917,
+      "p95": 2.3088331250473857,
+      "max": 2.467537624994293
+    },
+    "2": {
+      "n": 63,
+      "median": 2.0260225830134004,
+      "p95": 2.506121417041868,
+      "max": 2.6084587078075856
+    }
+  },
+  "translation_progress": {
+    "accent_pending": 0,
+    "accent_completed": 0,
+    "accent_failed": 0,
+    "accent_oldest_seconds": 0,
+    "accent_audio_bytes": 0,
+    "translation_pending": 0,
+    "translation_failures": 0,
+    "translations_deferred": 0,
+    "translations_completed": 579,
+    "context_translations_completed": 385
+  },
+  "translation_event_states": {},
+  "memory": {
+    "host_rss_mib": {
+      "n": 55,
+      "median": 1033.578125,
+      "p95": 1243.53125,
+      "max": 1449.21875
+    },
+    "mlx_peak_mib": 3649.9829845428467
+  },
+  "diagnostic_late_updates": [
+    {
+      "last_change_after_target_end_s": 93.667,
+      "first_chinese_after_start_s": 2.526,
+      "last_change_after_second_following_english_stable_s": 0.532
+    },
+    {
+      "last_change_after_target_end_s": 79.578,
+      "first_chinese_after_start_s": 1.731,
+      "last_change_after_second_following_english_stable_s": 0.565
+    }
+  ]
+}
