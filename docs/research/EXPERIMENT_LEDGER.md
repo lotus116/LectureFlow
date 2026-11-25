@@ -1,6 +1,6 @@
 # LectureFlow 课程实验总账
 
-更新于 2026-11-26。用这份总账找实验、结果和证据，用[研究决策与复现](CLASSROOM_RESEARCH_DECISIONS-2026-11-25.md)找选择依据、报告口径和下一步。课程 proposal 的两条主线是课中英文字幕的准确性、延迟与连续性，以及课后重识别的收益、误改与成本；讲师适配、课件和跨设备探针是扩展。软件本身早于课程项目。
+更新于 2026-11-26。用这份总账找实验、结果和证据，用[研究决策与复现](CLASSROOM_RESEARCH_DECISIONS-2026-11-25.md)找选择依据、报告口径和下一步。真实课堂结果可先读[英文报告结果草稿](CLASSROOM_RESEARCH_DECISIONS-2026-11-25.md#english-results-draft-for-the-course-report)。课程 proposal 的两条主线是课中英文字幕的准确性、延迟与连续性，以及课后重识别的收益、误改与成本；讲师适配、课件和跨设备探针是扩展。软件本身早于课程项目。
 
 按讲次的原始对照与新增对照分别见[首轮数值](results/2026-11-25.json)、[固定英语复核](results/2026-11-25-fixed-english.json)、[连续演讲切段](results/2026-11-25-continuous.json)和[两模型复核](results/2026-11-25-asr-ensemble.json)。每次新增实验时在对应问题下追加，保留原分数、失败及后验分析的身份。
 
