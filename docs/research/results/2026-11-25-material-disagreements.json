@@ -1,0 +1,6668 @@
+{
+  "schema_version": 1,
+  "paper_sources": [
+    {
+      "paper": "2022.acl-long.110",
+      "url": "https://aclanthology.org/2022.acl-long.110.pdf",
+      "pdf_sha256": "335eb3b5df141af5d808a6716093e5c3410ca95472ab6d4b2f41965ea98b63f8",
+      "pdf_size": 2847278,
+      "body_sha256": "6e3cfb7a153cbd19504637468366c28599db43bd0f961124ecd57d91c924eaa4",
+      "paragraphs": 297,
+      "max_pages": 8,
+      "stopped_at_references": false
+    },
+    {
+      "paper": "2022.acl-long.111",
+      "url": "https://aclanthology.org/2022.acl-long.111.pdf",
+      "pdf_sha256": "4390406d86b95febfd8d5afd2d941eb167c8a0e9a02858fa10acd3ad70d75229",
+      "pdf_size": 572456,
+      "body_sha256": "f9dfa80e74366450ff03c5d00dc1bbecf67d799dab73aaa190fb9be85ba1bacc",
+      "paragraphs": 163,
+      "max_pages": 8,
+      "stopped_at_references": false
+    },
+    {
+      "paper": "2022.acl-long.117",
+      "url": "https://aclanthology.org/2022.acl-long.117.pdf",
+      "pdf_sha256": "6183c13e0bb606644cc3e0634966c2106d7ec98a0bc1c802b2e887cef828eda2",
+      "pdf_size": 574783,
+      "body_sha256": "3f4e466b72cf296732898ea145ba3c56eaa22989fc9942e27b9f1fe74d5339da",
+      "paragraphs": 194,
+      "max_pages": 8,
+      "stopped_at_references": false
+    },
+    {
+      "paper": "2022.acl-long.268",
+      "url": "https://aclanthology.org/2022.acl-long.268.pdf",
+      "pdf_sha256": "8464bbffe6b69ecf03ec438073d9eb620c5bfe3b0981521c394c5bf0d6d536ea",
+      "pdf_size": 749512,
+      "body_sha256": "3ed523f21fd9b584dc1e0a63140dcb070a5ff381a5bf1a0f849096d51ae94364",
+      "paragraphs": 197,
+      "max_pages": 8,
+      "stopped_at_references": false
+    },
+    {
+      "paper": "2022.acl-long.367",
+      "url": "https://aclanthology.org/2022.acl-long.367.pdf",
+      "pdf_sha256": "271d97a8001d828d34a06dbb5ae738d78f89be1015f4a5a65b564aa0102f9cbd",
+      "pdf_size": 745693,
+      "body_sha256": "ec48449297373af152325eb93321b46682693ed4b06774f634e9781333fd533b",
+      "paragraphs": 109,
+      "max_pages": 8,
+      "stopped_at_references": false
+    },
+    {
+      "paper": "2022.acl-long.410",
+      "url": "https://aclanthology.org/2022.acl-long.410.pdf",
+      "pdf_sha256": "28ffd2fb933a4e052e5843966ce84218992422cc7d3dae0005ffea13a42a8bc4",
+      "pdf_size": 391565,
+      "body_sha256": "0abb488ec73b37e55501be1089de22ff31de22d7c167f2400a1176819db20ec1",
+      "paragraphs": 288,
+      "max_pages": 8,
+      "stopped_at_references": false
+    },
+    {
+      "paper": "2022.acl-long.468",
+      "url": "https://aclanthology.org/2022.acl-long.468.pdf",
+      "pdf_sha256": "0a56a7fa0d94a59977a16b47789ee1c20e23ff679f572543f09d63e3c65f0ede",
+      "pdf_size": 687716,
+      "body_sha256": "78d313d9982096d2100a11852f7534232d802353a633fb2974e06197df7976c6",
+      "paragraphs": 139,
+      "max_pages": 8,
+      "stopped_at_references": false
+    },
+    {
+      "paper": "2022.acl-long.567",
+      "url": "https://aclanthology.org/2022.acl-long.567.pdf",
+      "pdf_sha256": "a1193be36f4cc268dbc08fc2d58dcaa7bfa5a776ab605e2385c02c81ca48a678",
+      "pdf_size": 5795875,
+      "body_sha256": "ea828507ea3c6328bcd33767b3ac6c50a7586946b0065e09343b8519fcb5ab74",
+      "paragraphs": 201,
+      "max_pages": 8,
+      "stopped_at_references": false
+    },
+    {
+      "paper": "2022.acl-long.590",
+      "url": "https://aclanthology.org/2022.acl-long.590.pdf",
+      "pdf_sha256": "f279798a149cc3a61252ea6d7e77d62b90f90193ae81fe580ef89b2434d50768",
+      "pdf_size": 597052,
+      "body_sha256": "6a70bb0dfe28e7f97ac464a236f77f779d23a4980fbebaf4cfb27d1f85711959",
+      "paragraphs": 177,
+      "max_pages": 8,
+      "stopped_at_references": true
+    },
+    {
+      "paper": "2022.acl-long.597",
+      "url": "https://aclanthology.org/2022.acl-long.597.pdf",
+      "pdf_sha256": "d75592e2a05e7b4ce86de8da94b4b9b2748d83834a8cc4eddd9a51e3d90250e2",
+      "pdf_size": 553213,
+      "body_sha256": "9526979ad2023a9ab19d2d86eea5e9c28fd45b24759dba764f27906f46ce9120",
+      "paragraphs": 100,
+      "max_pages": 8,
+      "stopped_at_references": false
+    }
+  ],
+  "fresh_input_sha256": "398c25effaef2edec4b95f51f7c7d6a8ad81b0ba08d67d1e38c7309d8d04853e",
+  "fresh_audio_s": 300.405,
+  "fresh_decode": {
+    "input_sha256": "398c25effaef2edec4b95f51f7c7d6a8ad81b0ba08d67d1e38c7309d8d04853e",
+    "calls_sha256": "ba7823a436fb1be83d6998bbcc7f154af55868de1d173c614894bde8c3aaf629",
+    "outcomes": {
+      "qwen_full_warmup/ok": 1,
+      "qwen_full/ok": 40,
+      "whisper_warmup/ok": 1,
+      "whisper/ok": 40
+    },
+    "model_load_wall_s": {
+      "qwen_full": 7.535579030999543,
+      "whisper": 0.8828572590000476
+    }
+  },
+  "whisper_truncation_warnings": 1,
+  "cohorts": {
+    "main": {
+      "cohort": "main",
+      "summary": {
+        "clips": 40,
+        "words": 977,
+        "qwen_errors": 141,
+        "qwen_wer": 0.14431934493346982,
+        "whisper_errors": 150,
+        "disagreement_spans": 84,
+        "eligible_spans": 50,
+        "clips_with_disagreement": 32,
+        "clips_with_eligible": 26,
+        "matched": {
+          "edits": 2,
+          "altered_clips": 2,
+          "improved": 2,
+          "worsened": 0,
+          "tied": 38,
+          "opportunities": 40,
+          "errors": 137,
+          "wer": 0.14022517911975435,
+          "net_gain": 4
+        },
+        "mismatch": {
+          "edits": 1,
+          "altered_clips": 1,
+          "improved": 1,
+          "worsened": 0,
+          "tied": 359,
+          "opportunities": 360,
+          "mean_errors": 140.88888888888889,
+          "mean_wer": 0.14420561810531105,
+          "mean_net_gain": 0.11111111111111427
+        }
+      },
+      "by_talk": {
+        "2022.acl-long.110": {
+          "clips": 4,
+          "words": 99,
+          "qwen_errors": 7,
+          "qwen_wer": 0.0707070707070707,
+          "whisper_errors": 9,
+          "disagreement_spans": 8,
+          "eligible_spans": 6,
+          "clips_with_disagreement": 3,
+          "clips_with_eligible": 3,
+          "matched": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 4,
+            "opportunities": 4,
+            "errors": 7,
+            "wer": 0.0707070707070707,
+            "net_gain": 0
+          },
+          "mismatch": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 36,
+            "opportunities": 36,
+            "mean_errors": 7.0,
+            "mean_wer": 0.0707070707070707,
+            "mean_net_gain": 0.0
+          }
+        },
+        "2022.acl-long.111": {
+          "clips": 4,
+          "words": 79,
+          "qwen_errors": 20,
+          "qwen_wer": 0.25316455696202533,
+          "whisper_errors": 22,
+          "disagreement_spans": 8,
+          "eligible_spans": 4,
+          "clips_with_disagreement": 3,
+          "clips_with_eligible": 3,
+          "matched": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 4,
+            "opportunities": 4,
+            "errors": 20,
+            "wer": 0.25316455696202533,
+            "net_gain": 0
+          },
+          "mismatch": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 36,
+            "opportunities": 36,
+            "mean_errors": 20.0,
+            "mean_wer": 0.25316455696202533,
+            "mean_net_gain": 0.0
+          }
+        },
+        "2022.acl-long.117": {
+          "clips": 4,
+          "words": 97,
+          "qwen_errors": 4,
+          "qwen_wer": 0.041237113402061855,
+          "whisper_errors": 4,
+          "disagreement_spans": 3,
+          "eligible_spans": 2,
+          "clips_with_disagreement": 2,
+          "clips_with_eligible": 2,
+          "matched": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 4,
+            "opportunities": 4,
+            "errors": 4,
+            "wer": 0.041237113402061855,
+            "net_gain": 0
+          },
+          "mismatch": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 36,
+            "opportunities": 36,
+            "mean_errors": 4.0,
+            "mean_wer": 0.041237113402061855,
+            "mean_net_gain": 0.0
+          }
+        },
+        "2022.acl-long.268": {
+          "clips": 4,
+          "words": 106,
+          "qwen_errors": 12,
+          "qwen_wer": 0.11320754716981132,
+          "whisper_errors": 11,
+          "disagreement_spans": 9,
+          "eligible_spans": 4,
+          "clips_with_disagreement": 4,
+          "clips_with_eligible": 3,
+          "matched": {
+            "edits": 1,
+            "altered_clips": 1,
+            "improved": 1,
+            "worsened": 0,
+            "tied": 3,
+            "opportunities": 4,
+            "errors": 9,
+            "wer": 0.08490566037735849,
+            "net_gain": 3
+          },
+          "mismatch": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 36,
+            "opportunities": 36,
+            "mean_errors": 12.0,
+            "mean_wer": 0.11320754716981132,
+            "mean_net_gain": 0.0
+          }
+        },
+        "2022.acl-long.367": {
+          "clips": 4,
+          "words": 93,
+          "qwen_errors": 13,
+          "qwen_wer": 0.13978494623655913,
+          "whisper_errors": 23,
+          "disagreement_spans": 13,
+          "eligible_spans": 4,
+          "clips_with_disagreement": 4,
+          "clips_with_eligible": 2,
+          "matched": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 4,
+            "opportunities": 4,
+            "errors": 13,
+            "wer": 0.13978494623655913,
+            "net_gain": 0
+          },
+          "mismatch": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 36,
+            "opportunities": 36,
+            "mean_errors": 13.0,
+            "mean_wer": 0.13978494623655913,
+            "mean_net_gain": 0.0
+          }
+        },
+        "2022.acl-long.410": {
+          "clips": 4,
+          "words": 96,
+          "qwen_errors": 29,
+          "qwen_wer": 0.3020833333333333,
+          "whisper_errors": 24,
+          "disagreement_spans": 15,
+          "eligible_spans": 10,
+          "clips_with_disagreement": 4,
+          "clips_with_eligible": 4,
+          "matched": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 4,
+            "opportunities": 4,
+            "errors": 29,
+            "wer": 0.3020833333333333,
+            "net_gain": 0
+          },
+          "mismatch": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 36,
+            "opportunities": 36,
+            "mean_errors": 29.0,
+            "mean_wer": 0.3020833333333333,
+            "mean_net_gain": 0.0
+          }
+        },
+        "2022.acl-long.468": {
+          "clips": 4,
+          "words": 105,
+          "qwen_errors": 8,
+          "qwen_wer": 0.0761904761904762,
+          "whisper_errors": 12,
+          "disagreement_spans": 7,
+          "eligible_spans": 5,
+          "clips_with_disagreement": 4,
+          "clips_with_eligible": 3,
+          "matched": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 4,
+            "opportunities": 4,
+            "errors": 8,
+            "wer": 0.0761904761904762,
+            "net_gain": 0
+          },
+          "mismatch": {
+            "edits": 1,
+            "altered_clips": 1,
+            "improved": 1,
+            "worsened": 0,
+            "tied": 35,
+            "opportunities": 36,
+            "mean_errors": 7.888888888888889,
+            "mean_wer": 0.07513227513227513,
+            "mean_net_gain": 0.11111111111111072
+          }
+        },
+        "2022.acl-long.567": {
+          "clips": 4,
+          "words": 115,
+          "qwen_errors": 4,
+          "qwen_wer": 0.034782608695652174,
+          "whisper_errors": 6,
+          "disagreement_spans": 4,
+          "eligible_spans": 4,
+          "clips_with_disagreement": 2,
+          "clips_with_eligible": 2,
+          "matched": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 4,
+            "opportunities": 4,
+            "errors": 4,
+            "wer": 0.034782608695652174,
+            "net_gain": 0
+          },
+          "mismatch": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 36,
+            "opportunities": 36,
+            "mean_errors": 4.0,
+            "mean_wer": 0.034782608695652174,
+            "mean_net_gain": 0.0
+          }
+        },
+        "2022.acl-long.590": {
+          "clips": 4,
+          "words": 98,
+          "qwen_errors": 1,
+          "qwen_wer": 0.01020408163265306,
+          "whisper_errors": 3,
+          "disagreement_spans": 2,
+          "eligible_spans": 0,
+          "clips_with_disagreement": 2,
+          "clips_with_eligible": 0,
+          "matched": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 4,
+            "opportunities": 4,
+            "errors": 1,
+            "wer": 0.01020408163265306,
+            "net_gain": 0
+          },
+          "mismatch": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 36,
+            "opportunities": 36,
+            "mean_errors": 1.0,
+            "mean_wer": 0.01020408163265306,
+            "mean_net_gain": 0.0
+          }
+        },
+        "2022.acl-long.597": {
+          "clips": 4,
+          "words": 89,
+          "qwen_errors": 43,
+          "qwen_wer": 0.48314606741573035,
+          "whisper_errors": 36,
+          "disagreement_spans": 15,
+          "eligible_spans": 11,
+          "clips_with_disagreement": 4,
+          "clips_with_eligible": 4,
+          "matched": {
+            "edits": 1,
+            "altered_clips": 1,
+            "improved": 1,
+            "worsened": 0,
+            "tied": 3,
+            "opportunities": 4,
+            "errors": 42,
+            "wer": 0.47191011235955055,
+            "net_gain": 1
+          },
+          "mismatch": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 36,
+            "opportunities": 36,
+            "mean_errors": 43.0,
+            "mean_wer": 0.48314606741573035,
+            "mean_net_gain": 0.0
+          }
+        }
+      },
+      "clips": [
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.268",
+          "segment": 23,
+          "sha256": "daebf9c8f23e019d9ffb80d653f50279058d4e6d9add93e114db730890d79193",
+          "ref_words": 33,
+          "qwen_errors": 1,
+          "whisper_errors": 3,
+          "disagreements": 1,
+          "eligible_spans": 1,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 1,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.0005955950000497978
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.268",
+          "segment": 42,
+          "sha256": "f2fbff69904553563e6501cab434c126e17b1056a50ffd71ae3031e07fd110c2",
+          "ref_words": 27,
+          "qwen_errors": 1,
+          "whisper_errors": 3,
+          "disagreements": 2,
+          "eligible_spans": 1,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 1,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.00047531699965475127
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.268",
+          "segment": 68,
+          "sha256": "dc693ed42d0df74d94ef42fe6a10664178a202717071be7680a71f3d323a0b67",
+          "ref_words": 14,
+          "qwen_errors": 8,
+          "whisper_errors": 5,
+          "disagreements": 5,
+          "eligible_spans": 2,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 8,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 8,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 8,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 5,
+              "edits": 1
+            },
+            "2022.acl-long.367": {
+              "errors": 8,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 8,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 8,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 8,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 8,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 8,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.0001391360001434805
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.268",
+          "segment": 86,
+          "sha256": "081d408070e80cfe9483959bd9227044d992f9ef65f8aad5261e43f34a9eb65b",
+          "ref_words": 32,
+          "qwen_errors": 2,
+          "whisper_errors": 0,
+          "disagreements": 1,
+          "eligible_spans": 0,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 2,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.0005513899996003602
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.367",
+          "segment": 125,
+          "sha256": "f84f8549c45f27b3762024f99605e61cddc1d95229790e4a6360c8634ba0a84e",
+          "ref_words": 17,
+          "qwen_errors": 8,
+          "whisper_errors": 4,
+          "disagreements": 2,
+          "eligible_spans": 0,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 8,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 8,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 8,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 8,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 8,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 8,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 8,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 8,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 8,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 8,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.0002433439995002118
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.367",
+          "segment": 142,
+          "sha256": "553c26e3d6f3565bc0f527fc9f8cb76a0dfcedd8e80e5e508c866e0f5a048659",
+          "ref_words": 22,
+          "qwen_errors": 4,
+          "whisper_errors": 5,
+          "disagreements": 3,
+          "eligible_spans": 3,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 4,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.0002577499999460997
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.367",
+          "segment": 156,
+          "sha256": "f7bd79797a7fb2b0b792618c0baf336a2ee2a42c1a0758ca5c4b84c4a566de72",
+          "ref_words": 31,
+          "qwen_errors": 0,
+          "whisper_errors": 9,
+          "disagreements": 5,
+          "eligible_spans": 1,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 0,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.0003525040001477464
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.367",
+          "segment": 175,
+          "sha256": "3fbafd594664ad5ba8aa46151facfaf5686cf42ca8e205ee47c8b1e933d457c4",
+          "ref_words": 23,
+          "qwen_errors": 1,
+          "whisper_errors": 5,
+          "disagreements": 3,
+          "eligible_spans": 0,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 1,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.0002543760001572082
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.590",
+          "segment": 204,
+          "sha256": "35b2bf7fcd91a15f4990c240648b4ee320a7b7694f8462639db8041ff22fde95",
+          "ref_words": 27,
+          "qwen_errors": 0,
+          "whisper_errors": 0,
+          "disagreements": 0,
+          "eligible_spans": 0,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 0,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.00034894700002041645
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.590",
+          "segment": 215,
+          "sha256": "13ca8fbeff75fb8c9cd6489736d6bd43aad1a0cfedefb1ea676451ab60bd1336",
+          "ref_words": 25,
+          "qwen_errors": 0,
+          "whisper_errors": 0,
+          "disagreements": 0,
+          "eligible_spans": 0,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 0,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.00022422700021706987
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.590",
+          "segment": 227,
+          "sha256": "979e92cd48030f88484a1ad9a8aa2a0d11fa3a4d660f3c0f1daf1fc3146d272e",
+          "ref_words": 20,
+          "qwen_errors": 1,
+          "whisper_errors": 2,
+          "disagreements": 1,
+          "eligible_spans": 0,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 1,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.0001826130001063575
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.590",
+          "segment": 242,
+          "sha256": "071b81d93a027429a33fc053aa41e60be8b03fd79babf03231d0120710ac32c4",
+          "ref_words": 26,
+          "qwen_errors": 0,
+          "whisper_errors": 1,
+          "disagreements": 1,
+          "eligible_spans": 0,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 0,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.00018996299968421226
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.110",
+          "segment": 280,
+          "sha256": "dc637cc41fbc4151e632ab9fe3dbd0ed2289b3105ae245cf9409531820e815ee",
+          "ref_words": 32,
+          "qwen_errors": 1,
+          "whisper_errors": 3,
+          "disagreements": 3,
+          "eligible_spans": 3,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 1,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.0005168730003788369
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.110",
+          "segment": 306,
+          "sha256": "cfc474e208cb8b71f99fa36a102ea0136c9322d1a4e5e4f5c9ad627ed50da566",
+          "ref_words": 25,
+          "qwen_errors": 0,
+          "whisper_errors": 0,
+          "disagreements": 0,
+          "eligible_spans": 0,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 0,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.00017566899987286888
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.110",
+          "segment": 321,
+          "sha256": "4ae8418e6320446a5d8c879a75ccd05b8e148a2ad6acc363dbcc5bf5f7a3bf0c",
+          "ref_words": 21,
+          "qwen_errors": 1,
+          "whisper_errors": 2,
+          "disagreements": 3,
+          "eligible_spans": 1,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 1,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.00014953499976400053
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.110",
+          "segment": 341,
+          "sha256": "fa507165353a6efd4ce6df9265a0e29953086d7d29949a41ad96403712c72f7f",
+          "ref_words": 21,
+          "qwen_errors": 5,
+          "whisper_errors": 4,
+          "disagreements": 2,
+          "eligible_spans": 2,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 5,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 5,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 5,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 5,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 5,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 5,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 5,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 5,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 5,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 5,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.0005541900000025635
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.117",
+          "segment": 379,
+          "sha256": "03876e276dcdd200f52f9f4ccd92ec8e51467ea76b80a8c15ab88ad365244e74",
+          "ref_words": 29,
+          "qwen_errors": 0,
+          "whisper_errors": 0,
+          "disagreements": 0,
+          "eligible_spans": 0,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 0,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.0004467190001378185
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.117",
+          "segment": 408,
+          "sha256": "db9f0ff7deb4114f96ec3641681936d65e32d7f938bdaa0c0753a63709d450fd",
+          "ref_words": 30,
+          "qwen_errors": 2,
+          "whisper_errors": 0,
+          "disagreements": 1,
+          "eligible_spans": 1,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 2,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.0005616830003418727
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.117",
+          "segment": 427,
+          "sha256": "0232e7316329c1a0e5ba1a4607e66c09122a0f318dc48cec0a0b458f8326cbc8",
+          "ref_words": 19,
+          "qwen_errors": 1,
+          "whisper_errors": 3,
+          "disagreements": 2,
+          "eligible_spans": 1,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 1,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.0002466550004101009
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.117",
+          "segment": 450,
+          "sha256": "8cd8a8593b39f17c50ea70ee1b8369e7e79d658d532d01dd2f5de00a73b46a45",
+          "ref_words": 19,
+          "qwen_errors": 1,
+          "whisper_errors": 1,
+          "disagreements": 0,
+          "eligible_spans": 0,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 1,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.00019871200038323877
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.410",
+          "segment": 21,
+          "sha256": "37731496c6671c743328d9c262228a7b754aa8fb29cd0767790d3e786b4539d9",
+          "ref_words": 22,
+          "qwen_errors": 2,
+          "whisper_errors": 5,
+          "disagreements": 4,
+          "eligible_spans": 3,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 2,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.00044752200028597144
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.410",
+          "segment": 42,
+          "sha256": "29fd63913fd40cbc282a7937f8c3e4d449d7f2c409a851029c6ebbbe9d981f3b",
+          "ref_words": 31,
+          "qwen_errors": 5,
+          "whisper_errors": 5,
+          "disagreements": 4,
+          "eligible_spans": 3,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 5,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 5,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 5,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 5,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 5,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 5,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 5,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 5,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 5,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 5,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.0005345769995983574
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.410",
+          "segment": 60,
+          "sha256": "8b4433afb0cec262af29d1e548cc0def7580a58e3a6268c8cfee9f22b9b4c1ba",
+          "ref_words": 17,
+          "qwen_errors": 18,
+          "whisper_errors": 10,
+          "disagreements": 3,
+          "eligible_spans": 2,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 18,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 18,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 18,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 18,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 18,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 18,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 18,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 18,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 18,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 18,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.0004677179995269398
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.410",
+          "segment": 80,
+          "sha256": "90c72ac3bb0bde1409c888d5b0ad61a31f344b3b2df9e0ea4cdf2b99c7c17c60",
+          "ref_words": 26,
+          "qwen_errors": 4,
+          "whisper_errors": 4,
+          "disagreements": 4,
+          "eligible_spans": 2,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 4,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.00036402900059329113
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.468",
+          "segment": 119,
+          "sha256": "ab1c1a0f4b7fd7b329d180f2323be707412f6c95dc2896931aa797e87e5074a7",
+          "ref_words": 23,
+          "qwen_errors": 1,
+          "whisper_errors": 2,
+          "disagreements": 1,
+          "eligible_spans": 1,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 1,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.00018915199962066254
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.468",
+          "segment": 132,
+          "sha256": "6e5bf7ff9f92daf42e11ad423ccc47d6abc9075a9681018b982719970666af0d",
+          "ref_words": 25,
+          "qwen_errors": 1,
+          "whisper_errors": 2,
+          "disagreements": 2,
+          "eligible_spans": 2,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 0,
+              "edits": 1
+            },
+            "2022.acl-long.597": {
+              "errors": 1,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.0004216659999656258
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.468",
+          "segment": 152,
+          "sha256": "18880051679165cb36a42e00cda9cefc2b916c66cd66116d3a4bb9016eb2a92d",
+          "ref_words": 36,
+          "qwen_errors": 0,
+          "whisper_errors": 1,
+          "disagreements": 1,
+          "eligible_spans": 0,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 0,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.0006791939995309804
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.468",
+          "segment": 168,
+          "sha256": "9e229c2e30a382e63263798a869a7f7a76beca227a7c7971f9571d0266d4c386",
+          "ref_words": 21,
+          "qwen_errors": 6,
+          "whisper_errors": 7,
+          "disagreements": 3,
+          "eligible_spans": 2,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 6,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 6,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 6,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 6,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 6,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 6,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 6,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 6,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 6,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 6,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.0003812100003415253
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.567",
+          "segment": 198,
+          "sha256": "7a4b695b7fcf80da2a2ffc91b4c445381702d4215e379419242fa7bbe26a6865",
+          "ref_words": 28,
+          "qwen_errors": 2,
+          "whisper_errors": 2,
+          "disagreements": 2,
+          "eligible_spans": 2,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 2,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.00053109999953449
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.567",
+          "segment": 208,
+          "sha256": "444f8269bee876e62e844953986ccc854fe4c794afdd59e8c561130f81eb2897",
+          "ref_words": 35,
+          "qwen_errors": 0,
+          "whisper_errors": 2,
+          "disagreements": 2,
+          "eligible_spans": 2,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 0,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.0008299419996546931
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.567",
+          "segment": 218,
+          "sha256": "08f9b1ce1a66f26ff052c98e3dab323b506a92a47e45a1dc143efd556a14dcf9",
+          "ref_words": 24,
+          "qwen_errors": 2,
+          "whisper_errors": 2,
+          "disagreements": 0,
+          "eligible_spans": 0,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 2,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.0003739439998753369
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.567",
+          "segment": 229,
+          "sha256": "ab544759354e9c38f2cb14fb103a47a20acf834119c38008e0ca3ff30fcbad31",
+          "ref_words": 28,
+          "qwen_errors": 0,
+          "whisper_errors": 0,
+          "disagreements": 0,
+          "eligible_spans": 0,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 0,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.0008049820007727249
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.597",
+          "segment": 257,
+          "sha256": "f5aeae2943877366c4fd106bf0673e3cb58bf723379d39cd7164a7beb2e51a6c",
+          "ref_words": 27,
+          "qwen_errors": 14,
+          "whisper_errors": 7,
+          "disagreements": 4,
+          "eligible_spans": 3,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 14,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 14,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 14,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 14,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 14,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 14,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 14,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 14,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 14,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 13,
+              "edits": 1
+            }
+          },
+          "selection_wall_s": 0.000330032000420033
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.597",
+          "segment": 279,
+          "sha256": "8656be7adb31c2498f6f071956f006fff8bb700cb3d1186648f719e1dd2c408b",
+          "ref_words": 25,
+          "qwen_errors": 15,
+          "whisper_errors": 11,
+          "disagreements": 7,
+          "eligible_spans": 5,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 15,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 15,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 15,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 15,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 15,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 15,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 15,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 15,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 15,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 15,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.00026078799965034705
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.597",
+          "segment": 295,
+          "sha256": "f7e14d5ab093656f252db554e8d09c58be0149ff6b0283b73cfea33e1c29dca6",
+          "ref_words": 18,
+          "qwen_errors": 11,
+          "whisper_errors": 13,
+          "disagreements": 2,
+          "eligible_spans": 1,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 11,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 11,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 11,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 11,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 11,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 11,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 11,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 11,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 11,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 11,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.00015485999938391615
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.597",
+          "segment": 311,
+          "sha256": "b76bc59cb559073a5129347f2f4fc1d4d0fcfdaae0bf5a47816fb5e08c2e13d3",
+          "ref_words": 19,
+          "qwen_errors": 3,
+          "whisper_errors": 5,
+          "disagreements": 2,
+          "eligible_spans": 2,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 3,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.00023977299952093745
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.111",
+          "segment": 350,
+          "sha256": "c7b056834b6387f849002b15e1335526eada9006cbdc90b24b1668ab6151c8a4",
+          "ref_words": 13,
+          "qwen_errors": 5,
+          "whisper_errors": 5,
+          "disagreements": 2,
+          "eligible_spans": 1,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 5,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 5,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 5,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 5,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 5,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 5,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 5,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 5,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 5,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 5,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.0002355229999011499
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.111",
+          "segment": 365,
+          "sha256": "8d8550c9791b23a4fc12bc89c1fdba6757fbec1ee0caa03b5de01f12b3896ca9",
+          "ref_words": 28,
+          "qwen_errors": 8,
+          "whisper_errors": 9,
+          "disagreements": 3,
+          "eligible_spans": 2,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 8,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 8,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 8,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 8,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 8,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 8,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 8,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 8,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 8,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 8,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.0005301519995555282
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.111",
+          "segment": 385,
+          "sha256": "fb8a6561240bc394450de7ee474c92927aeec98a279b2aa94aa5dcf7a1e6abab",
+          "ref_words": 14,
+          "qwen_errors": 3,
+          "whisper_errors": 3,
+          "disagreements": 0,
+          "eligible_spans": 0,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 3,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.00021447899962367956
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.111",
+          "segment": 400,
+          "sha256": "392ff77027269bab4b9503e4e5056669f148ac64c1719b3aa0ddaa6e1a1d802b",
+          "ref_words": 24,
+          "qwen_errors": 4,
+          "whisper_errors": 5,
+          "disagreements": 3,
+          "eligible_spans": 1,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 4,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.00038778199996158946
+        }
+      ],
+      "freeze": {
+        "design_sha256": "be19553078cdcae4ccecbbee59f0be54864aae69b1b5e6c2f0a2c6e572722a5b",
+        "body_sha256": "c5acc639968dabe8a3c9771e2f613af535c95aff6b8bbfc5b52767968df7e937",
+        "candidate_sha256": "24a1f6bf830fd967b4d57b1dd20879cfdbac28e32222c10927aa91545d71c906",
+        "predictions_sha256": "493baa815e5907081109b421af6d1b39e081baab430ea1d5db2a9de1c0af5287",
+        "material_index_wall_s": 0.23938083299981372,
+        "selection_all_conditions_wall_s": 0.015043622997836792
+      },
+      "underexposed": true,
+      "supports_retaining_candidate": null
+    },
+    "transfer": {
+      "cohort": "transfer",
+      "summary": {
+        "clips": 20,
+        "words": 357,
+        "qwen_errors": 42,
+        "qwen_wer": 0.11764705882352941,
+        "whisper_errors": 54,
+        "disagreement_spans": 22,
+        "eligible_spans": 13,
+        "clips_with_disagreement": 13,
+        "clips_with_eligible": 8,
+        "matched": {
+          "edits": 1,
+          "altered_clips": 1,
+          "improved": 1,
+          "worsened": 0,
+          "tied": 19,
+          "opportunities": 20,
+          "errors": 41,
+          "wer": 0.11484593837535013,
+          "net_gain": 1
+        },
+        "mismatch": {
+          "edits": 4,
+          "altered_clips": 4,
+          "improved": 4,
+          "worsened": 0,
+          "tied": 176,
+          "opportunities": 180,
+          "mean_errors": 41.55555555555556,
+          "mean_wer": 0.11640211640211641,
+          "mean_net_gain": 0.44444444444444287
+        }
+      },
+      "by_talk": {
+        "2022.acl-long.110": {
+          "clips": 2,
+          "words": 30,
+          "qwen_errors": 1,
+          "qwen_wer": 0.03333333333333333,
+          "whisper_errors": 3,
+          "disagreement_spans": 1,
+          "eligible_spans": 1,
+          "clips_with_disagreement": 1,
+          "clips_with_eligible": 1,
+          "matched": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 2,
+            "opportunities": 2,
+            "errors": 1,
+            "wer": 0.03333333333333333,
+            "net_gain": 0
+          },
+          "mismatch": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 18,
+            "opportunities": 18,
+            "mean_errors": 1.0,
+            "mean_wer": 0.03333333333333333,
+            "mean_net_gain": 0.0
+          }
+        },
+        "2022.acl-long.111": {
+          "clips": 2,
+          "words": 26,
+          "qwen_errors": 5,
+          "qwen_wer": 0.19230769230769232,
+          "whisper_errors": 4,
+          "disagreement_spans": 1,
+          "eligible_spans": 0,
+          "clips_with_disagreement": 1,
+          "clips_with_eligible": 0,
+          "matched": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 2,
+            "opportunities": 2,
+            "errors": 5,
+            "wer": 0.19230769230769232,
+            "net_gain": 0
+          },
+          "mismatch": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 18,
+            "opportunities": 18,
+            "mean_errors": 5.0,
+            "mean_wer": 0.19230769230769232,
+            "mean_net_gain": 0.0
+          }
+        },
+        "2022.acl-long.117": {
+          "clips": 2,
+          "words": 39,
+          "qwen_errors": 0,
+          "qwen_wer": 0.0,
+          "whisper_errors": 1,
+          "disagreement_spans": 1,
+          "eligible_spans": 0,
+          "clips_with_disagreement": 1,
+          "clips_with_eligible": 0,
+          "matched": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 2,
+            "opportunities": 2,
+            "errors": 0,
+            "wer": 0.0,
+            "net_gain": 0
+          },
+          "mismatch": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 18,
+            "opportunities": 18,
+            "mean_errors": 0.0,
+            "mean_wer": 0.0,
+            "mean_net_gain": 0.0
+          }
+        },
+        "2022.acl-long.268": {
+          "clips": 2,
+          "words": 28,
+          "qwen_errors": 4,
+          "qwen_wer": 0.14285714285714285,
+          "whisper_errors": 8,
+          "disagreement_spans": 4,
+          "eligible_spans": 4,
+          "clips_with_disagreement": 2,
+          "clips_with_eligible": 2,
+          "matched": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 2,
+            "opportunities": 2,
+            "errors": 4,
+            "wer": 0.14285714285714285,
+            "net_gain": 0
+          },
+          "mismatch": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 18,
+            "opportunities": 18,
+            "mean_errors": 4.0,
+            "mean_wer": 0.14285714285714285,
+            "mean_net_gain": 0.0
+          }
+        },
+        "2022.acl-long.367": {
+          "clips": 2,
+          "words": 33,
+          "qwen_errors": 6,
+          "qwen_wer": 0.18181818181818182,
+          "whisper_errors": 9,
+          "disagreement_spans": 2,
+          "eligible_spans": 1,
+          "clips_with_disagreement": 2,
+          "clips_with_eligible": 1,
+          "matched": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 2,
+            "opportunities": 2,
+            "errors": 6,
+            "wer": 0.18181818181818182,
+            "net_gain": 0
+          },
+          "mismatch": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 18,
+            "opportunities": 18,
+            "mean_errors": 6.0,
+            "mean_wer": 0.18181818181818182,
+            "mean_net_gain": 0.0
+          }
+        },
+        "2022.acl-long.410": {
+          "clips": 2,
+          "words": 37,
+          "qwen_errors": 6,
+          "qwen_wer": 0.16216216216216217,
+          "whisper_errors": 10,
+          "disagreement_spans": 4,
+          "eligible_spans": 2,
+          "clips_with_disagreement": 2,
+          "clips_with_eligible": 1,
+          "matched": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 2,
+            "opportunities": 2,
+            "errors": 6,
+            "wer": 0.16216216216216217,
+            "net_gain": 0
+          },
+          "mismatch": {
+            "edits": 2,
+            "altered_clips": 2,
+            "improved": 2,
+            "worsened": 0,
+            "tied": 16,
+            "opportunities": 18,
+            "mean_errors": 5.777777777777778,
+            "mean_wer": 0.15615615615615616,
+            "mean_net_gain": 0.22222222222222232
+          }
+        },
+        "2022.acl-long.468": {
+          "clips": 2,
+          "words": 46,
+          "qwen_errors": 1,
+          "qwen_wer": 0.021739130434782608,
+          "whisper_errors": 2,
+          "disagreement_spans": 2,
+          "eligible_spans": 1,
+          "clips_with_disagreement": 1,
+          "clips_with_eligible": 1,
+          "matched": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 2,
+            "opportunities": 2,
+            "errors": 1,
+            "wer": 0.021739130434782608,
+            "net_gain": 0
+          },
+          "mismatch": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 18,
+            "opportunities": 18,
+            "mean_errors": 1.0,
+            "mean_wer": 0.021739130434782608,
+            "mean_net_gain": 0.0
+          }
+        },
+        "2022.acl-long.567": {
+          "clips": 2,
+          "words": 44,
+          "qwen_errors": 7,
+          "qwen_wer": 0.1590909090909091,
+          "whisper_errors": 7,
+          "disagreement_spans": 2,
+          "eligible_spans": 0,
+          "clips_with_disagreement": 1,
+          "clips_with_eligible": 0,
+          "matched": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 2,
+            "opportunities": 2,
+            "errors": 7,
+            "wer": 0.1590909090909091,
+            "net_gain": 0
+          },
+          "mismatch": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 18,
+            "opportunities": 18,
+            "mean_errors": 7.0,
+            "mean_wer": 0.1590909090909091,
+            "mean_net_gain": 0.0
+          }
+        },
+        "2022.acl-long.590": {
+          "clips": 2,
+          "words": 39,
+          "qwen_errors": 2,
+          "qwen_wer": 0.05128205128205128,
+          "whisper_errors": 2,
+          "disagreement_spans": 0,
+          "eligible_spans": 0,
+          "clips_with_disagreement": 0,
+          "clips_with_eligible": 0,
+          "matched": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 2,
+            "opportunities": 2,
+            "errors": 2,
+            "wer": 0.05128205128205128,
+            "net_gain": 0
+          },
+          "mismatch": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 18,
+            "opportunities": 18,
+            "mean_errors": 2.0,
+            "mean_wer": 0.05128205128205128,
+            "mean_net_gain": 0.0
+          }
+        },
+        "2022.acl-long.597": {
+          "clips": 2,
+          "words": 35,
+          "qwen_errors": 10,
+          "qwen_wer": 0.2857142857142857,
+          "whisper_errors": 8,
+          "disagreement_spans": 5,
+          "eligible_spans": 4,
+          "clips_with_disagreement": 2,
+          "clips_with_eligible": 2,
+          "matched": {
+            "edits": 1,
+            "altered_clips": 1,
+            "improved": 1,
+            "worsened": 0,
+            "tied": 1,
+            "opportunities": 2,
+            "errors": 9,
+            "wer": 0.2571428571428571,
+            "net_gain": 1
+          },
+          "mismatch": {
+            "edits": 2,
+            "altered_clips": 2,
+            "improved": 2,
+            "worsened": 0,
+            "tied": 16,
+            "opportunities": 18,
+            "mean_errors": 9.777777777777779,
+            "mean_wer": 0.27936507936507937,
+            "mean_net_gain": 0.22222222222222143
+          }
+        }
+      },
+      "clips": [
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.268",
+          "segment": 36,
+          "sha256": "5775467c458459904d3fdcb0c2215ffd918b6e88fdcfe9a0ad8c312830db0cec",
+          "ref_words": 12,
+          "qwen_errors": 3,
+          "whisper_errors": 4,
+          "disagreements": 1,
+          "eligible_spans": 1,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 3,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.0001526870000816416
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.268",
+          "segment": 72,
+          "sha256": "6ed1e5874eb8b8d5bbc5edbfa04ff152ac6cece137dadbeec0c4761ba0a93066",
+          "ref_words": 16,
+          "qwen_errors": 1,
+          "whisper_errors": 4,
+          "disagreements": 3,
+          "eligible_spans": 3,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 1,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.00023057999987941002
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.367",
+          "segment": 135,
+          "sha256": "04d923119167c2adb884ef8dcda3c857c28214199afb6cdb9908bda3bdff38f0",
+          "ref_words": 11,
+          "qwen_errors": 4,
+          "whisper_errors": 5,
+          "disagreements": 1,
+          "eligible_spans": 0,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 4,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 4.716300009022234e-05
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.367",
+          "segment": 162,
+          "sha256": "0bc4cdc5fedf36375e06eb51b447317efb43bbbd118873e58382fee22bc3a4a7",
+          "ref_words": 22,
+          "qwen_errors": 2,
+          "whisper_errors": 4,
+          "disagreements": 1,
+          "eligible_spans": 1,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 2,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.00023151000004872913
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.590",
+          "segment": 212,
+          "sha256": "8a9b466a2195149804f572e314d1c47909b07839cc3635e298300ec11d8e9742",
+          "ref_words": 26,
+          "qwen_errors": 2,
+          "whisper_errors": 2,
+          "disagreements": 0,
+          "eligible_spans": 0,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 2,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.0001936170001499704
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.590",
+          "segment": 234,
+          "sha256": "e719b871298d72114756963619afcfa245c74b6aca8b37d06bb5d35fb6de63ff",
+          "ref_words": 13,
+          "qwen_errors": 0,
+          "whisper_errors": 0,
+          "disagreements": 0,
+          "eligible_spans": 0,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 0,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 6.76869995004381e-05
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.110",
+          "segment": 292,
+          "sha256": "773937c6bb464f04922930ccdf316760a5ea9e65c7312bfb03e9d9b8f9484751",
+          "ref_words": 18,
+          "qwen_errors": 1,
+          "whisper_errors": 3,
+          "disagreements": 1,
+          "eligible_spans": 1,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 1,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.00033540999993419973
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.110",
+          "segment": 328,
+          "sha256": "6dd5affb4d62af6ef0de815caa0679a56c948671aa07d926f42fbb787a7ef06f",
+          "ref_words": 12,
+          "qwen_errors": 0,
+          "whisper_errors": 0,
+          "disagreements": 0,
+          "eligible_spans": 0,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 0,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 6.0694999774568714e-05
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.117",
+          "segment": 399,
+          "sha256": "dbdf470cc0feb02e27743f078c5fad8d803a29f4162884076c3409787d565104",
+          "ref_words": 20,
+          "qwen_errors": 0,
+          "whisper_errors": 0,
+          "disagreements": 0,
+          "eligible_spans": 0,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 0,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.0001231539999935194
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.117",
+          "segment": 434,
+          "sha256": "028a4452e205bd29923abfaf8d5e494fbc2825a1c18dbb758c9f90358e921bab",
+          "ref_words": 19,
+          "qwen_errors": 0,
+          "whisper_errors": 1,
+          "disagreements": 1,
+          "eligible_spans": 0,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 0,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.0001546970006529591
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.410",
+          "segment": 34,
+          "sha256": "9c02caf92b783b2a9a2731ddd5e977d25ecc4e6a77811f11326ab01ef695d7d9",
+          "ref_words": 29,
+          "qwen_errors": 5,
+          "whisper_errors": 5,
+          "disagreements": 2,
+          "eligible_spans": 2,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 4,
+              "edits": 1
+            },
+            "2022.acl-long.111": {
+              "errors": 5,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 4,
+              "edits": 1
+            },
+            "2022.acl-long.268": {
+              "errors": 5,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 5,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 5,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 5,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 5,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 5,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 5,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.0002461770000081742
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.410",
+          "segment": 67,
+          "sha256": "499370d49458a187a028bb48949a8071192ad5e5a482b59d8bc79941528bf3b4",
+          "ref_words": 8,
+          "qwen_errors": 1,
+          "whisper_errors": 5,
+          "disagreements": 2,
+          "eligible_spans": 0,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 1,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 3.770599960262189e-05
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.468",
+          "segment": 129,
+          "sha256": "e0c876adb772125ef2ceab0337658f5d561ed62fcee245f9b5e5d7ef130c7f07",
+          "ref_words": 30,
+          "qwen_errors": 1,
+          "whisper_errors": 2,
+          "disagreements": 2,
+          "eligible_spans": 1,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 1,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.00028937100069015287
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.468",
+          "segment": 157,
+          "sha256": "da158203e34de6cf7020abf887908fb3d36bef23d883f6aaff07f4994639b5d9",
+          "ref_words": 16,
+          "qwen_errors": 0,
+          "whisper_errors": 0,
+          "disagreements": 0,
+          "eligible_spans": 0,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 0,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.00010281300001224736
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.567",
+          "segment": 203,
+          "sha256": "d9fa55c57c0bd55d266fa1fc28b7ada1e56f70cacea3045993b70fe4f594415d",
+          "ref_words": 23,
+          "qwen_errors": 0,
+          "whisper_errors": 0,
+          "disagreements": 0,
+          "eligible_spans": 0,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 0,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.0002402340005573933
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.567",
+          "segment": 222,
+          "sha256": "ceac0cf5586a5dbdaf77170ca74f0999deb521454d756935d3d9b2509e26e587",
+          "ref_words": 21,
+          "qwen_errors": 7,
+          "whisper_errors": 7,
+          "disagreements": 2,
+          "eligible_spans": 0,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 7,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 7,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 7,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 7,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 7,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 7,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 7,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 7,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 7,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 7,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.00012913499995192979
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.597",
+          "segment": 271,
+          "sha256": "fae7cf70c9a8fdd54013c7b4316e0337455da492f90ad29a0a791e8e2954b108",
+          "ref_words": 8,
+          "qwen_errors": 1,
+          "whisper_errors": 0,
+          "disagreements": 1,
+          "eligible_spans": 1,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 0,
+              "edits": 1
+            },
+            "2022.acl-long.567": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 0,
+              "edits": 1
+            },
+            "2022.acl-long.597": {
+              "errors": 0,
+              "edits": 1
+            }
+          },
+          "selection_wall_s": 6.149999990157085e-05
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.597",
+          "segment": 301,
+          "sha256": "0548afdb53cd9392c5cf84c752bc134ee0d4bed9b44187ea3adc0d6a810cbdb6",
+          "ref_words": 27,
+          "qwen_errors": 9,
+          "whisper_errors": 8,
+          "disagreements": 4,
+          "eligible_spans": 3,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 9,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 9,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 9,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 9,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 9,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 9,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 9,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 9,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 9,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 9,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.0002724149999266956
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.111",
+          "segment": 360,
+          "sha256": "eb08ab44c231159c25192ed79284c6bd8dd352a63cabd45115d0fa2967f6d3bc",
+          "ref_words": 10,
+          "qwen_errors": 3,
+          "whisper_errors": 3,
+          "disagreements": 0,
+          "eligible_spans": 0,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 3,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 5.6410999604850076e-05
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.111",
+          "segment": 388,
+          "sha256": "6b3d5b069b42f647d405bf5ad8644736494ff58baf37b04b3b9dfc7114c85932",
+          "ref_words": 16,
+          "qwen_errors": 2,
+          "whisper_errors": 1,
+          "disagreements": 1,
+          "eligible_spans": 0,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 2,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.00012846700064983452
+        }
+      ],
+      "freeze": {
+        "design_sha256": "be19553078cdcae4ccecbbee59f0be54864aae69b1b5e6c2f0a2c6e572722a5b",
+        "body_sha256": "c5acc639968dabe8a3c9771e2f613af535c95aff6b8bbfc5b52767968df7e937",
+        "candidate_sha256": "4bbb5893877c5aa3de12cc3571ae066eabf0f1e23cd8022e4da855dbaf210f79",
+        "predictions_sha256": "f11571197e63e9f99f4786bf134303307bb5652a1eb7168b05f5041654db761b",
+        "material_index_wall_s": 0.14940471699992486,
+        "selection_all_conditions_wall_s": 0.003161429001011129
+      },
+      "underexposed": true,
+      "supports_retaining_candidate": null
+    },
+    "fresh": {
+      "cohort": "fresh",
+      "summary": {
+        "clips": 40,
+        "words": 720,
+        "qwen_errors": 78,
+        "qwen_wer": 0.10833333333333334,
+        "whisper_errors": 87,
+        "disagreement_spans": 52,
+        "eligible_spans": 38,
+        "clips_with_disagreement": 31,
+        "clips_with_eligible": 27,
+        "matched": {
+          "edits": 4,
+          "altered_clips": 3,
+          "improved": 2,
+          "worsened": 0,
+          "tied": 38,
+          "opportunities": 40,
+          "errors": 73,
+          "wer": 0.10138888888888889,
+          "net_gain": 5
+        },
+        "mismatch": {
+          "edits": 1,
+          "altered_clips": 1,
+          "improved": 0,
+          "worsened": 0,
+          "tied": 360,
+          "opportunities": 360,
+          "mean_errors": 78.0,
+          "mean_wer": 0.10833333333333334,
+          "mean_net_gain": 0.0
+        }
+      },
+      "by_talk": {
+        "2022.acl-long.110": {
+          "clips": 4,
+          "words": 94,
+          "qwen_errors": 5,
+          "qwen_wer": 0.05319148936170213,
+          "whisper_errors": 3,
+          "disagreement_spans": 5,
+          "eligible_spans": 3,
+          "clips_with_disagreement": 3,
+          "clips_with_eligible": 3,
+          "matched": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 4,
+            "opportunities": 4,
+            "errors": 5,
+            "wer": 0.05319148936170213,
+            "net_gain": 0
+          },
+          "mismatch": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 36,
+            "opportunities": 36,
+            "mean_errors": 5.0,
+            "mean_wer": 0.05319148936170213,
+            "mean_net_gain": 0.0
+          }
+        },
+        "2022.acl-long.111": {
+          "clips": 4,
+          "words": 73,
+          "qwen_errors": 16,
+          "qwen_wer": 0.2191780821917808,
+          "whisper_errors": 18,
+          "disagreement_spans": 6,
+          "eligible_spans": 4,
+          "clips_with_disagreement": 2,
+          "clips_with_eligible": 2,
+          "matched": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 4,
+            "opportunities": 4,
+            "errors": 16,
+            "wer": 0.2191780821917808,
+            "net_gain": 0
+          },
+          "mismatch": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 36,
+            "opportunities": 36,
+            "mean_errors": 16.0,
+            "mean_wer": 0.2191780821917808,
+            "mean_net_gain": 0.0
+          }
+        },
+        "2022.acl-long.117": {
+          "clips": 4,
+          "words": 92,
+          "qwen_errors": 10,
+          "qwen_wer": 0.10869565217391304,
+          "whisper_errors": 9,
+          "disagreement_spans": 9,
+          "eligible_spans": 7,
+          "clips_with_disagreement": 4,
+          "clips_with_eligible": 3,
+          "matched": {
+            "edits": 1,
+            "altered_clips": 1,
+            "improved": 1,
+            "worsened": 0,
+            "tied": 3,
+            "opportunities": 4,
+            "errors": 7,
+            "wer": 0.07608695652173914,
+            "net_gain": 3
+          },
+          "mismatch": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 36,
+            "opportunities": 36,
+            "mean_errors": 10.0,
+            "mean_wer": 0.10869565217391304,
+            "mean_net_gain": 0.0
+          }
+        },
+        "2022.acl-long.268": {
+          "clips": 4,
+          "words": 44,
+          "qwen_errors": 6,
+          "qwen_wer": 0.13636363636363635,
+          "whisper_errors": 8,
+          "disagreement_spans": 6,
+          "eligible_spans": 4,
+          "clips_with_disagreement": 4,
+          "clips_with_eligible": 2,
+          "matched": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 4,
+            "opportunities": 4,
+            "errors": 6,
+            "wer": 0.13636363636363635,
+            "net_gain": 0
+          },
+          "mismatch": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 36,
+            "opportunities": 36,
+            "mean_errors": 6.0,
+            "mean_wer": 0.13636363636363635,
+            "mean_net_gain": 0.0
+          }
+        },
+        "2022.acl-long.367": {
+          "clips": 4,
+          "words": 71,
+          "qwen_errors": 4,
+          "qwen_wer": 0.056338028169014086,
+          "whisper_errors": 7,
+          "disagreement_spans": 4,
+          "eligible_spans": 3,
+          "clips_with_disagreement": 4,
+          "clips_with_eligible": 3,
+          "matched": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 4,
+            "opportunities": 4,
+            "errors": 4,
+            "wer": 0.056338028169014086,
+            "net_gain": 0
+          },
+          "mismatch": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 36,
+            "opportunities": 36,
+            "mean_errors": 4.0,
+            "mean_wer": 0.056338028169014086,
+            "mean_net_gain": 0.0
+          }
+        },
+        "2022.acl-long.410": {
+          "clips": 4,
+          "words": 59,
+          "qwen_errors": 2,
+          "qwen_wer": 0.03389830508474576,
+          "whisper_errors": 4,
+          "disagreement_spans": 2,
+          "eligible_spans": 2,
+          "clips_with_disagreement": 2,
+          "clips_with_eligible": 2,
+          "matched": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 4,
+            "opportunities": 4,
+            "errors": 2,
+            "wer": 0.03389830508474576,
+            "net_gain": 0
+          },
+          "mismatch": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 36,
+            "opportunities": 36,
+            "mean_errors": 2.0,
+            "mean_wer": 0.03389830508474576,
+            "mean_net_gain": 0.0
+          }
+        },
+        "2022.acl-long.468": {
+          "clips": 4,
+          "words": 67,
+          "qwen_errors": 10,
+          "qwen_wer": 0.14925373134328357,
+          "whisper_errors": 7,
+          "disagreement_spans": 4,
+          "eligible_spans": 3,
+          "clips_with_disagreement": 3,
+          "clips_with_eligible": 3,
+          "matched": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 4,
+            "opportunities": 4,
+            "errors": 10,
+            "wer": 0.14925373134328357,
+            "net_gain": 0
+          },
+          "mismatch": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 36,
+            "opportunities": 36,
+            "mean_errors": 10.0,
+            "mean_wer": 0.14925373134328357,
+            "mean_net_gain": 0.0
+          }
+        },
+        "2022.acl-long.567": {
+          "clips": 4,
+          "words": 73,
+          "qwen_errors": 4,
+          "qwen_wer": 0.0547945205479452,
+          "whisper_errors": 3,
+          "disagreement_spans": 2,
+          "eligible_spans": 2,
+          "clips_with_disagreement": 2,
+          "clips_with_eligible": 2,
+          "matched": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 4,
+            "opportunities": 4,
+            "errors": 4,
+            "wer": 0.0547945205479452,
+            "net_gain": 0
+          },
+          "mismatch": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 36,
+            "opportunities": 36,
+            "mean_errors": 4.0,
+            "mean_wer": 0.0547945205479452,
+            "mean_net_gain": 0.0
+          }
+        },
+        "2022.acl-long.590": {
+          "clips": 4,
+          "words": 78,
+          "qwen_errors": 9,
+          "qwen_wer": 0.11538461538461539,
+          "whisper_errors": 11,
+          "disagreement_spans": 5,
+          "eligible_spans": 3,
+          "clips_with_disagreement": 3,
+          "clips_with_eligible": 3,
+          "matched": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 4,
+            "opportunities": 4,
+            "errors": 9,
+            "wer": 0.11538461538461539,
+            "net_gain": 0
+          },
+          "mismatch": {
+            "edits": 0,
+            "altered_clips": 0,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 36,
+            "opportunities": 36,
+            "mean_errors": 9.0,
+            "mean_wer": 0.11538461538461539,
+            "mean_net_gain": 0.0
+          }
+        },
+        "2022.acl-long.597": {
+          "clips": 4,
+          "words": 69,
+          "qwen_errors": 12,
+          "qwen_wer": 0.17391304347826086,
+          "whisper_errors": 17,
+          "disagreement_spans": 9,
+          "eligible_spans": 7,
+          "clips_with_disagreement": 4,
+          "clips_with_eligible": 4,
+          "matched": {
+            "edits": 3,
+            "altered_clips": 2,
+            "improved": 1,
+            "worsened": 0,
+            "tied": 3,
+            "opportunities": 4,
+            "errors": 10,
+            "wer": 0.14492753623188406,
+            "net_gain": 2
+          },
+          "mismatch": {
+            "edits": 1,
+            "altered_clips": 1,
+            "improved": 0,
+            "worsened": 0,
+            "tied": 36,
+            "opportunities": 36,
+            "mean_errors": 12.0,
+            "mean_wer": 0.17391304347826086,
+            "mean_net_gain": 0.0
+          }
+        }
+      },
+      "clips": [
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.268",
+          "segment": 10,
+          "sha256": "9e55cb0ede4840ee42300b359a4a830e11c04c009a526e20cc49e1cbb817c475",
+          "ref_words": 8,
+          "qwen_errors": 1,
+          "whisper_errors": 1,
+          "disagreements": 1,
+          "eligible_spans": 1,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 1,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.00014000000010128133
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.268",
+          "segment": 41,
+          "sha256": "af0ad9216ada3f763e6f72d9e12531a99fe8b6c7f13aa0f8f1d5ed33681b636c",
+          "ref_words": 10,
+          "qwen_errors": 3,
+          "whisper_errors": 2,
+          "disagreements": 1,
+          "eligible_spans": 0,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 3,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 5.244800013315398e-05
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.268",
+          "segment": 67,
+          "sha256": "88b586782af5f8c66b59a2c0da90c59e4eaf5abf9790226b3489620339383166",
+          "ref_words": 7,
+          "qwen_errors": 0,
+          "whisper_errors": 1,
+          "disagreements": 1,
+          "eligible_spans": 0,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 0,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 2.653699993970804e-05
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.268",
+          "segment": 94,
+          "sha256": "1d267a8e1d4991312661111e5d0ccee0530ee5acaa6d956f47061c6608f2b067",
+          "ref_words": 19,
+          "qwen_errors": 2,
+          "whisper_errors": 4,
+          "disagreements": 3,
+          "eligible_spans": 3,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 2,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.00014841899974271655
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.367",
+          "segment": 118,
+          "sha256": "19178127c05e70bd4b61d2995c53a9b086055d763adcef510d969f6051ef9afa",
+          "ref_words": 34,
+          "qwen_errors": 2,
+          "whisper_errors": 1,
+          "disagreements": 1,
+          "eligible_spans": 1,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 2,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.00021092099996167235
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.367",
+          "segment": 138,
+          "sha256": "0ae2c81089deddae58307bb488411305bd3dd6b149c26706b484e746f3778ca0",
+          "ref_words": 18,
+          "qwen_errors": 0,
+          "whisper_errors": 2,
+          "disagreements": 1,
+          "eligible_spans": 1,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 0,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.00011228299990762025
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.367",
+          "segment": 159,
+          "sha256": "aece4d8a2b82979428d954f3018f83271f1e8a7e316163562f24608bb58eb444",
+          "ref_words": 10,
+          "qwen_errors": 0,
+          "whisper_errors": 1,
+          "disagreements": 1,
+          "eligible_spans": 1,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 0,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 4.452699977264274e-05
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.367",
+          "segment": 179,
+          "sha256": "359ef15c4b1d556457013ecac9e739435f096a0f0f2ddb8298e70b95ac553b93",
+          "ref_words": 9,
+          "qwen_errors": 2,
+          "whisper_errors": 3,
+          "disagreements": 1,
+          "eligible_spans": 0,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 2,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 3.0121999770926777e-05
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.590",
+          "segment": 198,
+          "sha256": "9803175dbfedd800ceaa97876739849e7060426fe5b2de23e4a0ff3755044e3f",
+          "ref_words": 20,
+          "qwen_errors": 1,
+          "whisper_errors": 1,
+          "disagreements": 0,
+          "eligible_spans": 0,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 1,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 7.214699962787563e-05
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.590",
+          "segment": 214,
+          "sha256": "7f27713875f3821a4d778b2e11625ee482f866bd90f87d094ef2e40eb589b968",
+          "ref_words": 11,
+          "qwen_errors": 0,
+          "whisper_errors": 2,
+          "disagreements": 1,
+          "eligible_spans": 1,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 0,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 4.291200002626283e-05
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.590",
+          "segment": 231,
+          "sha256": "2cda3be2aa5a25afd5ce1600ff731dc1c85e4f78168020d95c9b3be422fc84a4",
+          "ref_words": 21,
+          "qwen_errors": 4,
+          "whisper_errors": 3,
+          "disagreements": 1,
+          "eligible_spans": 1,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 4,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 7.395100055873627e-05
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.590",
+          "segment": 247,
+          "sha256": "01f9fdc25014f5afa2e1a646e3442bb87befc4fcda0d6a8610e27a696b0a8837",
+          "ref_words": 26,
+          "qwen_errors": 4,
+          "whisper_errors": 5,
+          "disagreements": 3,
+          "eligible_spans": 1,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 4,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.00016374100050597917
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.110",
+          "segment": 269,
+          "sha256": "39eb0ce8e11876edb4a2e8a9b98a086b552099471b66124864e242049bef5b31",
+          "ref_words": 44,
+          "qwen_errors": 3,
+          "whisper_errors": 1,
+          "disagreements": 3,
+          "eligible_spans": 1,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 3,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.000296231999527663
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.110",
+          "segment": 296,
+          "sha256": "8dbcf0702b242e056fcdb69125d52b286a807c7791aefef385ec368571ce96ec",
+          "ref_words": 12,
+          "qwen_errors": 0,
+          "whisper_errors": 0,
+          "disagreements": 0,
+          "eligible_spans": 0,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 0,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 3.517799996188842e-05
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.110",
+          "segment": 323,
+          "sha256": "2f6c752a5f20d38ee015688c989767667a7238243da19c1ff25aff605da17562",
+          "ref_words": 18,
+          "qwen_errors": 1,
+          "whisper_errors": 1,
+          "disagreements": 1,
+          "eligible_spans": 1,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 1,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 8.690600043337326e-05
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.110",
+          "segment": 350,
+          "sha256": "1cebe41ace5deccb22808c1f8d1c94f8f49fd44567c9de353d673a7780a174c4",
+          "ref_words": 20,
+          "qwen_errors": 1,
+          "whisper_errors": 1,
+          "disagreements": 1,
+          "eligible_spans": 1,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 1,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 8.18110002001049e-05
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.117",
+          "segment": 377,
+          "sha256": "1c4a0e4d1eede6549c0716c6e03ca05df7f1f2eb085832396ec7015f244b8d99",
+          "ref_words": 10,
+          "qwen_errors": 0,
+          "whisper_errors": 3,
+          "disagreements": 1,
+          "eligible_spans": 1,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 0,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 4.4487999730336014e-05
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.117",
+          "segment": 403,
+          "sha256": "2cffba89175823ce60f35e6c6478f6d2876658bb4da854fa6a4757d2ef95f01d",
+          "ref_words": 23,
+          "qwen_errors": 0,
+          "whisper_errors": 2,
+          "disagreements": 2,
+          "eligible_spans": 2,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 0,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.00013543899967771722
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.117",
+          "segment": 429,
+          "sha256": "15f23e6109556583191b927a1addab99e70596a4c7acca6485e3086bdf1db816",
+          "ref_words": 20,
+          "qwen_errors": 0,
+          "whisper_errors": 1,
+          "disagreements": 1,
+          "eligible_spans": 0,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 0,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 7.222800013551023e-05
+        },
+        {
+          "split": "dev",
+          "talk": "2022.acl-long.117",
+          "segment": 455,
+          "sha256": "54fb9e7bcada9fd63e92b77ff0aa46166e365b103fd94a49ea2b64ad335a3f1d",
+          "ref_words": 39,
+          "qwen_errors": 10,
+          "whisper_errors": 3,
+          "disagreements": 5,
+          "eligible_spans": 4,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 10,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 10,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 7,
+              "edits": 1
+            },
+            "2022.acl-long.268": {
+              "errors": 10,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 10,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 10,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 10,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 10,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 10,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 10,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.00043065299996669637
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.410",
+          "segment": 10,
+          "sha256": "1b9549f4327034a18e652251d3a296f80fce9bdc5bcaa9475f36a4e0b145a412",
+          "ref_words": 20,
+          "qwen_errors": 0,
+          "whisper_errors": 0,
+          "disagreements": 0,
+          "eligible_spans": 0,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 0,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 7.474100038962206e-05
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.410",
+          "segment": 38,
+          "sha256": "26adc25f7f87808cba6b36c189065e44a2d13183ec3753c5f7cd25e374327c24",
+          "ref_words": 7,
+          "qwen_errors": 1,
+          "whisper_errors": 1,
+          "disagreements": 1,
+          "eligible_spans": 1,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 1,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 3.455699970800197e-05
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.410",
+          "segment": 63,
+          "sha256": "776e414d8813e7afcb1eeb88be8496a275cb3403dcbfcfae56bb471b39d7d3cd",
+          "ref_words": 18,
+          "qwen_errors": 0,
+          "whisper_errors": 2,
+          "disagreements": 1,
+          "eligible_spans": 1,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 0,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.00012009500005660811
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.410",
+          "segment": 88,
+          "sha256": "6ae04d66169847cd8f84b4a30d30bbf0c6095e363d977e299d38544fe195dce8",
+          "ref_words": 14,
+          "qwen_errors": 1,
+          "whisper_errors": 1,
+          "disagreements": 0,
+          "eligible_spans": 0,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 1,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 4.179600000497885e-05
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.468",
+          "segment": 111,
+          "sha256": "1f7cd80b71c017509196a71e872289fdad3455dee8d2d03b1901a1fdff88e8a1",
+          "ref_words": 11,
+          "qwen_errors": 0,
+          "whisper_errors": 0,
+          "disagreements": 0,
+          "eligible_spans": 0,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 0,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 2.966899955936242e-05
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.468",
+          "segment": 133,
+          "sha256": "c63989b61f22898dbacbebb48ee9292a77ff44793c9f7dccb5645515d38af1d6",
+          "ref_words": 15,
+          "qwen_errors": 2,
+          "whisper_errors": 2,
+          "disagreements": 1,
+          "eligible_spans": 1,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 2,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 5.155700000614161e-05
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.468",
+          "segment": 153,
+          "sha256": "6e1a8c627d8583069fe0ead5fcf312d31486324a5cb0141bdd0aecb53c8c043b",
+          "ref_words": 11,
+          "qwen_errors": 5,
+          "whisper_errors": 2,
+          "disagreements": 2,
+          "eligible_spans": 1,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 5,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 5,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 5,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 5,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 5,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 5,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 5,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 5,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 5,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 5,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 4.445099966687849e-05
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.468",
+          "segment": 174,
+          "sha256": "245522d8583386136de5090fe6b2e898405f48a9c4228c334c3379c48c363097",
+          "ref_words": 30,
+          "qwen_errors": 3,
+          "whisper_errors": 3,
+          "disagreements": 1,
+          "eligible_spans": 1,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 3,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.00016141100059030578
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.567",
+          "segment": 191,
+          "sha256": "a07187e12fe641243eeeb0f33eb24a8d62ef64f7babc37a61dc679080280ac40",
+          "ref_words": 23,
+          "qwen_errors": 0,
+          "whisper_errors": 0,
+          "disagreements": 0,
+          "eligible_spans": 0,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 0,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 8.973900003184099e-05
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.567",
+          "segment": 206,
+          "sha256": "07cb64fa24417e350995045ae5f8e626845d33868f5e7011cb401fe5e4774ce9",
+          "ref_words": 9,
+          "qwen_errors": 1,
+          "whisper_errors": 1,
+          "disagreements": 1,
+          "eligible_spans": 1,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 1,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 5.35809995199088e-05
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.567",
+          "segment": 219,
+          "sha256": "01659bc740673619c0c54535c1e92161d5c9e20afffda1cf14227266d462f47b",
+          "ref_words": 14,
+          "qwen_errors": 3,
+          "whisper_errors": 2,
+          "disagreements": 1,
+          "eligible_spans": 1,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 3,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 3,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 5.6803000006766524e-05
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.567",
+          "segment": 234,
+          "sha256": "db943aea3d723a91e960a00eb29a4fb6ddd1b3c08a345c415f7a9f3f020c3d3d",
+          "ref_words": 27,
+          "qwen_errors": 0,
+          "whisper_errors": 0,
+          "disagreements": 0,
+          "eligible_spans": 0,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 0,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.0001160849997177138
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.597",
+          "segment": 252,
+          "sha256": "b9ac0463159de47c8564fc1d74b6473f7d228f67a28c779c3195c87af8981eab",
+          "ref_words": 16,
+          "qwen_errors": 1,
+          "whisper_errors": 1,
+          "disagreements": 1,
+          "eligible_spans": 1,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 1,
+              "edits": 1
+            },
+            "2022.acl-long.597": {
+              "errors": 1,
+              "edits": 1
+            }
+          },
+          "selection_wall_s": 6.696600030409172e-05
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.597",
+          "segment": 275,
+          "sha256": "ac1f8baa04d64772d2af42f827f5063a4553342beb1ba40b56d6ab21a5c5085d",
+          "ref_words": 18,
+          "qwen_errors": 1,
+          "whisper_errors": 3,
+          "disagreements": 1,
+          "eligible_spans": 1,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 1,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 1,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 7.642499986104667e-05
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.597",
+          "segment": 297,
+          "sha256": "d8f71ab8e73adf3f3feaf2287b9c9924f34ada60578efe672ac8d6a3d200d06a",
+          "ref_words": 24,
+          "qwen_errors": 6,
+          "whisper_errors": 10,
+          "disagreements": 4,
+          "eligible_spans": 2,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 6,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 6,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 6,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 6,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 6,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 6,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 6,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 6,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 6,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 4,
+              "edits": 2
+            }
+          },
+          "selection_wall_s": 0.00012951899952895474
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.597",
+          "segment": 320,
+          "sha256": "3cbb0a71d41793db9dd527ab6a684756ff47ffd3c4a5d26eb2db66101d1d361b",
+          "ref_words": 11,
+          "qwen_errors": 4,
+          "whisper_errors": 3,
+          "disagreements": 3,
+          "eligible_spans": 3,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 4,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 9.719199988467153e-05
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.111",
+          "segment": 342,
+          "sha256": "6e65df06722fcd1b71c09ae759876d1704acde11c16a67fb1e77ec29c838b0a0",
+          "ref_words": 8,
+          "qwen_errors": 4,
+          "whisper_errors": 4,
+          "disagreements": 0,
+          "eligible_spans": 0,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 4,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 4,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 2.9547999474743847e-05
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.111",
+          "segment": 363,
+          "sha256": "7c050566100ffa4b137370a4449dc9faa28963d372d26177bdf942c388c3bc6d",
+          "ref_words": 17,
+          "qwen_errors": 0,
+          "whisper_errors": 0,
+          "disagreements": 0,
+          "eligible_spans": 0,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 0,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 0,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 5.425099971034797e-05
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.111",
+          "segment": 386,
+          "sha256": "1b54f4e599fdfcd044bf532466467a7906698967112289637aad14aa8c873bb3",
+          "ref_words": 27,
+          "qwen_errors": 2,
+          "whisper_errors": 4,
+          "disagreements": 1,
+          "eligible_spans": 1,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 2,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 2,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.00012572699961310718
+        },
+        {
+          "split": "eval",
+          "talk": "2022.acl-long.111",
+          "segment": 405,
+          "sha256": "3787ceff4da190b80fbc8367891199e51060cff91ce9e00c1cc781d272ddf13f",
+          "ref_words": 21,
+          "qwen_errors": 10,
+          "whisper_errors": 10,
+          "disagreements": 5,
+          "eligible_spans": 3,
+          "by_paper": {
+            "2022.acl-long.110": {
+              "errors": 10,
+              "edits": 0
+            },
+            "2022.acl-long.111": {
+              "errors": 10,
+              "edits": 0
+            },
+            "2022.acl-long.117": {
+              "errors": 10,
+              "edits": 0
+            },
+            "2022.acl-long.268": {
+              "errors": 10,
+              "edits": 0
+            },
+            "2022.acl-long.367": {
+              "errors": 10,
+              "edits": 0
+            },
+            "2022.acl-long.410": {
+              "errors": 10,
+              "edits": 0
+            },
+            "2022.acl-long.468": {
+              "errors": 10,
+              "edits": 0
+            },
+            "2022.acl-long.567": {
+              "errors": 10,
+              "edits": 0
+            },
+            "2022.acl-long.590": {
+              "errors": 10,
+              "edits": 0
+            },
+            "2022.acl-long.597": {
+              "errors": 10,
+              "edits": 0
+            }
+          },
+          "selection_wall_s": 0.0001598839999132906
+        }
+      ],
+      "freeze": {
+        "design_sha256": "be19553078cdcae4ccecbbee59f0be54864aae69b1b5e6c2f0a2c6e572722a5b",
+        "body_sha256": "c5acc639968dabe8a3c9771e2f613af535c95aff6b8bbfc5b52767968df7e937",
+        "candidate_sha256": "13b14850d9cec35e77264c68219d1a2caf949a3cfc5cf0b3632af6d68b4c709e",
+        "predictions_sha256": "cc98c100a94f3fab489de193f7e0c5a17a218f2e5bcc010a344e4b2d37842945",
+        "material_index_wall_s": 0.10354920200006745,
+        "selection_all_conditions_wall_s": 0.003914939997230249
+      },
+      "underexposed": true,
+      "supports_retaining_candidate": false,
+      "new_asr_warm_wall_s": {
+        "qwen_wall_s": 128.91087361500377,
+        "whisper_wall_s": 39.72756954600209
+      }
+    }
+  }
+}
