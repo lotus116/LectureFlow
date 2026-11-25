@@ -1,0 +1,74 @@
+[
+  {
+    "trace": 1,
+    "source_sha256": "424855ecff8a0385fa6d11517d3f8167d0e8b06d52488f323d44aa2ed7b626b2",
+    "whitespace": {
+      "all_captions": 93,
+      "append_events": 157,
+      "captions_any_change": 86,
+      "captions_disappeared": 0,
+      "captions_nonappend": 86,
+      "captions_only_append": 0,
+      "erased_tokens": 778,
+      "final_tokens": 1937,
+      "nonappend_events": 612,
+      "nonempty_captions": 93,
+      "disappearance_events": 0,
+      "reappearance_events": 0,
+      "never_nonempty": 0,
+      "normalized_erasure": 0.40165203923593185
+    },
+    "lexical_sensitivity": {
+      "all_captions": 93,
+      "append_events": 642,
+      "captions_any_change": 86,
+      "captions_disappeared": 0,
+      "captions_nonappend": 58,
+      "captions_only_append": 28,
+      "erased_tokens": 221,
+      "final_tokens": 1941,
+      "nonappend_events": 121,
+      "nonempty_captions": 93,
+      "disappearance_events": 0,
+      "reappearance_events": 0,
+      "never_nonempty": 0,
+      "normalized_erasure": 0.11385883565172591
+    }
+  },
+  {
+    "trace": 2,
+    "source_sha256": "6932d8b68f074c7bd22c437d4b89e65fb15886c87397a0e15303f7be021d5ec9",
+    "whitespace": {
+      "all_captions": 64,
+      "append_events": 153,
+      "captions_any_change": 61,
+      "captions_disappeared": 0,
+      "captions_nonappend": 61,
+      "captions_only_append": 0,
+      "erased_tokens": 619,
+      "final_tokens": 2363,
+      "nonappend_events": 529,
+      "nonempty_captions": 64,
+      "disappearance_events": 0,
+      "reappearance_events": 0,
+      "never_nonempty": 0,
+      "normalized_erasure": 0.2619551417689378
+    },
+    "lexical_sensitivity": {
+      "all_captions": 64,
+      "append_events": 616,
+      "captions_any_change": 61,
+      "captions_disappeared": 0,
+      "captions_nonappend": 39,
+      "captions_only_append": 22,
+      "erased_tokens": 83,
+      "final_tokens": 2367,
+      "nonappend_events": 60,
+      "nonempty_captions": 64,
+      "disappearance_events": 0,
+      "reappearance_events": 0,
+      "never_nonempty": 0,
+      "normalized_erasure": 0.03506548373468526
+    }
+  }
+]
