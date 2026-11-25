@@ -1,0 +1,108 @@
+{
+  "id": "C10",
+  "date": "2026-11-26",
+  "protocol": "Same 510 s of C09, deliberately chosen for known long delay, exploratory not held out. Combined max context age + cache equivalent no-requeue intervention; no Chinese semantic claims.",
+  "results": {
+    "full": {
+      "status": "complete",
+      "frames": 8160000,
+      "dropped": 0,
+      "timing": {
+        "english_first_s": {
+          "n": 24,
+          "median": 1.2108124585356563,
+          "p95": 2.1014333330094814,
+          "max": 2.2212649169377983
+        },
+        "chinese_first_s": {
+          "n": 24,
+          "median": 1.7989872290054336,
+          "p95": 3.1924766250886023,
+          "max": 3.3618053749669343
+        },
+        "chinese_last_from_end_s": {
+          "n": 24,
+          "median": 8.215279166935943,
+          "p95": 79.59819708298892,
+          "max": 93.6675041669514
+        }
+      },
+      "translation_progress": {
+        "accent_pending": 0,
+        "accent_completed": 0,
+        "accent_failed": 0,
+        "accent_oldest_seconds": 0,
+        "accent_audio_bytes": 0,
+        "translation_pending": 0,
+        "translation_failures": 0,
+        "translations_deferred": 0,
+        "translations_completed": 69,
+        "context_translations_completed": 45
+      },
+      "skipped_requests": 0,
+      "english": 24,
+      "han_final": 24,
+      "incomplete": 0,
+      "queue_high": 5
+    },
+    "audio20": {
+      "status": "complete",
+      "frames": 8160000,
+      "dropped": 0,
+      "timing": {
+        "english_first_s": {
+          "n": 24,
+          "median": 1.1553103126352653,
+          "p95": 1.9674754999578,
+          "max": 2.0208299171645194
+        },
+        "chinese_first_s": {
+          "n": 24,
+          "median": 1.8050152495270595,
+          "p95": 2.5009041661396623,
+          "max": 2.966298291925341
+        },
+        "chinese_last_from_end_s": {
+          "n": 24,
+          "median": 2.4682106456020847,
+          "p95": 21.844397833105177,
+          "max": 21.890687458217144
+        }
+      },
+      "translation_progress": {
+        "accent_pending": 0,
+        "accent_completed": 0,
+        "accent_failed": 0,
+        "accent_oldest_seconds": 0,
+        "accent_audio_bytes": 0,
+        "translation_pending": 0,
+        "translation_failures": 0,
+        "translations_deferred": 0,
+        "translations_completed": 43,
+        "context_translations_completed": 19
+      },
+      "skipped_requests": 26,
+      "english": 24,
+      "han_final": 24,
+      "incomplete": 0,
+      "queue_high": 5
+    }
+  },
+  "comparison": {
+    "equal_boundaries": true,
+    "matched_segments": 24,
+    "equal_english": 24,
+    "different_chinese_captions": 10,
+    "different_even_after_removing_formatting": 10,
+    "two_baseline_largest_updated_delays_s": [
+      [
+        93.6675041669514,
+        7.478
+      ],
+      [
+        79.59819708298892,
+        -7.244
+      ]
+    ]
+  }
+}
