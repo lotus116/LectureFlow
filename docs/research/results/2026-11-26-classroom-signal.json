@@ -1,0 +1,363 @@
+{
+  "id": "C08",
+  "date": "2026-11-26",
+  "protocol": "Four onsite clips; same model, no hints and same C01 window indices, separate gain and gain-plus-high-pass-and-FFT-denoise arms; fixed before seeing scores. 250 ms RMS 75th percentile, target -24 dBFS, ±6 dB and peak-safe. Combined 85 Hz high pass and afftdn 6 dB with -50 dB noise-floor option and adaptive tracking. This is a bounded offline diagnostic, not isolated filter effects, not real-time. Zoom is descriptive C01 reference.",
+  "results": {
+    "A1": {
+      "gain": 0.8754923926889991,
+      "rms_before": 0.07206885516643524,
+      "peak_before": 0.854095458984375,
+      "gain_compute_s": 0.023405624786391854,
+      "extra_filter_compute_s": 0.20592945790849626,
+      "scores": {
+        "room_none": {
+          "standard": {
+            "errors": 55,
+            "S": 32,
+            "D": 14,
+            "I": 9,
+            "N": 640,
+            "hyp_N": 635
+          },
+          "raw": {
+            "errors": 65,
+            "S": 39,
+            "D": 11,
+            "I": 15,
+            "N": 639,
+            "hyp_N": 643
+          },
+          "truncated": 0,
+          "decode_s": 0
+        },
+        "zoom_context_only": {
+          "standard": {
+            "errors": 33,
+            "S": 8,
+            "D": 4,
+            "I": 21,
+            "N": 640,
+            "hyp_N": 657
+          },
+          "raw": {
+            "errors": 57,
+            "S": 15,
+            "D": 2,
+            "I": 40,
+            "N": 639,
+            "hyp_N": 677
+          },
+          "truncated": 0,
+          "decode_s": 0
+        },
+        "gain": {
+          "standard": {
+            "errors": 56,
+            "S": 32,
+            "D": 15,
+            "I": 9,
+            "N": 640,
+            "hyp_N": 634
+          },
+          "raw": {
+            "errors": 66,
+            "S": 39,
+            "D": 12,
+            "I": 15,
+            "N": 639,
+            "hyp_N": 642
+          },
+          "truncated": 0,
+          "decode_s": 16.39931696234271
+        },
+        "gain_denoise": {
+          "standard": {
+            "errors": 60,
+            "S": 33,
+            "D": 17,
+            "I": 10,
+            "N": 640,
+            "hyp_N": 633
+          },
+          "raw": {
+            "errors": 73,
+            "S": 37,
+            "D": 16,
+            "I": 20,
+            "N": 639,
+            "hyp_N": 643
+          },
+          "truncated": 0,
+          "decode_s": 15.695056164404377
+        }
+      }
+    },
+    "A2": {
+      "gain": 0.9902276078124166,
+      "rms_before": 0.06371841579675674,
+      "peak_before": 0.793365478515625,
+      "gain_compute_s": 0.01813350012525916,
+      "extra_filter_compute_s": 0.20288879214785993,
+      "scores": {
+        "room_none": {
+          "standard": {
+            "errors": 89,
+            "S": 48,
+            "D": 14,
+            "I": 27,
+            "N": 549,
+            "hyp_N": 562
+          },
+          "raw": {
+            "errors": 106,
+            "S": 59,
+            "D": 8,
+            "I": 39,
+            "N": 545,
+            "hyp_N": 576
+          },
+          "truncated": 0,
+          "decode_s": 0
+        },
+        "zoom_context_only": {
+          "standard": {
+            "errors": 65,
+            "S": 23,
+            "D": 6,
+            "I": 36,
+            "N": 549,
+            "hyp_N": 579
+          },
+          "raw": {
+            "errors": 96,
+            "S": 36,
+            "D": 1,
+            "I": 59,
+            "N": 545,
+            "hyp_N": 603
+          },
+          "truncated": 0,
+          "decode_s": 0
+        },
+        "gain_denoise": {
+          "standard": {
+            "errors": 84,
+            "S": 44,
+            "D": 15,
+            "I": 25,
+            "N": 549,
+            "hyp_N": 559
+          },
+          "raw": {
+            "errors": 94,
+            "S": 56,
+            "D": 9,
+            "I": 29,
+            "N": 545,
+            "hyp_N": 565
+          },
+          "truncated": 0,
+          "decode_s": 13.926638956414536
+        },
+        "gain": {
+          "standard": {
+            "errors": 89,
+            "S": 48,
+            "D": 14,
+            "I": 27,
+            "N": 549,
+            "hyp_N": 562
+          },
+          "raw": {
+            "errors": 106,
+            "S": 59,
+            "D": 8,
+            "I": 39,
+            "N": 545,
+            "hyp_N": 576
+          },
+          "truncated": 0,
+          "decode_s": 14.098191540921107
+        }
+      }
+    },
+    "B1": {
+      "gain": 1.9952623149688795,
+      "rms_before": 0.020216472446918488,
+      "peak_before": 0.322265625,
+      "gain_compute_s": 0.015609333058819175,
+      "extra_filter_compute_s": 0.20320987491868436,
+      "scores": {
+        "room_none": {
+          "standard": {
+            "errors": 96,
+            "S": 62,
+            "D": 16,
+            "I": 18,
+            "N": 517,
+            "hyp_N": 519
+          },
+          "raw": {
+            "errors": 99,
+            "S": 66,
+            "D": 14,
+            "I": 19,
+            "N": 514,
+            "hyp_N": 519
+          },
+          "truncated": 0,
+          "decode_s": 0
+        },
+        "zoom_context_only": {
+          "standard": {
+            "errors": 67,
+            "S": 37,
+            "D": 18,
+            "I": 12,
+            "N": 517,
+            "hyp_N": 511
+          },
+          "raw": {
+            "errors": 71,
+            "S": 39,
+            "D": 18,
+            "I": 14,
+            "N": 514,
+            "hyp_N": 510
+          },
+          "truncated": 0,
+          "decode_s": 0
+        },
+        "gain": {
+          "standard": {
+            "errors": 95,
+            "S": 58,
+            "D": 16,
+            "I": 21,
+            "N": 517,
+            "hyp_N": 522
+          },
+          "raw": {
+            "errors": 97,
+            "S": 62,
+            "D": 14,
+            "I": 21,
+            "N": 514,
+            "hyp_N": 521
+          },
+          "truncated": 0,
+          "decode_s": 13.425519043812528
+        },
+        "gain_denoise": {
+          "standard": {
+            "errors": 86,
+            "S": 51,
+            "D": 18,
+            "I": 17,
+            "N": 517,
+            "hyp_N": 516
+          },
+          "raw": {
+            "errors": 88,
+            "S": 55,
+            "D": 15,
+            "I": 18,
+            "N": 514,
+            "hyp_N": 517
+          },
+          "truncated": 0,
+          "decode_s": 14.156311752507463
+        }
+      }
+    },
+    "B2": {
+      "gain": 1.9952623149688795,
+      "rms_before": 0.02458272874355316,
+      "peak_before": 0.45111083984375,
+      "gain_compute_s": 0.014295666012912989,
+      "extra_filter_compute_s": 0.20816950011067092,
+      "scores": {
+        "room_none": {
+          "standard": {
+            "errors": 91,
+            "S": 52,
+            "D": 10,
+            "I": 29,
+            "N": 556,
+            "hyp_N": 575
+          },
+          "raw": {
+            "errors": 91,
+            "S": 52,
+            "D": 10,
+            "I": 29,
+            "N": 551,
+            "hyp_N": 570
+          },
+          "truncated": 0,
+          "decode_s": 0
+        },
+        "zoom_context_only": {
+          "standard": {
+            "errors": 66,
+            "S": 32,
+            "D": 8,
+            "I": 26,
+            "N": 556,
+            "hyp_N": 574
+          },
+          "raw": {
+            "errors": 67,
+            "S": 32,
+            "D": 8,
+            "I": 27,
+            "N": 551,
+            "hyp_N": 570
+          },
+          "truncated": 0,
+          "decode_s": 0
+        },
+        "gain_denoise": {
+          "standard": {
+            "errors": 102,
+            "S": 57,
+            "D": 20,
+            "I": 25,
+            "N": 556,
+            "hyp_N": 561
+          },
+          "raw": {
+            "errors": 102,
+            "S": 58,
+            "D": 18,
+            "I": 26,
+            "N": 551,
+            "hyp_N": 559
+          },
+          "truncated": 0,
+          "decode_s": 14.104516168590635
+        },
+        "gain": {
+          "standard": {
+            "errors": 94,
+            "S": 53,
+            "D": 10,
+            "I": 31,
+            "N": 556,
+            "hyp_N": 577
+          },
+          "raw": {
+            "errors": 94,
+            "S": 53,
+            "D": 10,
+            "I": 31,
+            "N": 551,
+            "hyp_N": 572
+          },
+          "truncated": 0,
+          "decode_s": 14.189781331224367
+        }
+      }
+    }
+  }
+}
