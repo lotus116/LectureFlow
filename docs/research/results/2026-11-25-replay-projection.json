@@ -1,0 +1,239 @@
+{
+  "kind": "cache re-analysis of two archived 1x public-classroom file replay traces; no new model calls or WER",
+  "metric": "backend events relative to packet arrival, five-minute cuts relative to replay start",
+  "control": "source SHA256 per trace; final caption containing a boundary has no word alignment; crossed token counts are whole-caption words only",
+  "rows": {
+    "300": [
+      {
+        "fixture": "trace-1",
+        "archived_result_sha256": "424855ecff8a0385fa6d11517d3f8167d0e8b06d52488f323d44aa2ed7b626b2",
+        "duration_s": 1200.0,
+        "source_range_s": [
+          0.0,
+          1200.0
+        ],
+        "input_complete": true,
+        "dropped": 0,
+        "segments": 93,
+        "nonempty_english": 93,
+        "fixed_bin_seconds": 300,
+        "boundaries": 3,
+        "boundaries_crossed": 3,
+        "crossed_caption_tokens": 107,
+        "start_vs_midpoint_reassigned": 2,
+        "timing": {
+          "first_from_start_audio": {
+            "n": 93,
+            "p50_s": 1.1990976249799132,
+            "p95_s": 2.046810708055273,
+            "max_s": 2.182304833084345
+          },
+          "first_from_start_arrival": {
+            "n": 93,
+            "p50_s": 1.1901504579000175,
+            "p95_s": 2.037943541444838,
+            "max_s": 2.180030208081007
+          },
+          "terminal_english_from_end_audio": {
+            "n": 93,
+            "p50_s": -0.3849177078809589,
+            "p95_s": 0.5198546998668462,
+            "max_s": 0.6646587499417365
+          },
+          "terminal_english_from_end_arrival": {
+            "n": 93,
+            "p50_s": -0.3928842500317842,
+            "p95_s": 0.5116274662315845,
+            "max_s": 0.6599851669743657
+          },
+          "lock_from_end_arrival": {
+            "n": 93,
+            "p50_s": 37.94369183317758,
+            "p95_s": 60.45939416624606,
+            "max_s": 63.79418808291666
+          },
+          "lock_after_last_english": {
+            "n": 93,
+            "p50_s": 38.29690329195,
+            "p95_s": 60.24862936674617,
+            "max_s": 63.93592862482183
+          }
+        },
+        "captions_with_english_revisions": 86
+      },
+      {
+        "fixture": "trace-2",
+        "archived_result_sha256": "6932d8b68f074c7bd22c437d4b89e65fb15886c87397a0e15303f7be021d5ec9",
+        "duration_s": 900.0,
+        "source_range_s": [
+          1200.0,
+          2100.0
+        ],
+        "input_complete": true,
+        "dropped": 0,
+        "segments": 64,
+        "nonempty_english": 64,
+        "fixed_bin_seconds": 300,
+        "boundaries": 2,
+        "boundaries_crossed": 2,
+        "crossed_caption_tokens": 107,
+        "start_vs_midpoint_reassigned": 2,
+        "timing": {
+          "first_from_start_audio": {
+            "n": 64,
+            "p50_s": 1.530935333110392,
+            "p95_s": 2.161084089276846,
+            "max_s": 2.6115391249768436
+          },
+          "first_from_start_arrival": {
+            "n": 64,
+            "p50_s": 1.5214017495745793,
+            "p95_s": 2.153837293677497,
+            "max_s": 2.6015017919708043
+          },
+          "terminal_english_from_end_audio": {
+            "n": 64,
+            "p50_s": -0.5012059794971719,
+            "p95_s": 0.41630438759457306,
+            "max_s": 0.7635389580391347
+          },
+          "terminal_english_from_end_arrival": {
+            "n": 64,
+            "p50_s": -0.5197385210776702,
+            "p95_s": 0.4074300206499173,
+            "max_s": 0.7535048329737037
+          },
+          "lock_from_end_arrival": {
+            "n": 64,
+            "p50_s": 40.50720429152716,
+            "p95_s": 59.25137492952635,
+            "max_s": 61.507905666017905
+          },
+          "lock_after_last_english": {
+            "n": 64,
+            "p50_s": 41.00973012507893,
+            "p95_s": 59.68920552057679,
+            "max_s": 62.49574108305387
+          }
+        },
+        "captions_with_english_revisions": 61
+      }
+    ],
+    "60": [
+      {
+        "fixture": "trace-1",
+        "archived_result_sha256": "424855ecff8a0385fa6d11517d3f8167d0e8b06d52488f323d44aa2ed7b626b2",
+        "duration_s": 1200.0,
+        "source_range_s": [
+          0.0,
+          1200.0
+        ],
+        "input_complete": true,
+        "dropped": 0,
+        "segments": 93,
+        "nonempty_english": 93,
+        "fixed_bin_seconds": 60,
+        "boundaries": 19,
+        "boundaries_crossed": 17,
+        "crossed_caption_tokens": 436,
+        "start_vs_midpoint_reassigned": 9,
+        "timing": {
+          "first_from_start_audio": {
+            "n": 93,
+            "p50_s": 1.1990976249799132,
+            "p95_s": 2.046810708055273,
+            "max_s": 2.182304833084345
+          },
+          "first_from_start_arrival": {
+            "n": 93,
+            "p50_s": 1.1901504579000175,
+            "p95_s": 2.037943541444838,
+            "max_s": 2.180030208081007
+          },
+          "terminal_english_from_end_audio": {
+            "n": 93,
+            "p50_s": -0.3849177078809589,
+            "p95_s": 0.5198546998668462,
+            "max_s": 0.6646587499417365
+          },
+          "terminal_english_from_end_arrival": {
+            "n": 93,
+            "p50_s": -0.3928842500317842,
+            "p95_s": 0.5116274662315845,
+            "max_s": 0.6599851669743657
+          },
+          "lock_from_end_arrival": {
+            "n": 93,
+            "p50_s": 37.94369183317758,
+            "p95_s": 60.45939416624606,
+            "max_s": 63.79418808291666
+          },
+          "lock_after_last_english": {
+            "n": 93,
+            "p50_s": 38.29690329195,
+            "p95_s": 60.24862936674617,
+            "max_s": 63.93592862482183
+          }
+        },
+        "captions_with_english_revisions": 86
+      },
+      {
+        "fixture": "trace-2",
+        "archived_result_sha256": "6932d8b68f074c7bd22c437d4b89e65fb15886c87397a0e15303f7be021d5ec9",
+        "duration_s": 900.0,
+        "source_range_s": [
+          1200.0,
+          2100.0
+        ],
+        "input_complete": true,
+        "dropped": 0,
+        "segments": 64,
+        "nonempty_english": 64,
+        "fixed_bin_seconds": 60,
+        "boundaries": 14,
+        "boundaries_crossed": 13,
+        "crossed_caption_tokens": 553,
+        "start_vs_midpoint_reassigned": 9,
+        "timing": {
+          "first_from_start_audio": {
+            "n": 64,
+            "p50_s": 1.530935333110392,
+            "p95_s": 2.161084089276846,
+            "max_s": 2.6115391249768436
+          },
+          "first_from_start_arrival": {
+            "n": 64,
+            "p50_s": 1.5214017495745793,
+            "p95_s": 2.153837293677497,
+            "max_s": 2.6015017919708043
+          },
+          "terminal_english_from_end_audio": {
+            "n": 64,
+            "p50_s": -0.5012059794971719,
+            "p95_s": 0.41630438759457306,
+            "max_s": 0.7635389580391347
+          },
+          "terminal_english_from_end_arrival": {
+            "n": 64,
+            "p50_s": -0.5197385210776702,
+            "p95_s": 0.4074300206499173,
+            "max_s": 0.7535048329737037
+          },
+          "lock_from_end_arrival": {
+            "n": 64,
+            "p50_s": 40.50720429152716,
+            "p95_s": 59.25137492952635,
+            "max_s": 61.507905666017905
+          },
+          "lock_after_last_english": {
+            "n": 64,
+            "p50_s": 41.00973012507893,
+            "p95_s": 59.68920552057679,
+            "max_s": 62.49574108305387
+          }
+        },
+        "captions_with_english_revisions": 61
+      }
+    ]
+  }
+}
