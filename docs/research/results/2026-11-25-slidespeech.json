@@ -1,0 +1,1780 @@
+{
+  "dataset": "SlideSpeech (OpenSLR 144), public dev and test splits",
+  "dataset_url": "https://openslr.org/144/",
+  "study_scope": "Three utterances per source video; six source videos; 18 segments. No authenticated slide page identifiers.",
+  "source_objects": {
+    "related_files.tar.gz": {
+      "url": "https://speech-lab-share-data.oss-cn-shanghai.aliyuncs.com/SlideSpeech/related_files.tar.gz",
+      "bytes": 1766364664,
+      "catalog_md5": "bfa834a7a02ba3b13e5c3f6fed82c102",
+      "observed_md5": "f50ca0f851e0c73d87821a1e911a9ef2",
+      "catalog_md5_matches": false,
+      "sha256": "5b8c4df2066d586d37e4ea164e9a94ea08ca34f2d5c7df04d6af36e046c980a4",
+      "oss_etag": "CDF4C9588EBB587B7463669EA04D1924-169",
+      "oss_last_modified": "2025-02-17T12:38:26Z",
+      "oss_crc64ecma": "2871658999314089107",
+      "independently_recomputed_crc64": "2871658999314089107"
+    },
+    "dev_audio.tar.gz": {
+      "url": "https://speech-lab-share-data.oss-cn-shanghai.aliyuncs.com/SlideSpeech/dev_audio.tar.gz",
+      "bytes": 450847461,
+      "catalog_md5": "fb3d47cee6a8ea8140c2933936181a55",
+      "observed_md5": "fb3d47cee6a8ea8140c2933936181a55",
+      "catalog_md5_matches": true,
+      "sha256": "b647e3240b35f6c618c169b20ac1280d9a972c4c44c1185192aa86be058d8bba",
+      "oss_etag": "BBD4D209AA3D0211DE2795D2A96B23EB-43",
+      "oss_last_modified": "2024-02-21T02:21:48Z",
+      "oss_crc64ecma": "3663018462709527595",
+      "independently_recomputed_crc64": "3663018462709527595"
+    },
+    "test_audio.tar.gz": {
+      "url": "https://speech-lab-share-data.oss-cn-shanghai.aliyuncs.com/SlideSpeech/test_audio.tar.gz",
+      "bytes": 773604539,
+      "catalog_md5": "0c4d41adc9ae33c379f431fbbf2297c7",
+      "observed_md5": "0c4d41adc9ae33c379f431fbbf2297c7",
+      "catalog_md5_matches": true,
+      "sha256": "85a7ffe2285adc5ef2e1fde3b351c7fafd0106a49e50361dcaaa1d5c38ca7e96",
+      "oss_etag": "A9CA904F161E51E4B23A25B64302A2C1-74",
+      "oss_last_modified": "2024-02-21T02:21:48Z",
+      "oss_crc64ecma": "6587073806888851647",
+      "independently_recomputed_crc64": "6587073806888851647"
+    },
+    "wavid2channel.tar.gz": {
+      "url": "https://speech-lab-share-data.oss-cn-shanghai.aliyuncs.com/SlideSpeech/wavid2channel.tar.gz",
+      "bytes": 21683,
+      "catalog_md5": null,
+      "observed_md5": "e5208ead9b7b48d2930c5b230968a2cf",
+      "catalog_md5_matches": null,
+      "sha256": "165ff7869951a6b1c989d02a517a48b5a9c02203be9616cc225b8498cd9c1d60",
+      "oss_etag": "E5208EAD9B7B48D2930C5B230968A2CF",
+      "oss_last_modified": "2024-01-02T07:24:27Z",
+      "oss_crc64ecma": "5350805573343067302",
+      "independently_recomputed_crc64": "5350805573343067302"
+    }
+  },
+  "baselines": {
+    "complete": true,
+    "clips": 18,
+    "distinct_source_videos": 6,
+    "audio_seconds": 156.88,
+    "failures": [],
+    "warmup_calls": [
+      {
+        "model": "qwen_full",
+        "utterance_id": "medical_0005-00029",
+        "status": "ok",
+        "wall_s": 0.7252385760002653
+      },
+      {
+        "model": "whisper",
+        "utterance_id": "medical_0005-00029",
+        "status": "ok",
+        "wall_s": 0.2224183799999082
+      }
+    ],
+    "model_warm_seconds": {
+      "qwen_full": 70.09809640600179,
+      "whisper": 24.140805957998055
+    },
+    "file_sha256": {
+      "calls.jsonl": "c5796504fc9c27886d0dcc566f64d2f3a880a65f09c0db996564bb27f8cb315b",
+      "decode-metadata.json": "d16382d7543fb70122c6b573db32b79640e78a04c17ff3458e72387d0ea0ff31"
+    },
+    "references_sha256": "841b26716c71766dd3a180c1a0a52d4e9799a59323395b0f9deb4baceeb16c51",
+    "rows": [
+      {
+        "split": "dev",
+        "video_id": "yXWQtSspq7Q",
+        "utterance_id": "medical_0005-00029",
+        "frames": 163680,
+        "clip_sha256": "4094817f395263b2bbe7cc009aa314da9e3a47c18711768829a5894a84cebcce",
+        "wall_s": {
+          "qwen_full": 3.7022716479996234,
+          "whisper": 1.4215551079996658
+        },
+        "main": {
+          "ref_words": 21,
+          "errors": {
+            "qwen_full": 0,
+            "whisper": 1
+          }
+        },
+        "whisper_normalized": {
+          "ref_words": 22,
+          "errors": {
+            "qwen_full": 0,
+            "whisper": 1
+          }
+        }
+      },
+      {
+        "split": "dev",
+        "video_id": "yXWQtSspq7Q",
+        "utterance_id": "medical_0005-00210",
+        "frames": 187360,
+        "clip_sha256": "0669805ddb1087098a782a6e5d3b01960433c2159f05a8399e26d24bedf75a75",
+        "wall_s": {
+          "qwen_full": 6.450078629000018,
+          "whisper": 2.754090915999768
+        },
+        "main": {
+          "ref_words": 44,
+          "errors": {
+            "qwen_full": 16,
+            "whisper": 11
+          }
+        },
+        "whisper_normalized": {
+          "ref_words": 44,
+          "errors": {
+            "qwen_full": 15,
+            "whisper": 10
+          }
+        }
+      },
+      {
+        "split": "dev",
+        "video_id": "yXWQtSspq7Q",
+        "utterance_id": "medical_0005-00151",
+        "frames": 120960,
+        "clip_sha256": "7206c64f9582bccb77cef345504c942e702d34c0e889734044f9f2cd5e596b6f",
+        "wall_s": {
+          "qwen_full": 3.1964853480003512,
+          "whisper": 1.2088045130003593
+        },
+        "main": {
+          "ref_words": 28,
+          "errors": {
+            "qwen_full": 7,
+            "whisper": 9
+          }
+        },
+        "whisper_normalized": {
+          "ref_words": 28,
+          "errors": {
+            "qwen_full": 5,
+            "whisper": 7
+          }
+        }
+      },
+      {
+        "split": "dev",
+        "video_id": "ZF1phx3L0Es",
+        "utterance_id": "dance_0003-00013",
+        "frames": 116480,
+        "clip_sha256": "3ebbb0172d3693d2cab939e1db13ae12d9599a488e8ad62e11a1e3ee2efe3bd1",
+        "wall_s": {
+          "qwen_full": 5.452608485999917,
+          "whisper": 0.8811446049994629
+        },
+        "main": {
+          "ref_words": 17,
+          "errors": {
+            "qwen_full": 3,
+            "whisper": 3
+          }
+        },
+        "whisper_normalized": {
+          "ref_words": 18,
+          "errors": {
+            "qwen_full": 3,
+            "whisper": 3
+          }
+        }
+      },
+      {
+        "split": "dev",
+        "video_id": "ZF1phx3L0Es",
+        "utterance_id": "dance_0003-00038",
+        "frames": 56960,
+        "clip_sha256": "2388d946161dfe3975090bf5ed17af5e55a80eef86f108722aa4fc07ba262ff5",
+        "wall_s": {
+          "qwen_full": 1.8195969739999782,
+          "whisper": 0.5718293910003922
+        },
+        "main": {
+          "ref_words": 11,
+          "errors": {
+            "qwen_full": 0,
+            "whisper": 1
+          }
+        },
+        "whisper_normalized": {
+          "ref_words": 11,
+          "errors": {
+            "qwen_full": 0,
+            "whisper": 1
+          }
+        }
+      },
+      {
+        "split": "dev",
+        "video_id": "ZF1phx3L0Es",
+        "utterance_id": "dance_0003-00031",
+        "frames": 129920,
+        "clip_sha256": "7470fe37f4ab783ca8544f34c1be39922a72c0c271cfcf4d5cf5804bc2fdc2e6",
+        "wall_s": {
+          "qwen_full": 3.47519078500045,
+          "whisper": 0.9927914580002835
+        },
+        "main": {
+          "ref_words": 18,
+          "errors": {
+            "qwen_full": 1,
+            "whisper": 1
+          }
+        },
+        "whisper_normalized": {
+          "ref_words": 19,
+          "errors": {
+            "qwen_full": 1,
+            "whisper": 1
+          }
+        }
+      },
+      {
+        "split": "dev",
+        "video_id": "IECFh2ZpWtI",
+        "utterance_id": "medical_0000-00030",
+        "frames": 191520,
+        "clip_sha256": "02c19fabebef17174ce647cc3b9cb7a0e011eb88f5213aecbe0ca5f153de3fcc",
+        "wall_s": {
+          "qwen_full": 5.393760200000543,
+          "whisper": 2.3291778519997024
+        },
+        "main": {
+          "ref_words": 44,
+          "errors": {
+            "qwen_full": 5,
+            "whisper": 7
+          }
+        },
+        "whisper_normalized": {
+          "ref_words": 46,
+          "errors": {
+            "qwen_full": 3,
+            "whisper": 7
+          }
+        }
+      },
+      {
+        "split": "dev",
+        "video_id": "IECFh2ZpWtI",
+        "utterance_id": "medical_0000-00027",
+        "frames": 210560,
+        "clip_sha256": "8a54e6aa86a9b0666a765946b8a63347996bc1f64732e44b60dec33a9d89e60a",
+        "wall_s": {
+          "qwen_full": 5.9379582359997585,
+          "whisper": 2.045130676999179
+        },
+        "main": {
+          "ref_words": 34,
+          "errors": {
+            "qwen_full": 3,
+            "whisper": 2
+          }
+        },
+        "whisper_normalized": {
+          "ref_words": 33,
+          "errors": {
+            "qwen_full": 0,
+            "whisper": 0
+          }
+        }
+      },
+      {
+        "split": "dev",
+        "video_id": "IECFh2ZpWtI",
+        "utterance_id": "medical_0000-00002",
+        "frames": 220000,
+        "clip_sha256": "0d855f11e2702ae94b89e6520a94e67493e2a66e4c80f77bff122a99266e8d8c",
+        "wall_s": {
+          "qwen_full": 6.405928682000194,
+          "whisper": 2.0933316849996118
+        },
+        "main": {
+          "ref_words": 41,
+          "errors": {
+            "qwen_full": 3,
+            "whisper": 4
+          }
+        },
+        "whisper_normalized": {
+          "ref_words": 43,
+          "errors": {
+            "qwen_full": 3,
+            "whisper": 4
+          }
+        }
+      },
+      {
+        "split": "test",
+        "video_id": "2NFTPPo_p1k",
+        "utterance_id": "education_0000-00108",
+        "frames": 232160,
+        "clip_sha256": "906a1c51bad52e4acc3ba84fd59f71ab85d2a7397738ffd415ffba99369858aa",
+        "wall_s": {
+          "qwen_full": 5.8666940939992855,
+          "whisper": 1.962392508999983
+        },
+        "main": {
+          "ref_words": 38,
+          "errors": {
+            "qwen_full": 2,
+            "whisper": 5
+          }
+        },
+        "whisper_normalized": {
+          "ref_words": 38,
+          "errors": {
+            "qwen_full": 0,
+            "whisper": 3
+          }
+        }
+      },
+      {
+        "split": "test",
+        "video_id": "2NFTPPo_p1k",
+        "utterance_id": "education_0000-00015",
+        "frames": 67840,
+        "clip_sha256": "5852ac9437fd1537d38fe9586ed0844f6ee45f7f08ff654688ebe152dd33454d",
+        "wall_s": {
+          "qwen_full": 1.6496667680003156,
+          "whisper": 0.580465997999454
+        },
+        "main": {
+          "ref_words": 10,
+          "errors": {
+            "qwen_full": 0,
+            "whisper": 0
+          }
+        },
+        "whisper_normalized": {
+          "ref_words": 11,
+          "errors": {
+            "qwen_full": 0,
+            "whisper": 0
+          }
+        }
+      },
+      {
+        "split": "test",
+        "video_id": "2NFTPPo_p1k",
+        "utterance_id": "education_0000-00010",
+        "frames": 210400,
+        "clip_sha256": "1fd6b223b19b8267262b81c754f6fb483af52291646a2a16d3763246d676248f",
+        "wall_s": {
+          "qwen_full": 5.854154378000203,
+          "whisper": 2.070145548000255
+        },
+        "main": {
+          "ref_words": 40,
+          "errors": {
+            "qwen_full": 8,
+            "whisper": 15
+          }
+        },
+        "whisper_normalized": {
+          "ref_words": 38,
+          "errors": {
+            "qwen_full": 7,
+            "whisper": 7
+          }
+        }
+      },
+      {
+        "split": "test",
+        "video_id": "aCo1CvWdWwM",
+        "utterance_id": "education_0002-00065",
+        "frames": 24320,
+        "clip_sha256": "da08063f0c150bc9fa0b4b27b2635d432b02f18ffa5c9349342f1bb3ee9d2c9a",
+        "wall_s": {
+          "qwen_full": 1.0123355380001158,
+          "whisper": 0.313811447000262
+        },
+        "main": {
+          "ref_words": 6,
+          "errors": {
+            "qwen_full": 3,
+            "whisper": 3
+          }
+        },
+        "whisper_normalized": {
+          "ref_words": 6,
+          "errors": {
+            "qwen_full": 3,
+            "whisper": 3
+          }
+        }
+      },
+      {
+        "split": "test",
+        "video_id": "aCo1CvWdWwM",
+        "utterance_id": "education_0002-00214",
+        "frames": 27360,
+        "clip_sha256": "4be2ef80874661a4a8669e773e4b112c6dc230299006440eb9b2fd61d810e3ac",
+        "wall_s": {
+          "qwen_full": 1.302911726000275,
+          "whisper": 0.4559529890002523
+        },
+        "main": {
+          "ref_words": 8,
+          "errors": {
+            "qwen_full": 0,
+            "whisper": 1
+          }
+        },
+        "whisper_normalized": {
+          "ref_words": 8,
+          "errors": {
+            "qwen_full": 0,
+            "whisper": 1
+          }
+        }
+      },
+      {
+        "split": "test",
+        "video_id": "aCo1CvWdWwM",
+        "utterance_id": "education_0002-00133",
+        "frames": 56800,
+        "clip_sha256": "8772173a3695f8d1e658d3f924d3a125836034daf301a1a6a8bc01cc38f3669e",
+        "wall_s": {
+          "qwen_full": 1.4668955340002867,
+          "whisper": 0.5808387879997099
+        },
+        "main": {
+          "ref_words": 10,
+          "errors": {
+            "qwen_full": 0,
+            "whisper": 1
+          }
+        },
+        "whisper_normalized": {
+          "ref_words": 10,
+          "errors": {
+            "qwen_full": 0,
+            "whisper": 1
+          }
+        }
+      },
+      {
+        "split": "test",
+        "video_id": "Cne0aNEfEz8",
+        "utterance_id": "tradition_culture_0002-00017",
+        "frames": 158400,
+        "clip_sha256": "93be7cc3adb17e1116fa1460e3108fa7232c8664f06e9599c347fb31a2ebffab",
+        "wall_s": {
+          "qwen_full": 3.5594398519997412,
+          "whisper": 1.1919264099997235
+        },
+        "main": {
+          "ref_words": 22,
+          "errors": {
+            "qwen_full": 0,
+            "whisper": 1
+          }
+        },
+        "whisper_normalized": {
+          "ref_words": 22,
+          "errors": {
+            "qwen_full": 0,
+            "whisper": 0
+          }
+        }
+      },
+      {
+        "split": "test",
+        "video_id": "Cne0aNEfEz8",
+        "utterance_id": "tradition_culture_0002-00016",
+        "frames": 140480,
+        "clip_sha256": "058885ae33213850ba0785eb904ccd32924ba20e659477160bc581073d6dbf21",
+        "wall_s": {
+          "qwen_full": 3.3625969250006165,
+          "whisper": 1.0444237680003425
+        },
+        "main": {
+          "ref_words": 22,
+          "errors": {
+            "qwen_full": 0,
+            "whisper": 3
+          }
+        },
+        "whisper_normalized": {
+          "ref_words": 20,
+          "errors": {
+            "qwen_full": 0,
+            "whisper": 0
+          }
+        }
+      },
+      {
+        "split": "test",
+        "video_id": "Cne0aNEfEz8",
+        "utterance_id": "tradition_culture_0002-00014",
+        "frames": 194880,
+        "clip_sha256": "15553d30760ae19dbc0e38ba3016bc7c0f87bff613230b1c9586922726dba7e3",
+        "wall_s": {
+          "qwen_full": 4.189522603000114,
+          "whisper": 1.6429922959996475
+        },
+        "main": {
+          "ref_words": 30,
+          "errors": {
+            "qwen_full": 0,
+            "whisper": 2
+          }
+        },
+        "whisper_normalized": {
+          "ref_words": 30,
+          "errors": {
+            "qwen_full": 0,
+            "whisper": 2
+          }
+        }
+      }
+    ],
+    "normalizer_assets": {
+      "basic.py": "ad567b3a0e1d03ccc0c35fc746fd6830c35290fe4ed7674eb61ce157ba3d380d",
+      "english.py": "2898e4672aeefc9f44cb4de38c115cdf286f5b35ae321433467a7674ce8841d0",
+      "english.json": "6607f948be9824d2e1b2fa2223cd94c06c45afa4e05ea0e3d5e1f2bdffde2465"
+    },
+    "main": {
+      "definition": "LectureFlow casefolded words",
+      "overall": {
+        "clips": 18,
+        "reference_words": 444,
+        "errors": {
+          "qwen_full": 51,
+          "whisper": 70
+        },
+        "wer": {
+          "qwen_full": 0.11486486486486487,
+          "whisper": 0.15765765765765766
+        }
+      },
+      "by_split": {
+        "dev": {
+          "clips": 9,
+          "reference_words": 258,
+          "errors": {
+            "qwen_full": 38,
+            "whisper": 39
+          },
+          "wer": {
+            "qwen_full": 0.14728682170542637,
+            "whisper": 0.1511627906976744
+          }
+        },
+        "test": {
+          "clips": 9,
+          "reference_words": 186,
+          "errors": {
+            "qwen_full": 13,
+            "whisper": 31
+          },
+          "wer": {
+            "qwen_full": 0.06989247311827956,
+            "whisper": 0.16666666666666666
+          }
+        }
+      },
+      "by_source_video": {
+        "yXWQtSspq7Q": {
+          "clips": 3,
+          "reference_words": 93,
+          "errors": {
+            "qwen_full": 23,
+            "whisper": 21
+          },
+          "wer": {
+            "qwen_full": 0.24731182795698925,
+            "whisper": 0.22580645161290322
+          }
+        },
+        "ZF1phx3L0Es": {
+          "clips": 3,
+          "reference_words": 46,
+          "errors": {
+            "qwen_full": 4,
+            "whisper": 5
+          },
+          "wer": {
+            "qwen_full": 0.08695652173913043,
+            "whisper": 0.10869565217391304
+          }
+        },
+        "IECFh2ZpWtI": {
+          "clips": 3,
+          "reference_words": 119,
+          "errors": {
+            "qwen_full": 11,
+            "whisper": 13
+          },
+          "wer": {
+            "qwen_full": 0.09243697478991597,
+            "whisper": 0.1092436974789916
+          }
+        },
+        "2NFTPPo_p1k": {
+          "clips": 3,
+          "reference_words": 88,
+          "errors": {
+            "qwen_full": 10,
+            "whisper": 20
+          },
+          "wer": {
+            "qwen_full": 0.11363636363636363,
+            "whisper": 0.22727272727272727
+          }
+        },
+        "aCo1CvWdWwM": {
+          "clips": 3,
+          "reference_words": 24,
+          "errors": {
+            "qwen_full": 3,
+            "whisper": 5
+          },
+          "wer": {
+            "qwen_full": 0.125,
+            "whisper": 0.20833333333333334
+          }
+        },
+        "Cne0aNEfEz8": {
+          "clips": 3,
+          "reference_words": 74,
+          "errors": {
+            "qwen_full": 0,
+            "whisper": 6
+          },
+          "wer": {
+            "qwen_full": 0.0,
+            "whisper": 0.08108108108108109
+          }
+        }
+      }
+    },
+    "whisper_normalized": {
+      "definition": "Pinned OpenAI Whisper English normalizer, then LectureFlow casefolded words",
+      "overall": {
+        "clips": 18,
+        "reference_words": 447,
+        "errors": {
+          "qwen_full": 40,
+          "whisper": 51
+        },
+        "wer": {
+          "qwen_full": 0.0894854586129754,
+          "whisper": 0.11409395973154363
+        }
+      },
+      "by_split": {
+        "dev": {
+          "clips": 9,
+          "reference_words": 264,
+          "errors": {
+            "qwen_full": 30,
+            "whisper": 34
+          },
+          "wer": {
+            "qwen_full": 0.11363636363636363,
+            "whisper": 0.12878787878787878
+          }
+        },
+        "test": {
+          "clips": 9,
+          "reference_words": 183,
+          "errors": {
+            "qwen_full": 10,
+            "whisper": 17
+          },
+          "wer": {
+            "qwen_full": 0.0546448087431694,
+            "whisper": 0.09289617486338798
+          }
+        }
+      },
+      "by_source_video": {
+        "yXWQtSspq7Q": {
+          "clips": 3,
+          "reference_words": 94,
+          "errors": {
+            "qwen_full": 20,
+            "whisper": 18
+          },
+          "wer": {
+            "qwen_full": 0.2127659574468085,
+            "whisper": 0.19148936170212766
+          }
+        },
+        "ZF1phx3L0Es": {
+          "clips": 3,
+          "reference_words": 48,
+          "errors": {
+            "qwen_full": 4,
+            "whisper": 5
+          },
+          "wer": {
+            "qwen_full": 0.08333333333333333,
+            "whisper": 0.10416666666666667
+          }
+        },
+        "IECFh2ZpWtI": {
+          "clips": 3,
+          "reference_words": 122,
+          "errors": {
+            "qwen_full": 6,
+            "whisper": 11
+          },
+          "wer": {
+            "qwen_full": 0.04918032786885246,
+            "whisper": 0.09016393442622951
+          }
+        },
+        "2NFTPPo_p1k": {
+          "clips": 3,
+          "reference_words": 87,
+          "errors": {
+            "qwen_full": 7,
+            "whisper": 10
+          },
+          "wer": {
+            "qwen_full": 0.08045977011494253,
+            "whisper": 0.11494252873563218
+          }
+        },
+        "aCo1CvWdWwM": {
+          "clips": 3,
+          "reference_words": 24,
+          "errors": {
+            "qwen_full": 3,
+            "whisper": 5
+          },
+          "wer": {
+            "qwen_full": 0.125,
+            "whisper": 0.20833333333333334
+          }
+        },
+        "Cne0aNEfEz8": {
+          "clips": 3,
+          "reference_words": 72,
+          "errors": {
+            "qwen_full": 0,
+            "whisper": 2
+          },
+          "wer": {
+            "qwen_full": 0.0,
+            "whisper": 0.027777777777777776
+          }
+        }
+      }
+    }
+  },
+  "material_selection": {
+    "study": "SlideSpeech official author-linked raw OCR acoustic disambiguation",
+    "scope": "No authenticated visual page ID or frame presentation clock. The official utterance-linked OCR regions are the matched material; same-video controls are lexically different, nonoverlapping wrong-time OCR, not verified wrong pages.",
+    "overall": {
+      "clips": 18,
+      "ref_words": 444,
+      "base_errors": 51,
+      "whisper_errors": 70,
+      "eligible_spans": 21,
+      "matched_errors": 53,
+      "matched_edits": 2,
+      "matched_changed": 2,
+      "improved": 0,
+      "worsened": 2,
+      "matched_any_side_in_ocr": 7,
+      "matched_anchor_only_in_ocr": 4
+    },
+    "by_video": {
+      "yXWQtSspq7Q": {
+        "clips": 3,
+        "ref_words": 93,
+        "raw_regions_nonempty": 3,
+        "raw_regions": 137,
+        "same_video_controls": 3,
+        "qwen_errors": 23,
+        "whisper_errors": 21,
+        "matched_errors": 23,
+        "eligible_spans": 8,
+        "matched_edits": 0,
+        "matched_improved": 0,
+        "matched_worsened": 0,
+        "wrong_video_error_sum": 115
+      },
+      "ZF1phx3L0Es": {
+        "clips": 3,
+        "ref_words": 46,
+        "raw_regions_nonempty": 3,
+        "raw_regions": 164,
+        "same_video_controls": 3,
+        "qwen_errors": 4,
+        "whisper_errors": 5,
+        "matched_errors": 4,
+        "eligible_spans": 2,
+        "matched_edits": 0,
+        "matched_improved": 0,
+        "matched_worsened": 0,
+        "wrong_video_error_sum": 20
+      },
+      "IECFh2ZpWtI": {
+        "clips": 3,
+        "ref_words": 119,
+        "raw_regions_nonempty": 3,
+        "raw_regions": 231,
+        "same_video_controls": 3,
+        "qwen_errors": 11,
+        "whisper_errors": 13,
+        "matched_errors": 12,
+        "eligible_spans": 7,
+        "matched_edits": 1,
+        "matched_improved": 0,
+        "matched_worsened": 1,
+        "wrong_video_error_sum": 55
+      },
+      "2NFTPPo_p1k": {
+        "clips": 3,
+        "ref_words": 88,
+        "raw_regions_nonempty": 3,
+        "raw_regions": 98,
+        "same_video_controls": 3,
+        "qwen_errors": 10,
+        "whisper_errors": 20,
+        "matched_errors": 10,
+        "eligible_spans": 0,
+        "matched_edits": 0,
+        "matched_improved": 0,
+        "matched_worsened": 0,
+        "wrong_video_error_sum": 50
+      },
+      "aCo1CvWdWwM": {
+        "clips": 3,
+        "ref_words": 24,
+        "raw_regions_nonempty": 3,
+        "raw_regions": 75,
+        "same_video_controls": 3,
+        "qwen_errors": 3,
+        "whisper_errors": 5,
+        "matched_errors": 3,
+        "eligible_spans": 2,
+        "matched_edits": 0,
+        "matched_improved": 0,
+        "matched_worsened": 0,
+        "wrong_video_error_sum": 15
+      },
+      "Cne0aNEfEz8": {
+        "clips": 3,
+        "ref_words": 74,
+        "raw_regions_nonempty": 3,
+        "raw_regions": 172,
+        "same_video_controls": 3,
+        "qwen_errors": 0,
+        "whisper_errors": 6,
+        "matched_errors": 1,
+        "eligible_spans": 2,
+        "matched_edits": 1,
+        "matched_improved": 0,
+        "matched_worsened": 1,
+        "wrong_video_error_sum": 1
+      }
+    },
+    "wrong_video_mean_errors": 51.2,
+    "wrong_video_total_proposed": 1,
+    "wrong_time_paired": {
+      "clips": 18,
+      "ref_words": 444,
+      "no_material": 51,
+      "matched_errors": 53,
+      "wrong_time_errors": 52,
+      "wrong_time_edits": 1
+    },
+    "nonempty_raw_ocr_clips": 18,
+    "matched_raw_region_count": 877,
+    "underexposed": true,
+    "sha256": {
+      "registration.json": "b45e525ee8c3814de5438880ee93878d1fdfa56a85b7c43cff9080ad58617c77",
+      "ocr-inputs.json": "54a091f70415d55bd2138c24a1520c765d0f28edfe68f6535348ef2c6b06ffd5",
+      "controls.json": "b7722b7d39e0b52eba57213b8b0d4472a4f0760371b2c299e69167000c8b6e0e",
+      "predictions.json": "48e27a069266440310143e47f29911fc75e51814538e2e8ca879353f0dd73829",
+      "results.json": "f204e3c27a9866d04ba823d17b3570f73c0ca6427421eddd6fbf6cae41094146"
+    },
+    "per_utterance": [
+      {
+        "utterance_id": "medical_0005-00029",
+        "video_id": "yXWQtSspq7Q",
+        "words": 21,
+        "base": 0,
+        "whisper": 1,
+        "arms": {
+          "matched": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_2NFTPPo_p1k": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_Cne0aNEfEz8": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_IECFh2ZpWtI": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_ZF1phx3L0Es": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_aCo1CvWdWwM": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "wrong_time": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          }
+        },
+        "eligible": 1,
+        "matched_material_mentions_any": 0,
+        "matched_material_proposes_qwen_only": 0,
+        "matched_effect": 0
+      },
+      {
+        "utterance_id": "medical_0005-00210",
+        "video_id": "yXWQtSspq7Q",
+        "words": 44,
+        "base": 16,
+        "whisper": 11,
+        "arms": {
+          "matched": {
+            "errors": 16,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_2NFTPPo_p1k": {
+            "errors": 16,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_Cne0aNEfEz8": {
+            "errors": 16,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_IECFh2ZpWtI": {
+            "errors": 16,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_ZF1phx3L0Es": {
+            "errors": 16,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_aCo1CvWdWwM": {
+            "errors": 16,
+            "edits": 0,
+            "gain": 0
+          },
+          "wrong_time": {
+            "errors": 16,
+            "edits": 0,
+            "gain": 0
+          }
+        },
+        "eligible": 4,
+        "matched_material_mentions_any": 0,
+        "matched_material_proposes_qwen_only": 0,
+        "matched_effect": 0
+      },
+      {
+        "utterance_id": "medical_0005-00151",
+        "video_id": "yXWQtSspq7Q",
+        "words": 28,
+        "base": 7,
+        "whisper": 9,
+        "arms": {
+          "matched": {
+            "errors": 7,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_2NFTPPo_p1k": {
+            "errors": 7,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_Cne0aNEfEz8": {
+            "errors": 7,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_IECFh2ZpWtI": {
+            "errors": 7,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_ZF1phx3L0Es": {
+            "errors": 7,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_aCo1CvWdWwM": {
+            "errors": 7,
+            "edits": 0,
+            "gain": 0
+          },
+          "wrong_time": {
+            "errors": 7,
+            "edits": 0,
+            "gain": 0
+          }
+        },
+        "eligible": 3,
+        "matched_material_mentions_any": 1,
+        "matched_material_proposes_qwen_only": 1,
+        "matched_effect": 0
+      },
+      {
+        "utterance_id": "dance_0003-00013",
+        "video_id": "ZF1phx3L0Es",
+        "words": 17,
+        "base": 3,
+        "whisper": 3,
+        "arms": {
+          "matched": {
+            "errors": 3,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_2NFTPPo_p1k": {
+            "errors": 3,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_Cne0aNEfEz8": {
+            "errors": 3,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_IECFh2ZpWtI": {
+            "errors": 3,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_aCo1CvWdWwM": {
+            "errors": 3,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_yXWQtSspq7Q": {
+            "errors": 3,
+            "edits": 0,
+            "gain": 0
+          },
+          "wrong_time": {
+            "errors": 3,
+            "edits": 0,
+            "gain": 0
+          }
+        },
+        "eligible": 1,
+        "matched_material_mentions_any": 1,
+        "matched_material_proposes_qwen_only": 1,
+        "matched_effect": 0
+      },
+      {
+        "utterance_id": "dance_0003-00038",
+        "video_id": "ZF1phx3L0Es",
+        "words": 11,
+        "base": 0,
+        "whisper": 1,
+        "arms": {
+          "matched": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_2NFTPPo_p1k": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_Cne0aNEfEz8": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_IECFh2ZpWtI": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_aCo1CvWdWwM": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_yXWQtSspq7Q": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "wrong_time": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          }
+        },
+        "eligible": 0,
+        "matched_material_mentions_any": 0,
+        "matched_material_proposes_qwen_only": 0,
+        "matched_effect": 0
+      },
+      {
+        "utterance_id": "dance_0003-00031",
+        "video_id": "ZF1phx3L0Es",
+        "words": 18,
+        "base": 1,
+        "whisper": 1,
+        "arms": {
+          "matched": {
+            "errors": 1,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_2NFTPPo_p1k": {
+            "errors": 1,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_Cne0aNEfEz8": {
+            "errors": 1,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_IECFh2ZpWtI": {
+            "errors": 1,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_aCo1CvWdWwM": {
+            "errors": 1,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_yXWQtSspq7Q": {
+            "errors": 1,
+            "edits": 0,
+            "gain": 0
+          },
+          "wrong_time": {
+            "errors": 1,
+            "edits": 0,
+            "gain": 0
+          }
+        },
+        "eligible": 1,
+        "matched_material_mentions_any": 0,
+        "matched_material_proposes_qwen_only": 0,
+        "matched_effect": 0
+      },
+      {
+        "utterance_id": "medical_0000-00030",
+        "video_id": "IECFh2ZpWtI",
+        "words": 44,
+        "base": 5,
+        "whisper": 7,
+        "arms": {
+          "matched": {
+            "errors": 6,
+            "edits": 1,
+            "gain": -1
+          },
+          "video_2NFTPPo_p1k": {
+            "errors": 5,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_Cne0aNEfEz8": {
+            "errors": 5,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_ZF1phx3L0Es": {
+            "errors": 5,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_aCo1CvWdWwM": {
+            "errors": 5,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_yXWQtSspq7Q": {
+            "errors": 5,
+            "edits": 0,
+            "gain": 0
+          },
+          "wrong_time": {
+            "errors": 5,
+            "edits": 0,
+            "gain": 0
+          }
+        },
+        "eligible": 5,
+        "matched_material_mentions_any": 2,
+        "matched_material_proposes_qwen_only": 1,
+        "matched_effect": -1
+      },
+      {
+        "utterance_id": "medical_0000-00027",
+        "video_id": "IECFh2ZpWtI",
+        "words": 34,
+        "base": 3,
+        "whisper": 2,
+        "arms": {
+          "matched": {
+            "errors": 3,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_2NFTPPo_p1k": {
+            "errors": 3,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_Cne0aNEfEz8": {
+            "errors": 3,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_ZF1phx3L0Es": {
+            "errors": 3,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_aCo1CvWdWwM": {
+            "errors": 3,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_yXWQtSspq7Q": {
+            "errors": 3,
+            "edits": 0,
+            "gain": 0
+          },
+          "wrong_time": {
+            "errors": 3,
+            "edits": 0,
+            "gain": 0
+          }
+        },
+        "eligible": 1,
+        "matched_material_mentions_any": 0,
+        "matched_material_proposes_qwen_only": 0,
+        "matched_effect": 0
+      },
+      {
+        "utterance_id": "medical_0000-00002",
+        "video_id": "IECFh2ZpWtI",
+        "words": 41,
+        "base": 3,
+        "whisper": 4,
+        "arms": {
+          "matched": {
+            "errors": 3,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_2NFTPPo_p1k": {
+            "errors": 3,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_Cne0aNEfEz8": {
+            "errors": 3,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_ZF1phx3L0Es": {
+            "errors": 3,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_aCo1CvWdWwM": {
+            "errors": 3,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_yXWQtSspq7Q": {
+            "errors": 3,
+            "edits": 0,
+            "gain": 0
+          },
+          "wrong_time": {
+            "errors": 3,
+            "edits": 0,
+            "gain": 0
+          }
+        },
+        "eligible": 1,
+        "matched_material_mentions_any": 0,
+        "matched_material_proposes_qwen_only": 0,
+        "matched_effect": 0
+      },
+      {
+        "utterance_id": "education_0000-00108",
+        "video_id": "2NFTPPo_p1k",
+        "words": 38,
+        "base": 2,
+        "whisper": 5,
+        "arms": {
+          "matched": {
+            "errors": 2,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_Cne0aNEfEz8": {
+            "errors": 2,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_IECFh2ZpWtI": {
+            "errors": 2,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_ZF1phx3L0Es": {
+            "errors": 2,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_aCo1CvWdWwM": {
+            "errors": 2,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_yXWQtSspq7Q": {
+            "errors": 2,
+            "edits": 0,
+            "gain": 0
+          },
+          "wrong_time": {
+            "errors": 2,
+            "edits": 0,
+            "gain": 0
+          }
+        },
+        "eligible": 0,
+        "matched_material_mentions_any": 0,
+        "matched_material_proposes_qwen_only": 0,
+        "matched_effect": 0
+      },
+      {
+        "utterance_id": "education_0000-00015",
+        "video_id": "2NFTPPo_p1k",
+        "words": 10,
+        "base": 0,
+        "whisper": 0,
+        "arms": {
+          "matched": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_Cne0aNEfEz8": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_IECFh2ZpWtI": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_ZF1phx3L0Es": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_aCo1CvWdWwM": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_yXWQtSspq7Q": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "wrong_time": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          }
+        },
+        "eligible": 0,
+        "matched_material_mentions_any": 0,
+        "matched_material_proposes_qwen_only": 0,
+        "matched_effect": 0
+      },
+      {
+        "utterance_id": "education_0000-00010",
+        "video_id": "2NFTPPo_p1k",
+        "words": 40,
+        "base": 8,
+        "whisper": 15,
+        "arms": {
+          "matched": {
+            "errors": 8,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_Cne0aNEfEz8": {
+            "errors": 8,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_IECFh2ZpWtI": {
+            "errors": 8,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_ZF1phx3L0Es": {
+            "errors": 8,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_aCo1CvWdWwM": {
+            "errors": 8,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_yXWQtSspq7Q": {
+            "errors": 8,
+            "edits": 0,
+            "gain": 0
+          },
+          "wrong_time": {
+            "errors": 8,
+            "edits": 0,
+            "gain": 0
+          }
+        },
+        "eligible": 0,
+        "matched_material_mentions_any": 0,
+        "matched_material_proposes_qwen_only": 0,
+        "matched_effect": 0
+      },
+      {
+        "utterance_id": "education_0002-00065",
+        "video_id": "aCo1CvWdWwM",
+        "words": 6,
+        "base": 3,
+        "whisper": 3,
+        "arms": {
+          "matched": {
+            "errors": 3,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_2NFTPPo_p1k": {
+            "errors": 3,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_Cne0aNEfEz8": {
+            "errors": 3,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_IECFh2ZpWtI": {
+            "errors": 3,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_ZF1phx3L0Es": {
+            "errors": 3,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_yXWQtSspq7Q": {
+            "errors": 3,
+            "edits": 0,
+            "gain": 0
+          },
+          "wrong_time": {
+            "errors": 3,
+            "edits": 0,
+            "gain": 0
+          }
+        },
+        "eligible": 0,
+        "matched_material_mentions_any": 0,
+        "matched_material_proposes_qwen_only": 0,
+        "matched_effect": 0
+      },
+      {
+        "utterance_id": "education_0002-00214",
+        "video_id": "aCo1CvWdWwM",
+        "words": 8,
+        "base": 0,
+        "whisper": 1,
+        "arms": {
+          "matched": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_2NFTPPo_p1k": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_Cne0aNEfEz8": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_IECFh2ZpWtI": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_ZF1phx3L0Es": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_yXWQtSspq7Q": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "wrong_time": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          }
+        },
+        "eligible": 1,
+        "matched_material_mentions_any": 1,
+        "matched_material_proposes_qwen_only": 1,
+        "matched_effect": 0
+      },
+      {
+        "utterance_id": "education_0002-00133",
+        "video_id": "aCo1CvWdWwM",
+        "words": 10,
+        "base": 0,
+        "whisper": 1,
+        "arms": {
+          "matched": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_2NFTPPo_p1k": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_Cne0aNEfEz8": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_IECFh2ZpWtI": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_ZF1phx3L0Es": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_yXWQtSspq7Q": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "wrong_time": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          }
+        },
+        "eligible": 1,
+        "matched_material_mentions_any": 1,
+        "matched_material_proposes_qwen_only": 0,
+        "matched_effect": 0
+      },
+      {
+        "utterance_id": "tradition_culture_0002-00017",
+        "video_id": "Cne0aNEfEz8",
+        "words": 22,
+        "base": 0,
+        "whisper": 1,
+        "arms": {
+          "matched": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_2NFTPPo_p1k": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_IECFh2ZpWtI": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_ZF1phx3L0Es": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_aCo1CvWdWwM": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_yXWQtSspq7Q": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "wrong_time": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          }
+        },
+        "eligible": 0,
+        "matched_material_mentions_any": 0,
+        "matched_material_proposes_qwen_only": 0,
+        "matched_effect": 0
+      },
+      {
+        "utterance_id": "tradition_culture_0002-00016",
+        "video_id": "Cne0aNEfEz8",
+        "words": 22,
+        "base": 0,
+        "whisper": 3,
+        "arms": {
+          "matched": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_2NFTPPo_p1k": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_IECFh2ZpWtI": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_ZF1phx3L0Es": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_aCo1CvWdWwM": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_yXWQtSspq7Q": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "wrong_time": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          }
+        },
+        "eligible": 0,
+        "matched_material_mentions_any": 0,
+        "matched_material_proposes_qwen_only": 0,
+        "matched_effect": 0
+      },
+      {
+        "utterance_id": "tradition_culture_0002-00014",
+        "video_id": "Cne0aNEfEz8",
+        "words": 30,
+        "base": 0,
+        "whisper": 2,
+        "arms": {
+          "matched": {
+            "errors": 1,
+            "edits": 1,
+            "gain": -1
+          },
+          "video_2NFTPPo_p1k": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_IECFh2ZpWtI": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_ZF1phx3L0Es": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_aCo1CvWdWwM": {
+            "errors": 0,
+            "edits": 0,
+            "gain": 0
+          },
+          "video_yXWQtSspq7Q": {
+            "errors": 1,
+            "edits": 1,
+            "gain": -1
+          },
+          "wrong_time": {
+            "errors": 1,
+            "edits": 1,
+            "gain": -1
+          }
+        },
+        "eligible": 2,
+        "matched_material_mentions_any": 1,
+        "matched_material_proposes_qwen_only": 0,
+        "matched_effect": -1
+      }
+    ]
+  },
+  "evidence": "LectureFlow_Materials_and_Slides_Evidence_2026-11-25.zip",
+  "sha256": {
+    "source-provenance.json": "6afdb9f18129683e7cdadd997845ac162c9c6ba4cb60fca08a0c378b82a45d78",
+    "selected/clip-selection.json": "059ba2f22253baa14379296db97eab2693256f284be204319ba5dbf3636d959a",
+    "design.json": "08630fb6c6b339b2cb72e55c490647b14ad03d17fd191f2868086a185610b4d5",
+    "baselines/scores.json": "eb3abaaa194144092b81f5ade829687d6bcc2d898ec830c7d92b8e65b08a084c",
+    "baselines/decode-metadata.json": "d16382d7543fb70122c6b573db32b79640e78a04c17ff3458e72387d0ea0ff31",
+    "baseline-audit.json": "d0cec6bbc32cf9fc88561bd2f3aa856996060c72458e3ed70db97e6b862113eb",
+    "selector/registration.json": "b45e525ee8c3814de5438880ee93878d1fdfa56a85b7c43cff9080ad58617c77",
+    "selector/controls.json": "b7722b7d39e0b52eba57213b8b0d4472a4f0760371b2c299e69167000c8b6e0e",
+    "selector/public-results.json": "3e8cb7f55741d6ee5e4a727ee32c386abea9cb21d824ce070f90d8c8222c28ad"
+  }
+}
