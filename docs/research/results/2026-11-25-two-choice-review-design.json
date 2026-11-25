@@ -1,0 +1,34 @@
+{
+  "study": "Retrospective limit of choosing between fixed-English short-window and whole-window ASR drafts",
+  "cohorts": {
+    "acl40": {
+      "windows": 40,
+      "published_baseline": "2026-11-25-fixed-english.json",
+      "published_baseline_sha256": "99bc39279447a3bd446819ffbe8f8134f5b0028cead687fe8e6523dcf3cc73e0"
+    },
+    "slidespeech24": {
+      "windows": 24,
+      "published_baseline": "2026-11-25-slidespeech-selective.json",
+      "published_baseline_sha256": "c24d16514c627f5c4e906bfe74dc96815b125efc6a42c09faff626d65d3cce02"
+    }
+  },
+  "window_eligibility": "All windows from the two frozen public fixed-English cohorts. Fail on a missing window or a mismatch to the published reference word count or draft edit distances. A successful empty hypothesis remains an empty sequence.",
+  "word_encoding": "The existing cohort scorer uses casefold, replaces right curly apostrophes with straight apostrophes, then extracts Unicode word tokens, preserving one internal apostrophe. For each window assign fresh positive integer IDs by first occurrence over reference, first and full in order. Keep only equality and order; publish no token dictionary.",
+  "whole_window_oracle": "Choose whichever complete draft has the lower unit-cost word Levenshtein distance to the existing reference. Ties keep first.",
+  "block_construction": "Align only the two hypotheses with suffix longest-common-subsequence dynamic programming. Starting at their first tokens, anchor equal current tokens; at unequal tokens advance first if both possible skips lead to the same LCS length, otherwise advance in the direction preserving maximum length. Each gap between consecutive anchors (including beginning and end) is a potential block. Retain the anchor once; for a gap with differing sequences, choose exactly one complete draft side, including an empty side if present. Identical material is mandatory. No free edits, reordered words, or new words.",
+  "sensitivity": "Reverse each of the two hypotheses before applying the same alignment and then map the anchor indices back into original forward order. Score the original-order alternatives.",
+  "block_oracle": "Minimize unit-cost word Levenshtein distance to the reference across all possible block choices, using dynamic programming over edit-distance rows. Break tied optima by fewer full-draft blocks and then lexicographic block choices (first before full). Retain winning choices and recompute direct edit distance as a consistency check.",
+  "outcomes": [
+    "Per cohort micro WER, raw errors, exact windows, and residual windows for first, full, whole-window oracle, and both block oracles",
+    "Error count and percentage-point gains relative to both drafts; windows where block choice beats the whole-window oracle",
+    "Total disagreement blocks, flagged windows, and full or first choices for both segmentations; compare per-window block count, score and selected output across segmentations",
+    "Reference token occurrences whose type never occurs in either draft, an additional lower bound shared by all choices"
+  ],
+  "cost": "Inherited original model call counts and warm decoding times (first and full), cached scoring time measured separately, zero additional ASR calls, human review minutes unknown. Block counts are review opportunities, not timed interactions.",
+  "interpretation": "Reference-aware retrospective upper bounds on gains and lower bounds on residual WER for these given candidates and each specified interaction. Different block alignments constrain the reachable outputs. Use positive residuals or absent token types to measure where binary review alone cannot exactly reproduce the reference. This is not a measured human result, an automatic acceptance rule, or a population inference.",
+  "frozen_utc": "2026-11-25T14:07:00Z",
+  "archived_input_sha256": {
+    "english-followup/review.csv": "82875a8bd9da3694b75c7aea08c4e56ba527736a503967885a81b09f3e526f46",
+    "public-input/round-selective/supplement/word-ids.json": "d1262a4020cdf6aa5b195ffddf7d8fc1ca1c96550001ab906811d30b2b87ec65"
+  }
+}
