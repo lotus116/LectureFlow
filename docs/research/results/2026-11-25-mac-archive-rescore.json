@@ -1,0 +1,44 @@
+{
+  "date": "2026-11-25",
+  "verification": "independent token edit-distance recomputation from stored text on the Mac; no ASR rerun or latency remeasurement",
+  "sources": [
+    {
+      "name": "TA",
+      "scope": "six TA confirmation groups by speaker",
+      "text_scores_checked": 665,
+      "standard": {
+        "reference_words": 13453,
+        "first_errors": 1243,
+        "full_guarded_errors": 1180,
+        "selective_guarded_errors": 1183
+      },
+      "less_normalized": {
+        "reference_words": 13277,
+        "first_errors": 1607,
+        "full_guarded_errors": 1561,
+        "selective_guarded_errors": 1548
+      }
+    },
+    {
+      "name": "Yale",
+      "scope": "two primary lectures; checked all five archived lecture files",
+      "text_scores_checked": 25,
+      "standard": {
+        "reference_words": 13153,
+        "first_errors": 555,
+        "full_guarded_errors": 537,
+        "selective_guarded_errors": 521
+      },
+      "less_normalized": {
+        "reference_words": 12801,
+        "first_errors": 590,
+        "full_guarded_errors": 614,
+        "selective_guarded_errors": 585
+      }
+    }
+  ],
+  "stage12_manifest_hashes_verified": 11,
+  "mac_core_evidence_index_files": 114,
+  "mac_core_evidence_index_sha256": "a8cfbb9f5fa84892573670695edee43cfa64e57aaff3d3195a6e9d0f2c7c1705",
+  "classroom_target_status": "not received; synthetic intake validation only"
+}
