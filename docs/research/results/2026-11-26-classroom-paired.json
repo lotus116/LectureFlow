@@ -1,0 +1,204 @@
+{
+  "id": "C01",
+  "date": "2026-11-26",
+  "protocol": {
+    "hardware": "single Mac, MLX",
+    "model": "Qwen3-ASR 1.7B 8-bit, fixed English, no glossary or reference in inference",
+    "arms": [
+      "room_stream_end",
+      "room_offline_candidate",
+      "zoom_stream_end",
+      "zoom_offline_candidate"
+    ],
+    "standard_schema": [
+      "reference_words",
+      "errors",
+      "substitutions",
+      "deletions",
+      "insertions"
+    ],
+    "raw_schema": [
+      "reference_words",
+      "room_stream_end_errors",
+      "room_offline_candidate_errors",
+      "zoom_stream_end_errors",
+      "zoom_offline_candidate_errors"
+    ],
+    "stream": "accelerated 250 ms packets, default 20 s boundary, final English text, not real-time latency",
+    "offline": "full same PCM, independent untuned chunks, all input frames and nontruncation checked",
+    "reference": "shared per pair, editorial markers stripped (speech left intact), whole-clip edit distance; both normalized and less normalized. Four clips in two course clusters. Room and Zoom files differ by bytes and decoded PCM; 3 short probes per pair indicate near-aligned audio, not recording provenance."
+  },
+  "model_outputs_completed": 16,
+  "room_offline_compute_s": 63.54,
+  "zoom_offline_compute_s": 63.76,
+  "clips": [
+    {
+      "clip": "A1",
+      "seconds": 306.5,
+      "reference_unclear_markers": 6,
+      "standard": [
+        [
+          640,
+          113,
+          74,
+          21,
+          18
+        ],
+        [
+          640,
+          55,
+          32,
+          14,
+          9
+        ],
+        [
+          640,
+          49,
+          16,
+          5,
+          28
+        ],
+        [
+          640,
+          33,
+          8,
+          4,
+          21
+        ]
+      ],
+      "raw": [
+        639,
+        120,
+        65,
+        80,
+        57
+      ]
+    },
+    {
+      "clip": "A2",
+      "seconds": 300.5,
+      "reference_unclear_markers": 6,
+      "standard": [
+        [
+          549,
+          97,
+          61,
+          10,
+          26
+        ],
+        [
+          549,
+          89,
+          48,
+          14,
+          27
+        ],
+        [
+          549,
+          76,
+          28,
+          8,
+          40
+        ],
+        [
+          549,
+          65,
+          23,
+          6,
+          36
+        ]
+      ],
+      "raw": [
+        545,
+        122,
+        106,
+        100,
+        96
+      ]
+    },
+    {
+      "clip": "B1",
+      "seconds": 300.0424375,
+      "reference_unclear_markers": 0,
+      "standard": [
+        [
+          517,
+          116,
+          73,
+          18,
+          25
+        ],
+        [
+          517,
+          96,
+          62,
+          16,
+          18
+        ],
+        [
+          517,
+          69,
+          36,
+          15,
+          18
+        ],
+        [
+          517,
+          67,
+          37,
+          18,
+          12
+        ]
+      ],
+      "raw": [
+        514,
+        119,
+        99,
+        75,
+        71
+      ]
+    },
+    {
+      "clip": "B2",
+      "seconds": 305.058,
+      "reference_unclear_markers": 0,
+      "standard": [
+        [
+          556,
+          114,
+          60,
+          23,
+          31
+        ],
+        [
+          556,
+          91,
+          52,
+          10,
+          29
+        ],
+        [
+          556,
+          71,
+          37,
+          7,
+          27
+        ],
+        [
+          556,
+          66,
+          32,
+          8,
+          26
+        ]
+      ],
+      "raw": [
+        551,
+        112,
+        91,
+        72,
+        67
+      ]
+    }
+  ]
+}
