@@ -1,0 +1,494 @@
+{
+  "kind": "retrospective cache recombination, not new decoding",
+  "freeze_sha256": "2ec1489f8a33c1ea589774d21618678a2ad60f06aab2677ba0566c6979d47ca6",
+  "cached_metrics_sha256": "b6e85a0df642dc4cc6996f86dd5047a8462fc58ea9aab8fb3647d11e0f6ebf49",
+  "passes_followup_gate": true,
+  "splits": [
+    {
+      "split": 1,
+      "regions": 55,
+      "baseline": {
+        "picked": 0,
+        "audio_s": 0,
+        "extra_warm_s": 0,
+        "standard_reference_words": 7558,
+        "standard_errors": 752,
+        "standard_net": 0,
+        "raw_reference_words": 7441,
+        "raw_errors": 1002,
+        "raw_net": 0,
+        "improved": 0,
+        "worse": 0
+      },
+      "density": {
+        "picked": 26,
+        "audio_s": 1562.4549,
+        "extra_warm_s": 92.8338,
+        "standard_reference_words": 7558,
+        "standard_errors": 732,
+        "standard_net": 20,
+        "raw_reference_words": 7441,
+        "raw_errors": 986,
+        "raw_net": 16,
+        "improved": 14,
+        "worse": 8
+      },
+      "churn": {
+        "picked": 29,
+        "audio_s": 1573.7925,
+        "extra_warm_s": 87.7758,
+        "standard_reference_words": 7558,
+        "standard_errors": 720,
+        "standard_net": 32,
+        "raw_reference_words": 7441,
+        "raw_errors": 968,
+        "raw_net": 34,
+        "improved": 15,
+        "worse": 11
+      },
+      "full": {
+        "picked": 55,
+        "audio_s": 3166.5313,
+        "extra_warm_s": 193.4251,
+        "standard_reference_words": 7558,
+        "standard_errors": 725,
+        "standard_net": 27,
+        "raw_reference_words": 7441,
+        "raw_errors": 988,
+        "raw_net": 14,
+        "improved": 22,
+        "worse": 18
+      },
+      "by_speaker": [
+        {
+          "baseline": {
+            "picked": 0,
+            "audio_s": 0,
+            "extra_warm_s": 0,
+            "standard_reference_words": 2392,
+            "standard_errors": 100,
+            "standard_net": 0,
+            "raw_reference_words": 2322,
+            "raw_errors": 224,
+            "raw_net": 0,
+            "improved": 0,
+            "worse": 0
+          },
+          "density": {
+            "picked": 4,
+            "audio_s": 502.5715,
+            "extra_warm_s": 34.6462,
+            "standard_reference_words": 2392,
+            "standard_errors": 98,
+            "standard_net": 2,
+            "raw_reference_words": 2322,
+            "raw_errors": 225,
+            "raw_net": -1,
+            "improved": 2,
+            "worse": 2
+          },
+          "churn": {
+            "picked": 1,
+            "audio_s": 59.296,
+            "extra_warm_s": 3.6577,
+            "standard_reference_words": 2392,
+            "standard_errors": 96,
+            "standard_net": 4,
+            "raw_reference_words": 2322,
+            "raw_errors": 220,
+            "raw_net": 4,
+            "improved": 1,
+            "worse": 0
+          },
+          "full": {
+            "picked": 9,
+            "audio_s": 784.4188,
+            "extra_warm_s": 55.6373,
+            "standard_reference_words": 2392,
+            "standard_errors": 95,
+            "standard_net": 5,
+            "raw_reference_words": 2322,
+            "raw_errors": 216,
+            "raw_net": 8,
+            "improved": 4,
+            "worse": 2
+          }
+        },
+        {
+          "baseline": {
+            "picked": 0,
+            "audio_s": 0,
+            "extra_warm_s": 0,
+            "standard_reference_words": 2276,
+            "standard_errors": 175,
+            "standard_net": 0,
+            "raw_reference_words": 2268,
+            "raw_errors": 287,
+            "raw_net": 0,
+            "improved": 0,
+            "worse": 0
+          },
+          "density": {
+            "picked": 9,
+            "audio_s": 415.8464,
+            "extra_warm_s": 23.0338,
+            "standard_reference_words": 2276,
+            "standard_errors": 174,
+            "standard_net": 1,
+            "raw_reference_words": 2268,
+            "raw_errors": 288,
+            "raw_net": -1,
+            "improved": 5,
+            "worse": 2
+          },
+          "churn": {
+            "picked": 6,
+            "audio_s": 239.624,
+            "extra_warm_s": 13.5343,
+            "standard_reference_words": 2276,
+            "standard_errors": 175,
+            "standard_net": 0,
+            "raw_reference_words": 2268,
+            "raw_errors": 285,
+            "raw_net": 2,
+            "improved": 3,
+            "worse": 2
+          },
+          "full": {
+            "picked": 18,
+            "audio_s": 852.0266,
+            "extra_warm_s": 52.9683,
+            "standard_reference_words": 2276,
+            "standard_errors": 181,
+            "standard_net": -6,
+            "raw_reference_words": 2268,
+            "raw_errors": 309,
+            "raw_net": -22,
+            "improved": 6,
+            "worse": 6
+          }
+        },
+        {
+          "baseline": {
+            "picked": 0,
+            "audio_s": 0,
+            "extra_warm_s": 0,
+            "standard_reference_words": 2890,
+            "standard_errors": 477,
+            "standard_net": 0,
+            "raw_reference_words": 2851,
+            "raw_errors": 491,
+            "raw_net": 0,
+            "improved": 0,
+            "worse": 0
+          },
+          "density": {
+            "picked": 13,
+            "audio_s": 644.0369,
+            "extra_warm_s": 35.1538,
+            "standard_reference_words": 2890,
+            "standard_errors": 460,
+            "standard_net": 17,
+            "raw_reference_words": 2851,
+            "raw_errors": 473,
+            "raw_net": 18,
+            "improved": 7,
+            "worse": 4
+          },
+          "churn": {
+            "picked": 22,
+            "audio_s": 1274.8725,
+            "extra_warm_s": 70.5839,
+            "standard_reference_words": 2890,
+            "standard_errors": 449,
+            "standard_net": 28,
+            "raw_reference_words": 2851,
+            "raw_errors": 463,
+            "raw_net": 28,
+            "improved": 11,
+            "worse": 9
+          },
+          "full": {
+            "picked": 28,
+            "audio_s": 1530.086,
+            "extra_warm_s": 84.8195,
+            "standard_reference_words": 2890,
+            "standard_errors": 449,
+            "standard_net": 28,
+            "raw_reference_words": 2851,
+            "raw_errors": 463,
+            "raw_net": 28,
+            "improved": 12,
+            "worse": 10
+          }
+        }
+      ],
+      "cap_s": 1583.265625,
+      "sampling_attempts": 8061,
+      "random_standard": {
+        "mean": 11.812,
+        "min": -20,
+        "max": 41,
+        "equal_or_better": 240,
+        "draws": 1000
+      },
+      "random_raw": {
+        "mean": 4.093,
+        "min": -30,
+        "max": 40,
+        "equal_or_better": 191,
+        "draws": 1000
+      },
+      "random_audio_s": {
+        "mean": 1557.1134661000006,
+        "min": 1530.8231,
+        "max": 1583.1932,
+        "equal_or_better": 400,
+        "draws": 1000
+      }
+    },
+    {
+      "split": 2,
+      "regions": 40,
+      "baseline": {
+        "picked": 0,
+        "audio_s": 0,
+        "extra_warm_s": 0,
+        "standard_reference_words": 5895,
+        "standard_errors": 491,
+        "standard_net": 0,
+        "raw_reference_words": 5836,
+        "raw_errors": 605,
+        "raw_net": 0,
+        "improved": 0,
+        "worse": 0
+      },
+      "density": {
+        "picked": 21,
+        "audio_s": 1231.4524,
+        "extra_warm_s": 71.7665,
+        "standard_reference_words": 5895,
+        "standard_errors": 473,
+        "standard_net": 18,
+        "raw_reference_words": 5836,
+        "raw_errors": 587,
+        "raw_net": 18,
+        "improved": 7,
+        "worse": 1
+      },
+      "churn": {
+        "picked": 19,
+        "audio_s": 1232.3859,
+        "extra_warm_s": 69.4228,
+        "standard_reference_words": 5895,
+        "standard_errors": 463,
+        "standard_net": 28,
+        "raw_reference_words": 5836,
+        "raw_errors": 580,
+        "raw_net": 25,
+        "improved": 10,
+        "worse": 1
+      },
+      "full": {
+        "picked": 40,
+        "audio_s": 2483.1823,
+        "extra_warm_s": 158.1812,
+        "standard_reference_words": 5895,
+        "standard_errors": 455,
+        "standard_net": 36,
+        "raw_reference_words": 5836,
+        "raw_errors": 573,
+        "raw_net": 32,
+        "improved": 18,
+        "worse": 3
+      },
+      "by_speaker": [
+        {
+          "baseline": {
+            "picked": 0,
+            "audio_s": 0,
+            "extra_warm_s": 0,
+            "standard_reference_words": 2391,
+            "standard_errors": 226,
+            "standard_net": 0,
+            "raw_reference_words": 2332,
+            "raw_errors": 297,
+            "raw_net": 0,
+            "improved": 0,
+            "worse": 0
+          },
+          "density": {
+            "picked": 8,
+            "audio_s": 416.2693,
+            "extra_warm_s": 26.9351,
+            "standard_reference_words": 2391,
+            "standard_errors": 217,
+            "standard_net": 9,
+            "raw_reference_words": 2332,
+            "raw_errors": 288,
+            "raw_net": 9,
+            "improved": 3,
+            "worse": 1
+          },
+          "churn": {
+            "picked": 2,
+            "audio_s": 125.5362,
+            "extra_warm_s": 6.4708,
+            "standard_reference_words": 2391,
+            "standard_errors": 216,
+            "standard_net": 10,
+            "raw_reference_words": 2332,
+            "raw_errors": 288,
+            "raw_net": 9,
+            "improved": 1,
+            "worse": 0
+          },
+          "full": {
+            "picked": 14,
+            "audio_s": 812.0209,
+            "extra_warm_s": 58.7233,
+            "standard_reference_words": 2391,
+            "standard_errors": 214,
+            "standard_net": 12,
+            "raw_reference_words": 2332,
+            "raw_errors": 287,
+            "raw_net": 10,
+            "improved": 6,
+            "worse": 1
+          }
+        },
+        {
+          "baseline": {
+            "picked": 0,
+            "audio_s": 0,
+            "extra_warm_s": 0,
+            "standard_reference_words": 2793,
+            "standard_errors": 161,
+            "standard_net": 0,
+            "raw_reference_words": 2817,
+            "raw_errors": 196,
+            "raw_net": 0,
+            "improved": 0,
+            "worse": 0
+          },
+          "density": {
+            "picked": 9,
+            "audio_s": 652.5146,
+            "extra_warm_s": 34.856,
+            "standard_reference_words": 2793,
+            "standard_errors": 152,
+            "standard_net": 9,
+            "raw_reference_words": 2817,
+            "raw_errors": 187,
+            "raw_net": 9,
+            "improved": 4,
+            "worse": 0
+          },
+          "churn": {
+            "picked": 13,
+            "audio_s": 946.4076,
+            "extra_warm_s": 52.0746,
+            "standard_reference_words": 2793,
+            "standard_errors": 143,
+            "standard_net": 18,
+            "raw_reference_words": 2817,
+            "raw_errors": 180,
+            "raw_net": 16,
+            "improved": 9,
+            "worse": 1
+          },
+          "full": {
+            "picked": 19,
+            "audio_s": 1385.6112,
+            "extra_warm_s": 78.8424,
+            "standard_reference_words": 2793,
+            "standard_errors": 137,
+            "standard_net": 24,
+            "raw_reference_words": 2817,
+            "raw_errors": 174,
+            "raw_net": 22,
+            "improved": 12,
+            "worse": 2
+          }
+        },
+        {
+          "baseline": {
+            "picked": 0,
+            "audio_s": 0,
+            "extra_warm_s": 0,
+            "standard_reference_words": 711,
+            "standard_errors": 104,
+            "standard_net": 0,
+            "raw_reference_words": 687,
+            "raw_errors": 112,
+            "raw_net": 0,
+            "improved": 0,
+            "worse": 0
+          },
+          "density": {
+            "picked": 4,
+            "audio_s": 162.6685,
+            "extra_warm_s": 9.9754,
+            "standard_reference_words": 711,
+            "standard_errors": 104,
+            "standard_net": 0,
+            "raw_reference_words": 687,
+            "raw_errors": 112,
+            "raw_net": 0,
+            "improved": 0,
+            "worse": 0
+          },
+          "churn": {
+            "picked": 4,
+            "audio_s": 160.4421,
+            "extra_warm_s": 10.8774,
+            "standard_reference_words": 711,
+            "standard_errors": 104,
+            "standard_net": 0,
+            "raw_reference_words": 687,
+            "raw_errors": 112,
+            "raw_net": 0,
+            "improved": 0,
+            "worse": 0
+          },
+          "full": {
+            "picked": 7,
+            "audio_s": 285.5502,
+            "extra_warm_s": 20.6155,
+            "standard_reference_words": 711,
+            "standard_errors": 104,
+            "standard_net": 0,
+            "raw_reference_words": 687,
+            "raw_errors": 112,
+            "raw_net": 0,
+            "improved": 0,
+            "worse": 0
+          }
+        }
+      ],
+      "cap_s": 1241.591125,
+      "sampling_attempts": 8697,
+      "random_standard": {
+        "mean": 17.431,
+        "min": 2,
+        "max": 34,
+        "equal_or_better": 500,
+        "draws": 1000
+      },
+      "random_raw": {
+        "mean": 15.525,
+        "min": -1,
+        "max": 32,
+        "equal_or_better": 401,
+        "draws": 1000
+      },
+      "random_audio_s": {
+        "mean": 1224.7526301000019,
+        "min": 1206.6516,
+        "max": 1241.5632,
+        "equal_or_better": 316,
+        "draws": 1000
+      }
+    }
+  ]
+}
