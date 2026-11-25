@@ -1,0 +1,296 @@
+{
+  "id": "C05",
+  "date": "2026-11-26",
+  "protocol": "1× 250 ms file injection, two anonymous classroom room clips (second from each course), counterbalanced EN vs EN-ZH; same Qwen3-ASR 1.7B and 20 s boundary. Hy-MT2 1.8B 4-bit preloaded in both arms, called only for EN-ZH. Compare per-clip English output/coverage and backend events. Han glyph coverage does not judge translation correctness. No UI, microphone or full-lecture timing.",
+  "attempt_note": "First pair completed normally. Remaining two arms repeated from their start after intervening process exit; frozen runner/plan verified, successful first pair kept unchanged.",
+  "results": {
+    "A2": {
+      "same_final_english_segments": true,
+      "same_boundaries": true,
+      "modes": {
+        "EN": {
+          "english": {
+            "errors": 97,
+            "S": 61,
+            "D": 10,
+            "I": 26,
+            "N": 549,
+            "hyp_N": 565
+          },
+          "raw_english": {
+            "errors": 122,
+            "S": 76,
+            "D": 4,
+            "I": 42,
+            "N": 545,
+            "hyp_N": 583
+          },
+          "metrics": {
+            "en_first_from_start": {
+              "n": 19,
+              "median": 1.1725680828094482,
+              "p95": 1.2804340838920325,
+              "max": 1.2804340838920325
+            },
+            "en_stable_from_end": {
+              "n": 19,
+              "median": 0.2730327497702092,
+              "p95": 0.3793994579464197,
+              "max": 0.3793994579464197
+            },
+            "zh_first_from_start": {
+              "n": 0
+            },
+            "zh_last_change_from_end": {
+              "n": 0
+            }
+          },
+          "english_segments": 19,
+          "final_han_coverage": 0,
+          "terminal_incomplete": 0,
+          "terminal_locked": 19,
+          "duration": 300.5,
+          "flush_s": 0.26067683286964893,
+          "dropped": 0,
+          "max_input_queue_after_service": 1,
+          "max_pending_translation": 0,
+          "worker_lag_s": {
+            "n": 1202,
+            "median": 0.0004642705898731947,
+            "p95": 0.32676916709169745,
+            "max": 0.4664648750331253
+          },
+          "final_progress": {
+            "accent_pending": 0,
+            "accent_completed": 0,
+            "accent_failed": 0,
+            "accent_oldest_seconds": 0,
+            "accent_audio_bytes": 0,
+            "translation_pending": 0,
+            "translation_failures": 0,
+            "translations_deferred": 0,
+            "translations_completed": 0,
+            "context_translations_completed": 0
+          },
+          "translation_event_states": {}
+        },
+        "EN-ZH": {
+          "english": {
+            "errors": 97,
+            "S": 61,
+            "D": 10,
+            "I": 26,
+            "N": 549,
+            "hyp_N": 565
+          },
+          "raw_english": {
+            "errors": 122,
+            "S": 76,
+            "D": 4,
+            "I": 42,
+            "N": 545,
+            "hyp_N": 583
+          },
+          "metrics": {
+            "en_first_from_start": {
+              "n": 19,
+              "median": 1.5845615421421826,
+              "p95": 2.055595749989152,
+              "max": 2.055595749989152
+            },
+            "en_stable_from_end": {
+              "n": 19,
+              "median": 0.28923479188233614,
+              "p95": 0.8792499999981374,
+              "max": 0.8792499999981374
+            },
+            "zh_first_from_start": {
+              "n": 19,
+              "median": 2.0645706250797957,
+              "p95": 2.949465249897912,
+              "max": 2.949465249897912
+            },
+            "zh_last_change_from_end": {
+              "n": 19,
+              "median": 23.731067166896537,
+              "p95": 43.28353854105808,
+              "max": 43.28353854105808
+            }
+          },
+          "english_segments": 19,
+          "final_han_coverage": 19,
+          "terminal_incomplete": 0,
+          "terminal_locked": 19,
+          "duration": 300.5,
+          "flush_s": 1.3509595410432667,
+          "dropped": 0,
+          "max_input_queue_after_service": 4,
+          "max_pending_translation": 3,
+          "worker_lag_s": {
+            "n": 1202,
+            "median": 0.1317691250005737,
+            "p95": 0.8300661249086261,
+            "max": 1.2523415421601385
+          },
+          "final_progress": {
+            "accent_pending": 0,
+            "accent_completed": 0,
+            "accent_failed": 0,
+            "accent_oldest_seconds": 0,
+            "accent_audio_bytes": 0,
+            "translation_pending": 0,
+            "translation_failures": 0,
+            "translations_deferred": 0,
+            "translations_completed": 54,
+            "context_translations_completed": 35
+          },
+          "translation_event_states": {}
+        }
+      }
+    },
+    "B2": {
+      "same_final_english_segments": true,
+      "same_boundaries": true,
+      "modes": {
+        "EN-ZH": {
+          "english": {
+            "errors": 114,
+            "S": 60,
+            "D": 23,
+            "I": 31,
+            "N": 556,
+            "hyp_N": 564
+          },
+          "raw_english": {
+            "errors": 112,
+            "S": 59,
+            "D": 22,
+            "I": 31,
+            "N": 551,
+            "hyp_N": 560
+          },
+          "metrics": {
+            "en_first_from_start": {
+              "n": 18,
+              "median": 1.537873792112805,
+              "p95": 2.0697500829119235,
+              "max": 2.0697500829119235
+            },
+            "en_stable_from_end": {
+              "n": 18,
+              "median": 0.27595256245695055,
+              "p95": 0.5836825829464942,
+              "max": 0.5836825829464942
+            },
+            "zh_first_from_start": {
+              "n": 18,
+              "median": 2.0147142079658806,
+              "p95": 2.461509000044316,
+              "max": 2.461509000044316
+            },
+            "zh_last_change_from_end": {
+              "n": 18,
+              "median": 21.581881499500014,
+              "p95": 41.65767720784061,
+              "max": 41.65767720784061
+            }
+          },
+          "english_segments": 18,
+          "final_han_coverage": 18,
+          "terminal_incomplete": 0,
+          "terminal_locked": 18,
+          "duration": 305.058,
+          "flush_s": 1.5826817089691758,
+          "dropped": 0,
+          "max_input_queue_after_service": 4,
+          "max_pending_translation": 2,
+          "worker_lag_s": {
+            "n": 1221,
+            "median": 0.1444637079257518,
+            "p95": 0.7591164999175817,
+            "max": 1.238051166990772
+          },
+          "final_progress": {
+            "accent_pending": 0,
+            "accent_completed": 0,
+            "accent_failed": 0,
+            "accent_oldest_seconds": 0,
+            "accent_audio_bytes": 0,
+            "translation_pending": 0,
+            "translation_failures": 0,
+            "translations_deferred": 0,
+            "translations_completed": 51,
+            "context_translations_completed": 33
+          },
+          "translation_event_states": {}
+        },
+        "EN": {
+          "english": {
+            "errors": 114,
+            "S": 60,
+            "D": 23,
+            "I": 31,
+            "N": 556,
+            "hyp_N": 564
+          },
+          "raw_english": {
+            "errors": 112,
+            "S": 59,
+            "D": 22,
+            "I": 31,
+            "N": 551,
+            "hyp_N": 560
+          },
+          "metrics": {
+            "en_first_from_start": {
+              "n": 18,
+              "median": 1.1674396669259295,
+              "p95": 1.2003809998277575,
+              "max": 1.2003809998277575
+            },
+            "en_stable_from_end": {
+              "n": 18,
+              "median": 0.2735573125537485,
+              "p95": 0.34577058302238584,
+              "max": 0.34577058302238584
+            },
+            "zh_first_from_start": {
+              "n": 0
+            },
+            "zh_last_change_from_end": {
+              "n": 0
+            }
+          },
+          "english_segments": 18,
+          "final_han_coverage": 0,
+          "terminal_incomplete": 0,
+          "terminal_locked": 18,
+          "duration": 305.058,
+          "flush_s": 0.2690400001592934,
+          "dropped": 0,
+          "max_input_queue_after_service": 1,
+          "max_pending_translation": 0,
+          "worker_lag_s": {
+            "n": 1221,
+            "median": 0.0004666668828576803,
+            "p95": 0.3185796670150012,
+            "max": 0.4273986660409719
+          },
+          "final_progress": {
+            "accent_pending": 0,
+            "accent_completed": 0,
+            "accent_failed": 0,
+            "accent_oldest_seconds": 0,
+            "accent_audio_bytes": 0,
+            "translation_pending": 0,
+            "translation_failures": 0,
+            "translations_deferred": 0,
+            "translations_completed": 0,
+            "context_translations_completed": 0
+          },
+          "translation_event_states": {}
+        }
+      }
+    }
+  }
+}
