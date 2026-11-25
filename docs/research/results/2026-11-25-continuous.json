@@ -1,0 +1,330 @@
+{
+  "dataset": "ACL 60/60 (English), original full-talk PCM",
+  "data_url": "https://aclanthology.org/attachments/2023.iwslt-1.2.dataset.zip",
+  "model_revision": "c12e7b0fc05e38e3949eacf3be13337c4df653b5",
+  "scope": "Two excerpts from previously studied talks. Two of 27 reference sentences overlap the previous 40-clips cohort.",
+  "audio_s": 204.586,
+  "reference": "Organizer post-edits for consecutive sentences; inter-sentence gaps retained.",
+  "totals": {
+    "fixed20": {
+      "errors": 45,
+      "ref_words": 498,
+      "chunks": 12,
+      "decode_wall_s": 104.07623124899919,
+      "physical_decode_wall_s": 104.07623124899919,
+      "wer": 0.09036144578313253,
+      "cuts_in_official_gaps": 0,
+      "edit_counts": {
+        "S": 19,
+        "D": 21,
+        "I": 5
+      },
+      "eligible_internal_cuts": 10
+    },
+    "pause20": {
+      "errors": 35,
+      "ref_words": 498,
+      "chunks": 12,
+      "decode_wall_s": 99.8202165560001,
+      "physical_decode_wall_s": 96.8948259660001,
+      "wer": 0.07028112449799197,
+      "cuts_in_official_gaps": 4,
+      "edit_counts": {
+        "S": 15,
+        "D": 15,
+        "I": 5
+      },
+      "eligible_internal_cuts": 10
+    },
+    "sham20": {
+      "errors": 47,
+      "ref_words": 498,
+      "chunks": 12,
+      "decode_wall_s": 111.7688328389986,
+      "physical_decode_wall_s": 103.42228778699882,
+      "wer": 0.09437751004016064,
+      "cuts_in_official_gaps": 0,
+      "edit_counts": {
+        "S": 23,
+        "D": 16,
+        "I": 8
+      },
+      "eligible_internal_cuts": 10
+    }
+  },
+  "passages": [
+    {
+      "talk": "2022.acl-long.268",
+      "split": "dev",
+      "sha256": "a5fc6f23cfe9fff843c9475ed0ff6e30d58bd02abae2c0327b9a230b14e75377",
+      "frames": 1628464,
+      "audio_s": 101.779,
+      "ref_words": 253,
+      "sent_ids": [
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ],
+      "arms": {
+        "fixed20": {
+          "errors": 18,
+          "wer": 0.07114624505928854,
+          "words": 241,
+          "chunks": 6,
+          "decode_wall_s": 49.75159526099969,
+          "physical_decode_wall_s": 49.75159526099969,
+          "reused_calls": 0,
+          "internal_cuts": 5,
+          "nonfinal_cut_energy": [
+            1594730256,
+            12117460890,
+            13625132228,
+            28342210434,
+            10874352795
+          ],
+          "nonfinal_lookback_s": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "chunk_audio_s": [
+            20.0,
+            20.0,
+            20.0,
+            20.0,
+            20.0,
+            1.779
+          ]
+        },
+        "pause20": {
+          "errors": 14,
+          "wer": 0.05533596837944664,
+          "words": 246,
+          "chunks": 6,
+          "decode_wall_s": 53.35901508699999,
+          "physical_decode_wall_s": 53.35901508699999,
+          "reused_calls": 0,
+          "internal_cuts": 5,
+          "nonfinal_cut_energy": [
+            164569,
+            186257223,
+            34197364,
+            23954249,
+            936766
+          ],
+          "nonfinal_lookback_s": [
+            3.94,
+            0.82,
+            3.54,
+            2.64,
+            2.86
+          ],
+          "chunk_audio_s": [
+            16.06,
+            19.18,
+            16.46,
+            17.36,
+            17.14,
+            15.579
+          ]
+        },
+        "sham20": {
+          "errors": 23,
+          "wer": 0.09090909090909091,
+          "words": 246,
+          "chunks": 6,
+          "decode_wall_s": 55.40548577999971,
+          "physical_decode_wall_s": 47.058940727999925,
+          "reused_calls": 1,
+          "internal_cuts": 5,
+          "nonfinal_cut_energy": [
+            29513274337,
+            5563170086,
+            34121088433,
+            23309603081,
+            936766
+          ],
+          "nonfinal_lookback_s": [
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "chunk_audio_s": [
+            17.14,
+            17.36,
+            16.46,
+            19.18,
+            16.06,
+            15.579
+          ]
+        }
+      }
+    },
+    {
+      "talk": "2022.acl-long.410",
+      "split": "eval",
+      "sha256": "f2964b9c0e835357ed62e7876209792999b9c9a1aed473e7e886f47e5dc727b5",
+      "frames": 1644912,
+      "audio_s": 102.807,
+      "ref_words": 245,
+      "sent_ids": [
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24
+      ],
+      "arms": {
+        "fixed20": {
+          "errors": 27,
+          "wer": 0.11020408163265306,
+          "words": 241,
+          "chunks": 6,
+          "decode_wall_s": 54.3246359879995,
+          "physical_decode_wall_s": 54.3246359879995,
+          "reused_calls": 0,
+          "internal_cuts": 5,
+          "nonfinal_cut_energy": [
+            26445442031,
+            35437338327,
+            11651699514,
+            12965244665,
+            4944921710
+          ],
+          "nonfinal_lookback_s": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "chunk_audio_s": [
+            20.0,
+            20.0,
+            20.0,
+            20.0,
+            20.0,
+            2.807
+          ]
+        },
+        "pause20": {
+          "errors": 21,
+          "wer": 0.08571428571428572,
+          "words": 242,
+          "chunks": 6,
+          "decode_wall_s": 46.461201469000116,
+          "physical_decode_wall_s": 43.53581087900011,
+          "reused_calls": 1,
+          "internal_cuts": 5,
+          "nonfinal_cut_energy": [
+            783197,
+            200113,
+            2483840,
+            1815339,
+            580383
+          ],
+          "nonfinal_lookback_s": [
+            0.36,
+            1.42,
+            0.82,
+            0.26,
+            0.46
+          ],
+          "chunk_audio_s": [
+            19.64,
+            18.58,
+            19.18,
+            19.74,
+            19.54,
+            6.127
+          ]
+        },
+        "sham20": {
+          "errors": 24,
+          "wer": 0.09795918367346938,
+          "words": 244,
+          "chunks": 6,
+          "decode_wall_s": 56.3633470589989,
+          "physical_decode_wall_s": 56.3633470589989,
+          "reused_calls": 0,
+          "internal_cuts": 5,
+          "nonfinal_cut_energy": [
+            2457812,
+            14208302174,
+            3741570178,
+            35331284,
+            580383
+          ],
+          "nonfinal_lookback_s": [
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "chunk_audio_s": [
+            19.54,
+            19.74,
+            19.18,
+            18.58,
+            19.64,
+            6.127
+          ]
+        }
+      }
+    }
+  ],
+  "decode_counts_including_warmup": {
+    "warmup/ok": 1,
+    "fixed20/ok": 12,
+    "pause20/ok": 11,
+    "sham20/ok": 11
+  },
+  "controller_lookback_s": {
+    "median": 1.1199999999999999,
+    "range": [
+      0.26,
+      3.94
+    ]
+  },
+  "boundary_plan_wall_s": 0.03855697800008784,
+  "warmup_wall_s": 1.4693439299999227,
+  "model_load_wall_s": 7.448431583999991,
+  "supplement": "LectureFlow_Evidence_Followup_2026-11-25.zip",
+  "evidence_member_sha256": {
+    "registration.json": "81858202520541d7d2279aa74992e7c793d05643d8bc14ea3576cd9a4da986f0",
+    "inputs.json": "e16b4dff8b22e056247e6ff2470e1804b3a6ff95dd3995fcb2095fe97eea464c",
+    "source-locations.json": "9903529ad84bdb49027e0ee8ec48d8530b966235c40801c16cfef2d164747a78",
+    "reference.json": "0cb16421c383fd67d6503cec18f4a0dab516481ab2acf03cf1535bd7bff68641",
+    "weight-digests.txt": "e49e3872a3b12057f4a9813dcfa73f41870e5bc00c7ee27e830917046ee7e5d8",
+    "freeze.sha256": "4051b43f062def810890eb7f02252a52c982fc6fba9c9d41b759ed574aeb1c24",
+    "boundary-plan.json": "a19b543da3e4256fbc2cb3aff1a8ffcbdb223e111dbead01adf260e1efe37405",
+    "calls.jsonl": "3707ef7d1a6f1401af11cb25430a86a702dfa7543db9d4eea327a84d6815f2c8",
+    "decode-metadata.json": "a13db36f15b5b7baa65308dd2dfb5cacd95e5665898be50b7fa8a8a3fbaabc87",
+    "results.json": "945143551a4aa993ec66e1dfd25bddeb031680e3c1f12f93b65f472eaf43dd84",
+    "independent/results.json": "1018b2b1d7b1279ddb1238e3224eef2bca5629765be1d19599cfbb82e56ddbcd"
+  }
+}

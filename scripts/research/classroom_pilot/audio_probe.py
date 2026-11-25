@@ -31,7 +31,7 @@ def hints_for_talks(items):
     return result
 
 
-def recognizer(model, hints, threads):
+def recognizer(model, hints, threads, *, max_new_tokens=128):
     import sherpa_onnx
 
     return sherpa_onnx.OfflineRecognizer.from_qwen3_asr(
@@ -42,7 +42,7 @@ def recognizer(model, hints, threads):
         hotwords=",".join(hints),
         num_threads=threads,
         seed=42,
-        max_new_tokens=128,
+        max_new_tokens=max_new_tokens,
     )
 
 
