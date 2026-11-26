@@ -1,0 +1,138 @@
+{
+  "source_commit": "6aba1e38927578a68b968daca4de426a0534a419",
+  "input_sha256": {
+    "data/manifest.json": "4217f78f4ebee7218452767ed774a502f336bca9e9fd0c99edb5118998803dfe",
+    "results-gpu/raw/Whisper/clean_read.jsonl": "186cd16eb9973683834c181efb7fba2262a4f9ece0180fabaa25b8f23a813d5b",
+    "results-gpu/raw/Canary/clean_read.jsonl": "ba3b7dfca64416de5b237c679dea995dbc900e39c9d460f481f4c0762e47588d",
+    "results-gpu/raw/Whisper/natural_hard.jsonl": "4a9ccb25598849aaa618faa9394f38779daa58129a7ecb2de8c0702bd468debe",
+    "results-gpu/raw/Canary/natural_hard.jsonl": "ebb3b3fc82513c43828024ec119e9d39a7183925262c2989d298c66cfc5eba60",
+    "results-gpu/raw/Whisper/accented_english.jsonl": "aff3de2bd406d62bf512f346bbb569bd0dfdca4bb728868fb25fedfcf37300ba",
+    "results-gpu/raw/Canary/accented_english.jsonl": "981460cdb7f18db84cd6cd4817347801a666334bebea9a4319517bb0fc901b3f",
+    "results-gpu/raw/Whisper/babble_10db.jsonl": "0606e8adffa3d0c3cdce859b44f8016565ba3f2c580dee1473a2c6ae1d875303",
+    "results-gpu/raw/Canary/babble_10db.jsonl": "f0f9c7af8fdd175d1df0ac31607de0549d984172f3ce4b5eeabdb239920ce334"
+  },
+  "scenarios": {
+    "clean_read": {
+      "all": {
+        "clips": 16,
+        "audio_seconds": 75.895,
+        "reference_words": 201,
+        "whisper_errors": 8,
+        "wer_pct": 3.98,
+        "error_free_clips": 9
+      },
+      "agree": {
+        "clips": 9,
+        "audio_seconds": 39.055,
+        "reference_words": 102,
+        "whisper_errors": 1,
+        "wer_pct": 0.98,
+        "error_free_clips": 8
+      },
+      "disagree": {
+        "clips": 7,
+        "audio_seconds": 36.84,
+        "reference_words": 99,
+        "whisper_errors": 7,
+        "wer_pct": 7.07,
+        "error_free_clips": 1
+      }
+    },
+    "natural_hard": {
+      "all": {
+        "clips": 16,
+        "audio_seconds": 87.77,
+        "reference_words": 248,
+        "whisper_errors": 17,
+        "wer_pct": 6.85,
+        "error_free_clips": 7
+      },
+      "agree": {
+        "clips": 8,
+        "audio_seconds": 35.1,
+        "reference_words": 107,
+        "whisper_errors": 1,
+        "wer_pct": 0.93,
+        "error_free_clips": 7
+      },
+      "disagree": {
+        "clips": 8,
+        "audio_seconds": 52.67,
+        "reference_words": 141,
+        "whisper_errors": 16,
+        "wer_pct": 11.35,
+        "error_free_clips": 0
+      }
+    },
+    "accented_english": {
+      "all": {
+        "clips": 16,
+        "audio_seconds": 103.496,
+        "reference_words": 281,
+        "whisper_errors": 72,
+        "wer_pct": 25.62,
+        "error_free_clips": 1
+      },
+      "agree": {
+        "clips": 6,
+        "audio_seconds": 31.59,
+        "reference_words": 88,
+        "whisper_errors": 15,
+        "wer_pct": 17.05,
+        "error_free_clips": 1
+      },
+      "disagree": {
+        "clips": 10,
+        "audio_seconds": 71.906,
+        "reference_words": 193,
+        "whisper_errors": 57,
+        "wer_pct": 29.53,
+        "error_free_clips": 0
+      },
+      "posthoc_no_events_uh_um_same_mask": {
+        "all": {
+          "clips": 16,
+          "audio_seconds": 103.496,
+          "reference_words": 269,
+          "whisper_errors": 60,
+          "wer_pct": 22.3,
+          "error_free_clips": 1
+        },
+        "agree": {
+          "clips": 6,
+          "audio_seconds": 31.59,
+          "reference_words": 83,
+          "whisper_errors": 10,
+          "wer_pct": 12.05,
+          "error_free_clips": 1
+        }
+      }
+    },
+    "babble_10db": {
+      "all": {
+        "clips": 16,
+        "audio_seconds": 75.895,
+        "reference_words": 201,
+        "whisper_errors": 14,
+        "wer_pct": 6.97,
+        "error_free_clips": 7
+      },
+      "agree": {
+        "clips": 9,
+        "audio_seconds": 47.175,
+        "reference_words": 126,
+        "whisper_errors": 4,
+        "wer_pct": 3.17,
+        "error_free_clips": 6
+      },
+      "disagree": {
+        "clips": 7,
+        "audio_seconds": 28.72,
+        "reference_words": 75,
+        "whisper_errors": 10,
+        "wer_pct": 13.33,
+        "error_free_clips": 1
+      }
+    }
+  }
+}
