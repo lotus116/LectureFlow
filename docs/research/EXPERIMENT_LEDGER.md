@@ -1,6 +1,6 @@
 # LectureFlow 课程实验总账
 
-当前取舍和执行顺序只维护在[全项目进度图](README.md)。本页是报告/AI 的唯一实验总账：保留比较条件、负结果、原始分母、证据入口及复算方法。读者可直接查 H01–H19（历史研究）、P01–P14（公开机制探索）、A01–A07（误差/计时复核）、C01–C17（目标课堂及其独立复验）或 L01–L06（同讲师适配）；不要把早期计划当成当前结论。
+当前取舍和执行顺序只维护在[全项目进度图](README.md)。本页是报告/AI 的唯一实验总账：保留比较条件、负结果、原始分母、证据入口及复算方法。读者可直接查 H01–H19（历史研究）、P01–P14（公开机制探索）、A01–A07（误差/计时复核）、C01–C18（目标课堂及其独立复验）或 L01–L06（同讲师适配）；不要把早期计划当成当前结论。
 
 按讲次的原始对照与新增对照分别见[首轮数值](results/2026-11-25.json)、[固定英语复核](results/2026-11-25-fixed-english.json)、[连续演讲切段](results/2026-11-25-continuous.json)和[两模型复核](results/2026-11-25-asr-ensemble.json)。每次新增实验时在对应问题下追加，保留原分数、失败及后验分析的身份。
 
@@ -166,3 +166,9 @@ To compare selective methods fairly, we then kept the original caption windows f
 **Independent checks.** On two additional Yale lecture excerpts, priority reprocessing did not outperform frame-budget-matched random selection. Only three of fifty windows changed after normalization, so these two excerpts offered little scope for candidate-based correction. This limits the claim to conditions where reprocessing supplies useful alternatives. In the 55-minute bilingual event replay, freezing older rows reduced a character-retraction proxy but left 167 of 194 displayed segments different from the retained final history. Neither measure establishes translation fidelity or reading comfort.
 
 **Local instructor adaptation.** Four fixed Qwen 1.7B LoRA variants produced more errors than the base model on the development lecture (66–76 versus 64), but fewer on the two held-out lectures from the same instructor (245–256 versus 276 on 2,141 words). All four reduced insertions while increasing deletions. The result supports investigating this trade-off, not deploying a selected adapter, claiming that adaptation is ineffective, or extrapolating to the private classroom instructors.
+
+### C18 · RQ1 原生浮窗的跟随请求与末行可见性
+
+复核 C16 的同一份 55.17 分钟事件流（5,014 事件、194 段）。假定始终跟随，2／4／6 行原版→候选主动跟随键变化数分别是 4,533→4,436、5,014→4,436、5,014→4,436。六行少 578 次（11.5%），其中 263 次旧行无文本变化。这是同一记录复算，不是新增独立课堂或实际滚屏次数。候选不冻结旧字幕和历史，只改变触发跟随的条件。
+
+在 Mac 原生托管 SwiftUI 合成窗中，340×120 点视口，固定高度旧行由 42 增至 130 点；三轮各三项测试通过，但三轮均观察到旧行增高时无新增跟随请求，且尾部距视口 88 点。早期试跑也曾见布局自行贴底，因此不能由请求次数推断滚动距离。最新行首次中译仍触发跟随。合成拖动事件后用程序设定离底位置（并非物理输入验证），随后新增／修订最新行保持离底；点「最新」或切换会话时回底。保留研究原型，不采用。下一轮固定字号和视口对照同一双语文本自然换行；目前未证明屏幕更稳，也未测阅读舒适度。[聚合读数](results/2026-11-26-native-follow.json)

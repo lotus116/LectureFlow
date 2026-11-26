@@ -1,0 +1,69 @@
+{
+  "id": "C18",
+  "source_commit": "5e47864608b0abb384f6608e3645723656bb6958",
+  "swift": "6.4.2 arm64-apple-macosx27.0.0",
+  "replay": {
+    "minutes": 55.17,
+    "events": 5014,
+    "fragments": 194,
+    "log_sha256": "7e2a5617b729392ba9ca9badb276bdb2d74921602f4e5745d2ecf9d8e9ca72ad",
+    "stock_then_candidate": {
+      "2": [
+        4533,
+        4436
+      ],
+      "4": [
+        5014,
+        4436
+      ],
+      "6": [
+        5014,
+        4436
+      ]
+    },
+    "older_status_only_six": 263
+  },
+  "patch_sha256": "3218294e01f34975e9af1476417f1192b567eaacad2a7f7d26bc5dc46bfbb603",
+  "test_filter": "CaptionFollowingTests|FloatingCaptionContentTests",
+  "viewport_points": [
+    340,
+    120
+  ],
+  "old_row_height_points": [
+    42,
+    130
+  ],
+  "final_trials": [
+    {
+      "run": 1,
+      "geometry": [
+        "FOLLOW_GEOMETRY old_growth start=157.0 now=157.0 bottom_gap=88.0",
+        "FOLLOW_GEOMETRY detached_new_row_gap=165.0",
+        "FOLLOW_GEOMETRY latest_click_gap=0.0",
+        "FOLLOW_GEOMETRY drag_revision_gap=165.0",
+        "FOLLOW_GEOMETRY session_switch_gap=0.0"
+      ]
+    },
+    {
+      "run": 2,
+      "geometry": [
+        "FOLLOW_GEOMETRY old_growth start=157.0 now=157.0 bottom_gap=88.0",
+        "FOLLOW_GEOMETRY detached_new_row_gap=165.0",
+        "FOLLOW_GEOMETRY latest_click_gap=0.0",
+        "FOLLOW_GEOMETRY drag_revision_gap=165.0",
+        "FOLLOW_GEOMETRY session_switch_gap=0.0"
+      ]
+    },
+    {
+      "run": 3,
+      "geometry": [
+        "FOLLOW_GEOMETRY old_growth start=157.0 now=157.0 bottom_gap=88.0",
+        "FOLLOW_GEOMETRY detached_new_row_gap=165.0",
+        "FOLLOW_GEOMETRY latest_click_gap=0.0",
+        "FOLLOW_GEOMETRY drag_revision_gap=165.0",
+        "FOLLOW_GEOMETRY session_switch_gap=0.0"
+      ]
+    }
+  ],
+  "limits": "Synthetic hosted SwiftUI pane. Dispatched mouse events; off-bottom clip origin set programmatically. Fixed fixture row heights. No physical trackpad, full app, independent lecture, frame-timed jitter, or reader ratings."
+}
