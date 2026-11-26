@@ -1,0 +1,175 @@
+{
+  "id": "C24",
+  "origin": "C01/C03 cached classroom pairs",
+  "sample_rate_hz": 16000,
+  "tracks": [
+    {
+      "pair": 1,
+      "channel": "room",
+      "gap_count": 0,
+      "total_frames": 4904000,
+      "covered_frames": 4904000,
+      "windows": 19,
+      "gap_frames": 0,
+      "reference_lines": 50,
+      "line_start_in_gaps": 0,
+      "line_starts_deep_in_gap": 0,
+      "gap_speech_frames": 0,
+      "gap_words": 0,
+      "N": 640,
+      "errors_first_same_full": [
+        113,
+        72,
+        55
+      ],
+      "same_boundaries_as_full": false
+    },
+    {
+      "pair": 1,
+      "channel": "zoom",
+      "gap_count": 9,
+      "total_frames": 4904000,
+      "covered_frames": 4756000,
+      "windows": 19,
+      "gap_frames": 148000,
+      "reference_lines": 50,
+      "line_start_in_gaps": 2,
+      "line_starts_deep_in_gap": 0,
+      "gap_speech_frames": null,
+      "gap_words": null,
+      "N": 640,
+      "errors_first_same_full": [
+        49,
+        42,
+        33
+      ],
+      "same_boundaries_as_full": false
+    },
+    {
+      "pair": 2,
+      "channel": "room",
+      "gap_count": 7,
+      "total_frames": 4808000,
+      "covered_frames": 4568000,
+      "windows": 19,
+      "gap_frames": 240000,
+      "reference_lines": 43,
+      "line_start_in_gaps": 5,
+      "line_starts_deep_in_gap": 0,
+      "gap_speech_frames": null,
+      "gap_words": null,
+      "N": 549,
+      "errors_first_same_full": [
+        97,
+        85,
+        89
+      ],
+      "same_boundaries_as_full": false
+    },
+    {
+      "pair": 2,
+      "channel": "zoom",
+      "gap_count": 10,
+      "total_frames": 4808000,
+      "covered_frames": 4476000,
+      "windows": 21,
+      "gap_frames": 332000,
+      "reference_lines": 43,
+      "line_start_in_gaps": 5,
+      "line_starts_deep_in_gap": 0,
+      "gap_speech_frames": null,
+      "gap_words": null,
+      "N": 549,
+      "errors_first_same_full": [
+        76,
+        78,
+        65
+      ],
+      "same_boundaries_as_full": false
+    },
+    {
+      "pair": 3,
+      "channel": "room",
+      "gap_count": 0,
+      "total_frames": 4800679,
+      "covered_frames": 4800679,
+      "windows": 23,
+      "gap_frames": 0,
+      "reference_lines": 37,
+      "line_start_in_gaps": 0,
+      "line_starts_deep_in_gap": 0,
+      "gap_speech_frames": 0,
+      "gap_words": 0,
+      "N": 517,
+      "errors_first_same_full": [
+        116,
+        95,
+        96
+      ],
+      "same_boundaries_as_full": false
+    },
+    {
+      "pair": 3,
+      "channel": "zoom",
+      "gap_count": 0,
+      "total_frames": 4800679,
+      "covered_frames": 4800679,
+      "windows": 21,
+      "gap_frames": 0,
+      "reference_lines": 37,
+      "line_start_in_gaps": 0,
+      "line_starts_deep_in_gap": 0,
+      "gap_speech_frames": 0,
+      "gap_words": 0,
+      "N": 517,
+      "errors_first_same_full": [
+        69,
+        67,
+        67
+      ],
+      "same_boundaries_as_full": false
+    },
+    {
+      "pair": 4,
+      "channel": "room",
+      "gap_count": 0,
+      "total_frames": 4880928,
+      "covered_frames": 4880928,
+      "windows": 18,
+      "gap_frames": 0,
+      "reference_lines": 38,
+      "line_start_in_gaps": 0,
+      "line_starts_deep_in_gap": 0,
+      "gap_speech_frames": 0,
+      "gap_words": 0,
+      "N": 556,
+      "errors_first_same_full": [
+        114,
+        93,
+        91
+      ],
+      "same_boundaries_as_full": false
+    },
+    {
+      "pair": 4,
+      "channel": "zoom",
+      "gap_count": 0,
+      "total_frames": 4880928,
+      "covered_frames": 4880928,
+      "windows": 18,
+      "gap_frames": 0,
+      "reference_lines": 38,
+      "line_start_in_gaps": 0,
+      "line_starts_deep_in_gap": 0,
+      "gap_speech_frames": 0,
+      "gap_words": 0,
+      "N": 556,
+      "errors_first_same_full": [
+        71,
+        70,
+        66
+      ],
+      "same_boundaries_as_full": false
+    }
+  ]
+}
