@@ -173,6 +173,7 @@ def score(folder):
                          draft=ds, full=fs, selected=ss, **{"frozen_mask": mask},
                          churn=selected[name]["retracted_words"],
                          random_sum=sum(random_scores), random_n=len(random_scores),
+                         oracle_min_at_same_budget=min(random_scores), random_max=max(random_scores),
                          random_mean=sum(random_scores)/len(random_scores),
                          random_better_equal=sum(v<=ss for v in random_scores),
                          candidate_decode_full_s=sum(calls[name,i,"candidate"]["seconds"] for i in range(WINDOWS)),
