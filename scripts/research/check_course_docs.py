@@ -6,6 +6,7 @@ import re
 import subprocess
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
+from xml.etree import ElementTree
 
 root = Path(__file__).resolve().parents[2]
 research = root / "docs/research"
@@ -26,6 +27,14 @@ def main():
     tip = re.search(r'，C(\d+) / L(\d+)\*\*', overview)
     if not tip:
         raise ValueError("map lacks C/L milestone line")
+    milestone = re.search(r'\*\*(\d{4}-\d{2}-\d{2})，C(\d+) / L(\d+)\*\*', overview)
+    if not milestone:
+        raise ValueError("map lacks a dated C/L milestone")
+    day, c_id, l_id = milestone.groups()
+    svg = ElementTree.parse(research / "progress-tree.svg").getroot()
+    labels = {"".join(node.itertext()) for node in svg.findall(".//{http://www.w3.org/2000/svg}text")}
+    if f"{day}  ·  C{c_id} / L{l_id}" not in labels:
+        raise ValueError("SVG and research page milestone differ")
     for cat, top in zip(("C", "L"), map(int, tip.groups())):
         ids = {int(i) for i in re.findall(rf"(?m)^(?:\| \*\*|### ){cat}(\d+)\b", ledger)}
         if set(range(1, top + 1)) != ids:

@@ -6,4 +6,4 @@
 
 ## English results draft for the course report
 
-英文取数和草稿现维护在[实验总账](EXPERIMENT_LEDGER.md#english-results-draft-for-the-course-report)。
+英文取数和草稿现维护在[实验总账](EXPERIMENT_LEDGER.md#course-report-outline-and-verified-wording)。
