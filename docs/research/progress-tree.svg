@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="776" viewBox="0 0 1120 776" role="img" aria-labelledby="title desc">
 <title id="title">LectureFlow 从 proposal 展开的研究进度树</title>
-<desc id="desc">课中字幕与课后重听是两条主线；现场与 Zoom、术语去噪、讲师微调为探索分支。底部列报告整合及下一项独立验证。图后有可读文字版。</desc>
+<desc id="desc">课中字幕与课后重听是两条主线；现场与 Zoom、术语去噪、讲师微调为探索分支。底部列课中双语的下一项跨讲师验证。图后有可读文字版。</desc>
 <g font-family="-apple-system,BlinkMacSystemFont,PingFang SC,Noto Sans CJK SC,Microsoft YaHei,sans-serif">
 <rect x="0" y="0" width="1120" height="776" rx="22" fill="#f3f6fa" stroke="none"/>
 <text x="32" y="38" font-size="15" fill="#405972" font-weight="700">LECTUREFLOW   /   NLP 期末研究</text>
-<text x="861" y="38" font-size="15" fill="#405972" font-weight="600">2026-11-26  ·  C24 / L06</text>
+<text x="861" y="38" font-size="15" fill="#405972" font-weight="600">2026-11-26  ·  C25 / L06</text>
 <rect x="318" y="58" width="484" height="90" rx="17" fill="#10263d" stroke="none"/>
 <text x="343" y="95" font-size="28" fill="#ffffff" font-weight="700">Proposal：本地课堂字幕</text>
 <text x="343" y="124" font-size="18" fill="#dce9f6" font-weight="400">课中是否来得及？课后怎样补得准？</text>
@@ -34,9 +34,9 @@
 <rect x="55" y="527" width="309" height="111" rx="13" fill="#ffffff" stroke="#d9e3ee"/>
 <rect x="69" y="539" width="43" height="22" rx="6" fill="#daefe8" stroke="none"/>
 <text x="76" y="555" font-size="13" fill="#075746" font-weight="700">在验</text>
-<text x="69" y="582" font-size="17" fill="#172d43" font-weight="700">中文晚改：独立音频复验</text>
-<text x="69" y="605" font-size="16" fill="#243b52" font-weight="500">末次中文改动中位 31.47 秒</text>
-<text x="69" y="626" font-size="15" fill="#4d637a" font-weight="400">拆开测后文限窗与去重</text>
+<text x="69" y="582" font-size="17" fill="#172d43" font-weight="700">中文晚改：已拆开两项机制</text>
+<text x="69" y="605" font-size="16" fill="#243b52" font-weight="500">新片段最晚 36.73 → 22.33 秒</text>
+<text x="69" y="626" font-size="15" fill="#4d637a" font-weight="400">限窗有代价；去重少调用 6 次</text>
 <rect x="394" y="184" width="332" height="70" rx="13" fill="#e1f3ed" stroke="none"/>
 <text x="410" y="207" font-size="14" fill="#096856" font-weight="700">研究问题 2</text>
 <text x="410" y="235" font-size="24" fill="#10263d" font-weight="700">课后重听</text>
@@ -95,6 +95,6 @@
 <text x="793" y="626" font-size="15" fill="#4d637a" font-weight="400">不代表所有微调都没用</text>
 <rect x="32" y="665" width="1056" height="79" rx="14" fill="#112c44" stroke="none"/>
 <text x="50" y="696" font-size="19" fill="#ffffff" font-weight="700">当前优先</text>
-<text x="167" y="696" font-size="18" fill="#eff6fe" font-weight="500">课中双语 · 开始验证译文为何迟迟还在改</text>
+<text x="167" y="696" font-size="18" fill="#eff6fe" font-weight="500">课中双语 · 换讲师验证稳定速度与内容保留</text>
 <text x="50" y="723" font-size="16" fill="#cfdeee" font-weight="400">报告和打包先停。Mac 本地验证；保持原文、App 默认不变。</text>
 </g></svg>
