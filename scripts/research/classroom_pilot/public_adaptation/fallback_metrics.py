@@ -44,6 +44,10 @@ for kind in ("duration", "recitation"):
         rows = read(p)
         if set(refs) <= rows.keys():
             sets[p.name.removesuffix("-predictions.jsonl")] = rows
+    for p in folder.glob("lora-*-repaired.jsonl"):
+        rows = read(p)
+        if set(refs) == rows.keys():
+            sets[p.stem] = rows
     results = {}
     for label, rows in sets.items():
         g = {"total": Counter(), "flagged": Counter(), "unflagged": Counter()}

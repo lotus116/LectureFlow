@@ -15,8 +15,8 @@ from speaker_lora import read_pcm
 from transformers import WhisperForConditionalGeneration, WhisperProcessor
 
 src, ckpt, out = map(Path, sys.argv[1:4])
-pseudo = sys.argv[4:] == ["--teacher"]
-if sys.argv[4:] and not pseudo:
+mode = sys.argv[4].removeprefix("--") if len(sys.argv) == 5 else "publisher"
+if len(sys.argv) > 5 or mode not in ("publisher", "teacher", "ranked", "random"):
     raise ValueError("Unexpected option")
 torch.set_num_threads(3)
 proc = WhisperProcessor.from_pretrained(ckpt, local_files_only=True)
@@ -94,16 +94,23 @@ def evaluate(model, arm):
 
 if not (out / "base-metrics.json").exists():
     evaluate(load(), "base")
-if pseudo:
+if mode != "publisher":
     teacher_rows = [
         json.loads(line) for line in (out / "teacher-train.jsonl").read_text().splitlines()
     ]
     texts = {r["id"]: r["hypothesis"] for r in teacher_rows}
     assert len(texts) == len(teacher_rows) == len(train_indices)
+    reviewed = set()
+    if mode in ("ranked", "random"):
+        mask = json.loads((out / "annotation-mask.json").read_text())
+        reviewed = set(mask["ranked"] if mode == "ranked" else mask["random_controls"][0])
+        assert reviewed <= texts.keys()
+        (out / f"lora-60-{mode}-reviewed.json").write_text(json.dumps(sorted(reviewed)))
     for i in train_indices:
-        labels[i] = torch.tensor(proc.tokenizer(texts[rows[i]["id"]]).input_ids[1:])
-for budget in (60,) if pseudo else (10, 30, 60):
-    arm = f"lora-{budget}" + ("-teacher" if pseudo else "")
+        if rows[i]["id"] not in reviewed:
+            labels[i] = torch.tensor(proc.tokenizer(texts[rows[i]["id"]]).input_ids[1:])
+for budget in (10, 30, 60) if mode == "publisher" else (60,):
+    arm = f"lora-{budget}" + ("" if mode == "publisher" else "-" + mode)
     if (out / f"{arm}-metrics.json").exists():
         continue
     train = [i for i in train_indices if rows[i]["min_budget"] <= budget]

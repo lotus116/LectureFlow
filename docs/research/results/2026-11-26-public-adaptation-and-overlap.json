@@ -1,0 +1,995 @@
+{
+  "editing_budget": {
+    "controls": 2000,
+    "exactly_agree": {
+      "clips": 88,
+      "reference_words": 2069,
+      "seconds": 960.472,
+      "teacher_errors": 214
+    },
+    "full": {
+      "clips": 333,
+      "reference_words": 7824,
+      "seconds": 3609.491,
+      "teacher_errors": 1123
+    },
+    "others": {
+      "clips": 277,
+      "reference_words": 6704,
+      "seconds": 3021.664,
+      "teacher_errors": 847
+    },
+    "per_lecture": {
+      "1": {
+        "clips": 13,
+        "reference_words": 277,
+        "seconds": 144.438,
+        "teacher_errors": 68
+      },
+      "2": {
+        "clips": 14,
+        "reference_words": 278,
+        "seconds": 148.451,
+        "teacher_errors": 91
+      },
+      "3": {
+        "clips": 14,
+        "reference_words": 267,
+        "seconds": 147.102,
+        "teacher_errors": 58
+      },
+      "8": {
+        "clips": 15,
+        "reference_words": 298,
+        "seconds": 147.836,
+        "teacher_errors": 59
+      }
+    },
+    "random_2_5pct": 150,
+    "random_97_5pct": 221,
+    "random_at_least_ranked": 0,
+    "random_mean_errors": 184.5875,
+    "random_seconds_range": [
+      586.827,
+      588.827
+    ],
+    "ranked": {
+      "clips": 56,
+      "reference_words": 1120,
+      "seconds": 587.827,
+      "teacher_errors": 276
+    }
+  },
+  "frozen_sha256": {
+    "ami/mix-plan.json": "9835af50aea29a540fef6dd7febdc5d6519ac6b7a182923b87552a1963d51916",
+    "ami/plan.json": "ac26446f763f9c811c5fd83e5ef75fb935ba233b7f28973656430c351973bca8",
+    "duration/annotation-mask.json": "c423a4ff4e81af489ccb20ef6689f0145d1e55894658655a3909de3fe3a1cbc6",
+    "duration/windows.json": "226fd93440e0beea000ef24cda6ac33b169ffa0c5fa2e30fbafb9c98a78aa78a",
+    "recitation/windows.json": "cdee6613a026108465a0b3259f253f9d723fb1bee1b0ac91438daab9dadf8d7a"
+  },
+  "loop_control": {
+    "duration": {
+      "base": {
+        "errors": 261,
+        "errors_outside_base_loop_flags": 154,
+        "words": 1170
+      },
+      "local_redecode": {
+        "errors": 202,
+        "errors_outside_base_loop_flags": 154,
+        "words": 1170
+      },
+      "lora-10": {
+        "errors": 191,
+        "errors_outside_base_loop_flags": 157,
+        "words": 1170
+      },
+      "lora-10-repaired": {
+        "errors": 122,
+        "errors_outside_base_loop_flags": 119,
+        "words": 1170
+      },
+      "lora-30": {
+        "errors": 149,
+        "errors_outside_base_loop_flags": 115,
+        "words": 1170
+      },
+      "lora-30-repaired": {
+        "errors": 117,
+        "errors_outside_base_loop_flags": 115,
+        "words": 1170
+      },
+      "lora-60": {
+        "errors": 151,
+        "errors_outside_base_loop_flags": 117,
+        "words": 1170
+      },
+      "lora-60-random": {
+        "errors": 141,
+        "errors_outside_base_loop_flags": 140,
+        "words": 1170
+      },
+      "lora-60-random-repaired": {
+        "errors": 141,
+        "errors_outside_base_loop_flags": 140,
+        "words": 1170
+      },
+      "lora-60-ranked": {
+        "errors": 141,
+        "errors_outside_base_loop_flags": 140,
+        "words": 1170
+      },
+      "lora-60-ranked-repaired": {
+        "errors": 141,
+        "errors_outside_base_loop_flags": 140,
+        "words": 1170
+      },
+      "lora-60-repaired": {
+        "errors": 119,
+        "errors_outside_base_loop_flags": 117,
+        "words": 1170
+      },
+      "lora-60-teacher": {
+        "errors": 139,
+        "errors_outside_base_loop_flags": 138,
+        "words": 1170
+      },
+      "lora-60-teacher-repaired": {
+        "errors": 139,
+        "errors_outside_base_loop_flags": 138,
+        "words": 1170
+      },
+      "teacher_everywhere": {
+        "errors": 131,
+        "errors_outside_base_loop_flags": 128,
+        "words": 1170
+      },
+      "teacher_flagged_only": {
+        "errors": 157,
+        "errors_outside_base_loop_flags": 154,
+        "words": 1170
+      }
+    },
+    "recitation": {
+      "base": {
+        "errors": 190,
+        "errors_outside_base_loop_flags": 53,
+        "words": 548
+      },
+      "local_redecode": {
+        "errors": 67,
+        "errors_outside_base_loop_flags": 53,
+        "words": 548
+      },
+      "lora-10": {
+        "errors": 211,
+        "errors_outside_base_loop_flags": 113,
+        "words": 548
+      },
+      "lora-10-repaired": {
+        "errors": 148,
+        "errors_outside_base_loop_flags": 113,
+        "words": 548
+      },
+      "lora-30": {
+        "errors": 241,
+        "errors_outside_base_loop_flags": 104,
+        "words": 548
+      },
+      "lora-30-repaired": {
+        "errors": 184,
+        "errors_outside_base_loop_flags": 104,
+        "words": 548
+      },
+      "lora-60": {
+        "errors": 241,
+        "errors_outside_base_loop_flags": 99,
+        "words": 548
+      },
+      "lora-60-random": {
+        "errors": 127,
+        "errors_outside_base_loop_flags": 77,
+        "words": 548
+      },
+      "lora-60-random-repaired": {
+        "errors": 91,
+        "errors_outside_base_loop_flags": 77,
+        "words": 548
+      },
+      "lora-60-ranked": {
+        "errors": 125,
+        "errors_outside_base_loop_flags": 75,
+        "words": 548
+      },
+      "lora-60-ranked-repaired": {
+        "errors": 89,
+        "errors_outside_base_loop_flags": 75,
+        "words": 548
+      },
+      "lora-60-repaired": {
+        "errors": 119,
+        "errors_outside_base_loop_flags": 99,
+        "words": 548
+      },
+      "lora-60-teacher": {
+        "errors": 121,
+        "errors_outside_base_loop_flags": 71,
+        "words": 548
+      },
+      "lora-60-teacher-repaired": {
+        "errors": 85,
+        "errors_outside_base_loop_flags": 71,
+        "words": 548
+      },
+      "teacher_everywhere": {
+        "errors": 73,
+        "errors_outside_base_loop_flags": 64,
+        "words": 548
+      },
+      "teacher_flagged_only": {
+        "errors": 62,
+        "errors_outside_base_loop_flags": 53,
+        "words": 548
+      }
+    }
+  },
+  "order": "Repetition gate was chosen after inspecting the main-test base outputs. The gate was applied unchanged to recitations and to the adapted models. Annotation masks are reference-blind and frozen before scoring.",
+  "provenance": {
+    "AMI_annotations_sha256": "b56e5babb2496b8795deeeda7e71178d7fbc9963f94276cf2a3f4b56ebbc9f9d",
+    "main_audio_archive_sha256": "666da83e88d65bca7c678a82bfc1d7e5c2f380aee9e866444801382cb494adb1",
+    "previous_method_commit": "61da7c8b3f036985f17ddf0f63c071bdc4a52e09",
+    "student": {
+      "files": {
+        "config.json": "b5366317df280f79e6cc366f259f379674f81a8721d458acf2e00680ccb10b1d",
+        "generation_config.json": "38744c19d5cede6ff4dab5079c6d6ddc02ca726960bbef208fb602ad5a030eab",
+        "model.safetensors": "db59695928ded6043adaef491a53ef4e12da9611184d77c53baa691a60b958ad",
+        "tokenizer.json": "5eb60cec1e77aeeb6869a2bb5a8e01a84c3fe5d072d75369343021fe6f5310d0"
+      },
+      "repository": "openai/whisper-tiny.en",
+      "revision": "87c7102498dcde7456f24cfd30239ca606ed9063"
+    },
+    "teacher": {
+      "files": {
+        "conv_frontend.onnx": "d22dc4423e0940e49884e903d2ea2f7e5567c14fc1aed97e4e26d6b8f208ef9e",
+        "decoder.int8.onnx": "4f6885be5959ae26af3089d38ee7972c5fafbeeb1cf8d5e76eab6d8b61ca5771",
+        "encoder.int8.onnx": "60748d3e6744a57c9c91e1b17424a6c2990567e8adceb0783940c03ed98fa9d9"
+      },
+      "repository": "thieunv/sherpa-onnx-qwen3-asr-0.6B-int8",
+      "revision": "c12e7b0fc05e38e3949eacf3be13337c4df653b5"
+    }
+  },
+  "quality_check": "Publisher captions are evaluation references. The paired bootstrap reflects sampled windows within two target lectures. Device experiment scores the target speaker only. Natural and constructed overlap are separate.",
+  "results": {
+    "ami": {
+      "controlled": {
+        "noise_0dB": {
+          "clips": 22,
+          "errors": 164,
+          "words": 390
+        },
+        "speech_0dB": {
+          "clips": 22,
+          "errors": 319,
+          "words": 390
+        },
+        "speech_plus6dB": {
+          "clips": 22,
+          "errors": 190,
+          "words": 390
+        },
+        "target": {
+          "clips": 22,
+          "errors": 74,
+          "words": 390
+        }
+      },
+      "natural": {
+        "overlap_Array1-01": {
+          "clips": 22,
+          "delete": 52,
+          "errors": 170,
+          "insert": 20,
+          "replace": 98,
+          "words": 503
+        },
+        "overlap_Headset-0": {
+          "clips": 22,
+          "delete": 25,
+          "errors": 83,
+          "insert": 18,
+          "replace": 40,
+          "words": 503
+        },
+        "single_Array1-01": {
+          "clips": 22,
+          "delete": 48,
+          "errors": 74,
+          "insert": 5,
+          "replace": 21,
+          "words": 390
+        },
+        "single_Headset-0": {
+          "clips": 22,
+          "delete": 24,
+          "errors": 63,
+          "insert": 19,
+          "replace": 20,
+          "words": 390
+        }
+      },
+      "natural_by_meeting": {
+        "ES2008a_overlap": {
+          "clips": 1,
+          "duration_s": 6.72,
+          "far": 16,
+          "headset": 0,
+          "overlap_s": 1.2700000000000387,
+          "words": 23
+        },
+        "ES2008a_single": {
+          "clips": 1,
+          "duration_s": 5.31,
+          "far": 2,
+          "headset": 2,
+          "overlap_s": 0,
+          "words": 10
+        },
+        "ES2008b_overlap": {
+          "clips": 8,
+          "duration_s": 73.59,
+          "far": 56,
+          "headset": 41,
+          "overlap_s": 16.659999999999968,
+          "words": 226
+        },
+        "ES2008b_single": {
+          "clips": 8,
+          "duration_s": 57.879999999999995,
+          "far": 23,
+          "headset": 16,
+          "overlap_s": 0,
+          "words": 167
+        },
+        "ES2008c_overlap": {
+          "clips": 5,
+          "duration_s": 31.740000000000002,
+          "far": 35,
+          "headset": 7,
+          "overlap_s": 9.970000000000596,
+          "words": 92
+        },
+        "ES2008c_single": {
+          "clips": 5,
+          "duration_s": 32.24,
+          "far": 18,
+          "headset": 10,
+          "overlap_s": 0,
+          "words": 74
+        },
+        "ES2008d_overlap": {
+          "clips": 8,
+          "duration_s": 47.59,
+          "far": 63,
+          "headset": 35,
+          "overlap_s": 15.76000000000056,
+          "words": 162
+        },
+        "ES2008d_single": {
+          "clips": 8,
+          "duration_s": 47.05,
+          "far": 31,
+          "headset": 35,
+          "overlap_s": 0,
+          "words": 139
+        }
+      },
+      "screen": {
+        "ES2008a_keep": {
+          "clips": 1,
+          "far_errors": 2,
+          "headset_errors": 2,
+          "imperfect_far": 1,
+          "overlap": 0,
+          "words": 10
+        },
+        "ES2008a_review": {
+          "clips": 1,
+          "far_errors": 16,
+          "headset_errors": 0,
+          "imperfect_far": 1,
+          "overlap": 1,
+          "words": 23
+        },
+        "ES2008b_keep": {
+          "clips": 8,
+          "far_errors": 27,
+          "headset_errors": 21,
+          "imperfect_far": 7,
+          "overlap": 3,
+          "words": 203
+        },
+        "ES2008b_review": {
+          "clips": 8,
+          "far_errors": 52,
+          "headset_errors": 36,
+          "imperfect_far": 8,
+          "overlap": 5,
+          "words": 190
+        },
+        "ES2008c_keep": {
+          "clips": 5,
+          "far_errors": 14,
+          "headset_errors": 9,
+          "imperfect_far": 3,
+          "overlap": 1,
+          "words": 76
+        },
+        "ES2008c_review": {
+          "clips": 5,
+          "far_errors": 39,
+          "headset_errors": 8,
+          "imperfect_far": 5,
+          "overlap": 4,
+          "words": 90
+        },
+        "ES2008d_keep": {
+          "clips": 8,
+          "far_errors": 45,
+          "headset_errors": 40,
+          "imperfect_far": 7,
+          "overlap": 3,
+          "words": 179
+        },
+        "ES2008d_review": {
+          "clips": 8,
+          "far_errors": 49,
+          "headset_errors": 30,
+          "imperfect_far": 8,
+          "overlap": 5,
+          "words": 122
+        },
+        "exact_agreement": {
+          "clips": 11,
+          "far_errors": 20,
+          "headset_errors": 20,
+          "imperfect_far": 7,
+          "overlap": 1,
+          "words": 225
+        },
+        "full": {
+          "clips": 44,
+          "far_errors": 244,
+          "headset_errors": 146,
+          "imperfect_far": 40,
+          "overlap": 22,
+          "words": 893
+        },
+        "keep": {
+          "clips": 22,
+          "far_errors": 88,
+          "headset_errors": 72,
+          "imperfect_far": 18,
+          "overlap": 7,
+          "words": 468
+        },
+        "nonzero_disagreement": {
+          "clips": 33,
+          "far_errors": 224,
+          "headset_errors": 126,
+          "imperfect_far": 33,
+          "overlap": 21,
+          "words": 668
+        },
+        "review": {
+          "clips": 22,
+          "far_errors": 156,
+          "headset_errors": 74,
+          "imperfect_far": 22,
+          "overlap": 15,
+          "words": 425
+        }
+      }
+    },
+    "data": {
+      "10": {
+        "seconds": 604.978,
+        "sources": [
+          1,
+          2,
+          3,
+          8
+        ],
+        "windows": 57
+      },
+      "30": {
+        "seconds": 1800.883,
+        "sources": [
+          1,
+          2,
+          3,
+          8
+        ],
+        "windows": 166
+      },
+      "60": {
+        "seconds": 3609.491,
+        "sources": [
+          1,
+          2,
+          3,
+          8
+        ],
+        "windows": 333
+      }
+    },
+    "mit": {
+      "base": {
+        "L6": {
+          "clips": 24,
+          "errors": 134,
+          "extra_term_occurrences": 2,
+          "missed_term_occurrences": 4,
+          "reference_term_occurrences": 38,
+          "words": 584
+        },
+        "L7": {
+          "clips": 24,
+          "errors": 127,
+          "extra_term_occurrences": 1,
+          "missed_term_occurrences": 2,
+          "reference_term_occurrences": 37,
+          "words": 586
+        },
+        "pooled": {
+          "clips": 48,
+          "errors": 261,
+          "extra_term_occurrences": 3,
+          "missed_term_occurrences": 6,
+          "reference_term_occurrences": 75,
+          "words": 1170
+        }
+      },
+      "lora-10": {
+        "L6": {
+          "clips": 24,
+          "errors": 148,
+          "extra_term_occurrences": 1,
+          "improved": 11,
+          "missed_term_occurrences": 3,
+          "normalized_output_changed": 18,
+          "reference_term_occurrences": 38,
+          "tied": 12,
+          "words": 584,
+          "worsened": 1
+        },
+        "L7": {
+          "clips": 24,
+          "errors": 43,
+          "extra_term_occurrences": 2,
+          "improved": 7,
+          "missed_term_occurrences": 4,
+          "normalized_output_changed": 18,
+          "reference_term_occurrences": 37,
+          "tied": 10,
+          "words": 586,
+          "worsened": 7
+        },
+        "paired_delta_conditional_95pct": [
+          -0.2223175965665236,
+          0.060550458715596334
+        ],
+        "pooled": {
+          "clips": 48,
+          "errors": 191,
+          "extra_term_occurrences": 3,
+          "improved": 18,
+          "missed_term_occurrences": 7,
+          "normalized_output_changed": 36,
+          "reference_term_occurrences": 75,
+          "tied": 22,
+          "words": 1170,
+          "worsened": 8
+        }
+      },
+      "lora-30": {
+        "L6": {
+          "clips": 24,
+          "errors": 99,
+          "extra_term_occurrences": 1,
+          "improved": 15,
+          "missed_term_occurrences": 4,
+          "normalized_output_changed": 19,
+          "reference_term_occurrences": 38,
+          "tied": 9,
+          "words": 584,
+          "worsened": 0
+        },
+        "L7": {
+          "clips": 24,
+          "errors": 50,
+          "extra_term_occurrences": 2,
+          "improved": 7,
+          "missed_term_occurrences": 5,
+          "normalized_output_changed": 15,
+          "reference_term_occurrences": 37,
+          "tied": 12,
+          "words": 586,
+          "worsened": 5
+        },
+        "paired_delta_conditional_95pct": [
+          -0.23585726718885988,
+          -0.020903010033444816
+        ],
+        "pooled": {
+          "clips": 48,
+          "errors": 149,
+          "extra_term_occurrences": 3,
+          "improved": 22,
+          "missed_term_occurrences": 9,
+          "normalized_output_changed": 34,
+          "reference_term_occurrences": 75,
+          "tied": 21,
+          "words": 1170,
+          "worsened": 5
+        }
+      },
+      "lora-60": {
+        "L6": {
+          "clips": 24,
+          "errors": 103,
+          "extra_term_occurrences": 1,
+          "improved": 14,
+          "missed_term_occurrences": 3,
+          "normalized_output_changed": 18,
+          "reference_term_occurrences": 38,
+          "tied": 10,
+          "words": 584,
+          "worsened": 0
+        },
+        "L7": {
+          "clips": 24,
+          "errors": 48,
+          "extra_term_occurrences": 2,
+          "improved": 8,
+          "missed_term_occurrences": 6,
+          "normalized_output_changed": 18,
+          "reference_term_occurrences": 37,
+          "tied": 9,
+          "words": 586,
+          "worsened": 7
+        },
+        "paired_delta_conditional_95pct": [
+          -0.23585726718885988,
+          -0.018440905280804692
+        ],
+        "pooled": {
+          "clips": 48,
+          "errors": 151,
+          "extra_term_occurrences": 3,
+          "improved": 22,
+          "missed_term_occurrences": 9,
+          "normalized_output_changed": 36,
+          "reference_term_occurrences": 75,
+          "tied": 19,
+          "words": 1170,
+          "worsened": 7
+        }
+      },
+      "lora-60-random": {
+        "L6": {
+          "clips": 24,
+          "errors": 93,
+          "extra_term_occurrences": 1,
+          "improved": 6,
+          "missed_term_occurrences": 3,
+          "normalized_output_changed": 14,
+          "reference_term_occurrences": 38,
+          "tied": 14,
+          "words": 584,
+          "worsened": 4
+        },
+        "L7": {
+          "clips": 24,
+          "errors": 48,
+          "extra_term_occurrences": 1,
+          "improved": 10,
+          "missed_term_occurrences": 3,
+          "normalized_output_changed": 19,
+          "reference_term_occurrences": 37,
+          "tied": 7,
+          "words": 586,
+          "worsened": 7
+        },
+        "paired_delta_conditional_95pct": [
+          -0.26416739319965127,
+          -0.0027223230490018148
+        ],
+        "pooled": {
+          "clips": 48,
+          "errors": 141,
+          "extra_term_occurrences": 2,
+          "improved": 16,
+          "missed_term_occurrences": 6,
+          "normalized_output_changed": 33,
+          "reference_term_occurrences": 75,
+          "tied": 21,
+          "words": 1170,
+          "worsened": 11
+        }
+      },
+      "lora-60-ranked": {
+        "L6": {
+          "clips": 24,
+          "errors": 92,
+          "extra_term_occurrences": 1,
+          "improved": 6,
+          "missed_term_occurrences": 3,
+          "normalized_output_changed": 14,
+          "reference_term_occurrences": 38,
+          "tied": 15,
+          "words": 584,
+          "worsened": 3
+        },
+        "L7": {
+          "clips": 24,
+          "errors": 49,
+          "extra_term_occurrences": 1,
+          "improved": 9,
+          "missed_term_occurrences": 3,
+          "normalized_output_changed": 18,
+          "reference_term_occurrences": 37,
+          "tied": 8,
+          "words": 586,
+          "worsened": 7
+        },
+        "paired_delta_conditional_95pct": [
+          -0.26455026455026454,
+          -0.003369839932603201
+        ],
+        "pooled": {
+          "clips": 48,
+          "errors": 141,
+          "extra_term_occurrences": 2,
+          "improved": 15,
+          "missed_term_occurrences": 6,
+          "normalized_output_changed": 32,
+          "reference_term_occurrences": 75,
+          "tied": 23,
+          "words": 1170,
+          "worsened": 10
+        }
+      },
+      "lora-60-teacher": {
+        "L6": {
+          "clips": 24,
+          "errors": 91,
+          "extra_term_occurrences": 1,
+          "improved": 8,
+          "missed_term_occurrences": 3,
+          "normalized_output_changed": 15,
+          "reference_term_occurrences": 38,
+          "tied": 13,
+          "words": 584,
+          "worsened": 3
+        },
+        "L7": {
+          "clips": 24,
+          "errors": 48,
+          "extra_term_occurrences": 1,
+          "improved": 10,
+          "missed_term_occurrences": 3,
+          "normalized_output_changed": 19,
+          "reference_term_occurrences": 37,
+          "tied": 7,
+          "words": 586,
+          "worsened": 7
+        },
+        "paired_delta_conditional_95pct": [
+          -0.26629422718808193,
+          -0.005208333333333333
+        ],
+        "pooled": {
+          "clips": 48,
+          "errors": 139,
+          "extra_term_occurrences": 2,
+          "improved": 18,
+          "missed_term_occurrences": 6,
+          "normalized_output_changed": 34,
+          "reference_term_occurrences": 75,
+          "tied": 20,
+          "words": 1170,
+          "worsened": 10
+        }
+      },
+      "teacher": {
+        "L6": {
+          "clips": 24,
+          "errors": 87,
+          "extra_term_occurrences": 2,
+          "improved": 10,
+          "missed_term_occurrences": 2,
+          "normalized_output_changed": 17,
+          "reference_term_occurrences": 38,
+          "tied": 8,
+          "words": 584,
+          "worsened": 6
+        },
+        "L7": {
+          "clips": 24,
+          "errors": 44,
+          "extra_term_occurrences": 0,
+          "improved": 9,
+          "missed_term_occurrences": 0,
+          "normalized_output_changed": 15,
+          "reference_term_occurrences": 37,
+          "tied": 10,
+          "words": 586,
+          "worsened": 5
+        },
+        "paired_delta_conditional_95pct": [
+          -0.2675933970460469,
+          -0.01267962806424345
+        ],
+        "pooled": {
+          "clips": 48,
+          "errors": 131,
+          "extra_term_occurrences": 2,
+          "improved": 19,
+          "missed_term_occurrences": 2,
+          "normalized_output_changed": 32,
+          "reference_term_occurrences": 75,
+          "tied": 18,
+          "words": 1170,
+          "worsened": 11
+        }
+      }
+    },
+    "recitation": {
+      "base": {
+        "R1": {
+          "clips": 12,
+          "errors": 19,
+          "words": 332
+        },
+        "R2": {
+          "clips": 12,
+          "errors": 171,
+          "words": 216
+        },
+        "pooled": {
+          "clips": 24,
+          "errors": 190,
+          "words": 548
+        }
+      },
+      "lora-10": {
+        "R1": {
+          "clips": 12,
+          "errors": 74,
+          "words": 332
+        },
+        "R2": {
+          "clips": 12,
+          "errors": 137,
+          "words": 216
+        },
+        "pooled": {
+          "clips": 24,
+          "errors": 211,
+          "words": 548
+        }
+      },
+      "lora-30": {
+        "R1": {
+          "clips": 12,
+          "errors": 66,
+          "words": 332
+        },
+        "R2": {
+          "clips": 12,
+          "errors": 175,
+          "words": 216
+        },
+        "pooled": {
+          "clips": 24,
+          "errors": 241,
+          "words": 548
+        }
+      },
+      "lora-60": {
+        "R1": {
+          "clips": 12,
+          "errors": 60,
+          "words": 332
+        },
+        "R2": {
+          "clips": 12,
+          "errors": 181,
+          "words": 216
+        },
+        "pooled": {
+          "clips": 24,
+          "errors": 241,
+          "words": 548
+        }
+      },
+      "lora-60-random": {
+        "R1": {
+          "clips": 12,
+          "errors": 40,
+          "words": 332
+        },
+        "R2": {
+          "clips": 12,
+          "errors": 87,
+          "words": 216
+        },
+        "pooled": {
+          "clips": 24,
+          "errors": 127,
+          "words": 548
+        }
+      },
+      "lora-60-ranked": {
+        "R1": {
+          "clips": 12,
+          "errors": 40,
+          "words": 332
+        },
+        "R2": {
+          "clips": 12,
+          "errors": 85,
+          "words": 216
+        },
+        "pooled": {
+          "clips": 24,
+          "errors": 125,
+          "words": 548
+        }
+      },
+      "lora-60-teacher": {
+        "R1": {
+          "clips": 12,
+          "errors": 38,
+          "words": 332
+        },
+        "R2": {
+          "clips": 12,
+          "errors": 83,
+          "words": 216
+        },
+        "pooled": {
+          "clips": 24,
+          "errors": 121,
+          "words": 548
+        }
+      },
+      "repetition": {
+        "R1": {
+          "clips": 12,
+          "errors": 19,
+          "words": 332
+        },
+        "R2": {
+          "clips": 12,
+          "errors": 48,
+          "words": 216
+        },
+        "pooled": {
+          "clips": 24,
+          "errors": 67,
+          "words": 548
+        }
+      }
+    }
+  },
+  "scope": "Public English academic speech and AMI meetings. Device CPU. No private classroom recordings used in these runs.",
+  "sources": [
+    "https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/",
+    "https://ocw.mit.edu/courses/18-06sc-linear-algebra-fall-2011/",
+    "https://groups.inf.ed.ac.uk/ami/corpus/"
+  ],
+  "student": "Whisper tiny.en; six rank-4 q/v LoRA adapters, 73728 trainable parameters, seed 26, 192 updates with batch size 2. One seed and one fitted random review mask.",
+  "teacher": "English Qwen3-ASR 0.6B INT8, local greedy decoding, no prompts.",
+  "training": "MIT 18.06 lecture IDs 1, 2, 3, 8; nested data budgets. Test on 6 and 7. Other-speaker diagnostic on two MIT 18.06SC recitations, with different recording conditions and speakers."
+}

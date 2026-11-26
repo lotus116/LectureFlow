@@ -41,7 +41,16 @@ def main(source, ckpt, output):
             sources=sorted({r["lecture"] for r in rows}),
         )
     sets = {}
-    for arm in ("base", "teacher", "lora-10", "lora-30", "lora-60", "lora-60-teacher"):
+    for arm in (
+        "base",
+        "teacher",
+        "lora-10",
+        "lora-30",
+        "lora-60",
+        "lora-60-teacher",
+        "lora-60-ranked",
+        "lora-60-random",
+    ):
         p = mit / ("teacher-test.jsonl" if arm == "teacher" else f"{arm}-predictions.jsonl")
         if not p.exists():
             continue
