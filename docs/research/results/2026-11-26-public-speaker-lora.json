@@ -1,0 +1,247 @@
+{
+  "checkpoint": "87c7102498dcde7456f24cfd30239ca606ed9063",
+  "device": "cpu",
+  "torch": "2.8.0+cpu",
+  "splits": {
+    "train": {
+      "windows": 48,
+      "seconds": 534.3009999999986
+    },
+    "dev": {
+      "windows": 12,
+      "seconds": 143.98800000000006
+    },
+    "test": {
+      "windows": 18,
+      "seconds": 188.96499999999958
+    }
+  },
+  "arms": {
+    "base": {
+      "evaluation": {
+        "dev": {
+          "basic_words": 294,
+          "basic_errors": 61,
+          "english_words": 303,
+          "english_errors": 61,
+          "windows": 12
+        },
+        "test": {
+          "basic_words": 397,
+          "basic_errors": 72,
+          "english_words": 407,
+          "english_errors": 46,
+          "windows": 18
+        }
+      }
+    },
+    "publisher": {
+      "train_steps": 48,
+      "fit_seconds": 67.47390252900004,
+      "trainable_parameters": 73728,
+      "evaluation": {
+        "dev": {
+          "basic_words": 294,
+          "basic_errors": 56,
+          "english_words": 303,
+          "english_errors": 56,
+          "windows": 12
+        },
+        "test": {
+          "basic_words": 397,
+          "basic_errors": 72,
+          "english_words": 407,
+          "english_errors": 46,
+          "windows": 18
+        }
+      }
+    },
+    "pseudo": {
+      "train_steps": 48,
+      "fit_seconds": 64.11784560899923,
+      "trainable_parameters": 73728,
+      "evaluation": {
+        "dev": {
+          "basic_words": 294,
+          "basic_errors": 56,
+          "english_words": 303,
+          "english_errors": 56,
+          "windows": 12
+        },
+        "test": {
+          "basic_words": 397,
+          "basic_errors": 67,
+          "english_words": 407,
+          "english_errors": 46,
+          "windows": 18
+        }
+      }
+    }
+  },
+  "paired_change": {
+    "dev": {
+      "basic": {
+        "publisher": {
+          "worse": 2,
+          "different_text": 5,
+          "better": 3,
+          "equal": 7
+        },
+        "pseudo": {
+          "equal": 8,
+          "different_text": 4,
+          "better": 4
+        }
+      },
+      "english": {
+        "publisher": {
+          "worse": 2,
+          "different_text": 5,
+          "better": 3,
+          "equal": 7
+        },
+        "pseudo": {
+          "equal": 8,
+          "different_text": 4,
+          "better": 4
+        }
+      }
+    },
+    "test": {
+      "basic": {
+        "publisher": {
+          "equal": 18,
+          "different_text": 0
+        },
+        "pseudo": {
+          "equal": 17,
+          "different_text": 1,
+          "better": 1
+        }
+      },
+      "english": {
+        "publisher": {
+          "equal": 18,
+          "different_text": 0
+        },
+        "pseudo": {
+          "equal": 18,
+          "different_text": 0
+        }
+      }
+    }
+  },
+  "training_label_noise_and_teacher_eval": {
+    "train": {
+      "basic": {
+        "words": 1136,
+        "errors": 160
+      },
+      "english": {
+        "words": 1183,
+        "errors": 155
+      }
+    },
+    "dev": {
+      "basic": {
+        "words": 294,
+        "errors": 39
+      },
+      "english": {
+        "words": 303,
+        "errors": 37
+      }
+    },
+    "test": {
+      "basic": {
+        "words": 397,
+        "errors": 23
+      },
+      "english": {
+        "words": 407,
+        "errors": 16
+      }
+    }
+  },
+  "alignment": {
+    "2": {
+      "offset_seconds_audio_minus_vtt": -0.75,
+      "train_anchor_wer": 0.16,
+      "unused_anchor_wer": 0.3,
+      "unused_anchor_errors_words": [
+        12,
+        40
+      ]
+    },
+    "3": {
+      "offset_seconds_audio_minus_vtt": -0.25,
+      "train_anchor_wer": 0.06363636363636363,
+      "unused_anchor_wer": 0.3333333333333333,
+      "unused_anchor_errors_words": [
+        7,
+        21
+      ]
+    },
+    "4": {
+      "offset_seconds_audio_minus_vtt": -0.5,
+      "train_anchor_wer": 0.08333333333333333,
+      "unused_anchor_wer": 0.02564102564102564,
+      "unused_anchor_errors_words": [
+        1,
+        39
+      ]
+    },
+    "5": {
+      "offset_seconds_audio_minus_vtt": 0.0,
+      "train_anchor_wer": 0.17582417582417584,
+      "unused_anchor_wer": 0.13793103448275862,
+      "unused_anchor_errors_words": [
+        4,
+        29
+      ]
+    }
+  },
+  "release_sources": [
+    {
+      "lecture": 2,
+      "page": "https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/resources/lecture-2-elimination-with-matrices/",
+      "vtt": "https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/916308875ad0523dafbd5b656b8d4887_QVKj3LADCnA.vtt",
+      "mp4": "https://archive.org/download/MIT18.06S05_MP4/02.mp4"
+    },
+    {
+      "lecture": 3,
+      "page": "https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/resources/lecture-3-multiplication-and-inverse-matrices/",
+      "vtt": "https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/7460c549d93a598f9daaba421a2ed583_FX4C-JpTFgY.vtt",
+      "mp4": "https://archive.org/download/MIT18.06S05_MP4/03.mp4"
+    },
+    {
+      "lecture": 4,
+      "page": "https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/resources/lecture-4-factorization-into-a-lu/",
+      "vtt": "https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/384c13ab0cd45489a5daad41294e844d_MsIvs_6vC38.vtt",
+      "mp4": "https://archive.org/download/MIT18.06S05_MP4/04.mp4"
+    },
+    {
+      "lecture": 5,
+      "page": "https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/resources/lecture-5-transposes-permutations-spaces-r-n/",
+      "vtt": "https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/eb5a7fe66ff6537aac15662f73d424b7_JibVXBElKL0.vtt",
+      "mp4": "https://archive.org/download/MIT18.06S05_MP4/05.mp4"
+    }
+  ],
+  "split_sha256": "2242097a62bc1dd6d7126e3583a2e591635e659609ae98581c9760ea5d66e959",
+  "adapter_sha256": {
+    "publisher": "61ee88c3094a94f9ef5a4e18992a8284d2e82df506139ac6d84ef496632e4fb6",
+    "pseudo": "bad61fcbdcee6f94fb2a5bdb920834c1668e5c076704c75e084814fb254867db"
+  },
+  "audio_sha256": {
+    "2": "f7e26f32b4dc46353b683bb3b406f03637ef5e77bd18cf5844e821954feaf939",
+    "3": "bb13a97d5bed340e63b4b26efd2a9852068e606b292f0668793694d3579e7e96",
+    "4": "e52cc510d67851c5ae9c617387983e741c3d6d9ce392f139826024b799be7ef7",
+    "5": "30beb4429a1222b3c740627c69947f53fe2068e98a4631376d006169cec73c50"
+  },
+  "captions_sha256": {
+    "2": "24691acb19c79d716f8801ee15f67acb46bee004171fea3b43ea03f8ae32bd48",
+    "3": "4ba30e88b21da7203eb9af5a43b1f6362b71d31b82bcc63ee6fe9cad52db87fa",
+    "4": "35a13f92e91bb530903fedb3b8679c091c503f7f1e6ce079996d8ec9c32242eb",
+    "5": "c08f1885227b7376eec462a9914caf351f67f5ab0e1778b66db8869caa3da35b"
+  }
+}

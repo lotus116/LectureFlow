@@ -1,0 +1,58 @@
+{
+  "per_meeting": {
+    "ES2008a": {
+      "clips": 1,
+      "words": 10,
+      "frames": 84960,
+      "Headset-0": 2,
+      "Array1-01": 2,
+      "headset_better": 0,
+      "distant_better": 0,
+      "tie": 1
+    },
+    "ES2008b": {
+      "clips": 8,
+      "words": 167,
+      "frames": 926080,
+      "Headset-0": 16,
+      "Array1-01": 23,
+      "headset_better": 2,
+      "distant_better": 1,
+      "tie": 5
+    },
+    "ES2008c": {
+      "clips": 5,
+      "words": 74,
+      "frames": 515840,
+      "Headset-0": 10,
+      "Array1-01": 18,
+      "headset_better": 3,
+      "distant_better": 0,
+      "tie": 2
+    },
+    "ES2008d": {
+      "clips": 8,
+      "words": 139,
+      "frames": 752800,
+      "Headset-0": 35,
+      "Array1-01": 31,
+      "headset_better": 2,
+      "distant_better": 2,
+      "tie": 4
+    }
+  },
+  "total": {
+    "clips": 22,
+    "words": 390,
+    "frames": 2279680,
+    "Headset-0": 63,
+    "Array1-01": 74,
+    "tie": 12,
+    "headset_better": 7,
+    "distant_better": 3
+  },
+  "sample_rate": 16000,
+  "annotations_sha256": "b56e5babb2496b8795deeeda7e71178d7fbc9963f94276cf2a3f4b56ebbc9f9d",
+  "mask_sha256": "52076061671acccda83a9f62e5104cbbd5ab9cbf347e9542c1f90a8f7ff9a728",
+  "output_sha256": "4e955d56464aafed92d7c2152c74f3e55fa9fbb00a85ce6786b9082a6fb9ae26"
+}
