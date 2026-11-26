@@ -1,6 +1,6 @@
 # LectureFlow 课程实验总账
 
-当前取舍和执行顺序只维护在[全项目进度图](README.md)。本页是报告/AI 的唯一实验总账：保留比较条件、负结果、原始分母、证据入口及复算方法。读者可直接查 H01–H19（历史研究）、P01–P14（公开机制探索）、A01–A07（误差/计时复核）、C01–C22（目标课堂及其独立复验）或 L01–L06（同讲师适配）；不要把早期计划当成当前结论。
+当前取舍和执行顺序只维护在[全项目进度图](README.md)。本页是报告/AI 的唯一实验总账：保留比较条件、负结果、原始分母、证据入口及复算方法。读者可直接查 H01–H19（历史研究）、P01–P14（公开机制探索）、A01–A07（误差/计时复核）、C01–C23（目标课堂及其独立复验）或 L01–L06（同讲师适配）；不要把早期计划当成当前结论。
 
 按讲次的原始对照与新增对照分别见[首轮数值](results/2026-11-25.json)、[固定英语复核](results/2026-11-25-fixed-english.json)、[连续演讲切段](results/2026-11-25-continuous.json)和[两模型复核](results/2026-11-25-asr-ensemble.json)。每次新增实验时在对应问题下追加，保留原分数、失败及后验分析的身份。
 
@@ -155,7 +155,7 @@ One working outline, not a final submission. It follows the two Group 35 proposa
 |---|---|
 | **Table 1. Real-time caption delivery (RQ1).** | A07 jointly lengthened the ASR and segment caps (20 to 26 s) at 1× on two public excerpts: standard errors remained 8/149 and 22/151; the first affected stable event during continuous speech arrived about 6 s later. H13 separately reduced provisional translation refresh (35–42% less translation compute under normal load, slower first Chinese output under stress). Use C02/C05 for accuracy/speed and bilingual load controls and C09 for long-run delivery. [A07](results/2026-11-25-context-replay.json) · [C09](results/2026-11-26-continuous-bilingual.json) |
 | **Table 2A. Selective reprocessing with original caption windows (RQ2).** | Four paired excerpts, two courses, 20.20 min of distinct speech, 2,262 normalized English reference words per channel. Draft / C03 priority / exact-frame matched random mean / all original windows: room 440 / 374 / 397.89 / 345; Zoom 265 / 257 / 261.86 / 257. Room priority recovered 66/95 of the all-window net error reduction in 22.58/57.73 s of warm candidate decoding. Keep raw-word sensitivity and C04 guard results visible: stronger guarding cut aligned regressions from 12 to 7 but also corrections from 61 to 25 in the room data. Independent whole-audio comparison C01 reached 331 room and 231 Zoom errors, not the same-window baseline. [C01](results/2026-11-26-classroom-paired.json) · [C03/C04](results/2026-11-26-classroom-followup.json) · [C11](results/2026-11-26-classroom-budget-sensitivity.json) |
-| **Table 2B. Transfer and coverage boundary.** | Same columns for original-window comparisons: Yale astronomy 42 / 42 / 41.202 / 40 (1,116 words; 28 windows), Yale economics 64 / 64 / 63.675 / 63 (845 words; 22 windows), AMI 519 / 519 / 517.67 / 515 (628 normalized words; seven windows). Only three Yale windows changed after normalization. In AMI, 34.25/182.22 s fell inside draft windows and the priority rule missed the only improving window. C22 is a **same-recording diagnosis** with unequal budgets: 119 errors after adding only gaps, 103 with full-audio fixed-grid decoding. Do not add C21 and C22 as independent test samples. [AMI selection](results/2026-11-26-rq2-ami-coverage.json) · [AMI gap recovery](results/2026-11-26-rq2-ami-gap-recovery.json) |
+| **Table 2B. Transfer and coverage boundary.** | Same columns for original-window comparisons: Yale astronomy 42 / 42 / 41.202 / 40 (1,116 words; 28 windows), Yale economics 64 / 64 / 63.675 / 63 (845 words; 22 windows), AMI 519 / 519 / 517.67 / 515 (628 normalized words; seven windows). Only three Yale windows changed after normalization. In AMI, 34.25/182.22 s fell inside draft windows and the priority rule missed the only improving window. C22 is a **same-recording diagnosis** with unequal budgets: 119 errors after adding only gaps, 103 with full-audio fixed-grid decoding. Do not add C21 and C22 as independent test samples. A second AMI meeting (C23; 763 normalized words) replicated the coverage result: 406 draft, 408 all original windows, 193 gap-only, and 187 whole-audio errors. Both samples are meeting proxies, not a classroom replication. [AMI selection](results/2026-11-26-rq2-ami-coverage.json) · [AMI gap recovery](results/2026-11-26-rq2-ami-gap-recovery.json) · [Second AMI meeting](results/2026-11-26-rq2-ami-second-meeting.json) |
 | **Appendix and non-adoption decisions.** | C10 shortened late Chinese revision on a deliberately selected excerpt but changed 10/24 final outputs, with no blinded fidelity judgment. C20 measured geometry on synthetic captions, across 18 runs (six per method), not classroom reading. L01–L06: training and reload worked; development-based selection did not justify deployment, though four fixed adapters reduced errors on two same-speaker confirmation lectures while increasing deletions. Instructor adaptation is exploratory, not a primary comparison. [C10](results/2026-11-26-classroom-late-context.json) · [C20](results/2026-11-26-rq1-viewport-audit.json) |
 
 **C09 timing definition.** At 16 kHz and 1×, the clock started at the observed arrival (immediately before enqueueing) of the first 250 ms audio packet whose end reached the eventual segment boundary; a boundary of zero uses replay time zero. First output means a nonempty English or Han-containing Chinese backend callback, measured from the start-boundary packet. Last change uses arrival of the end-boundary packet. All 52,960,125 input frames were consumed and the input queue discarded zero audio packets. This does not assess microphone capture, missing speech coverage, or screen delivery.
@@ -212,3 +212,16 @@ Mac SwiftUI 合成窗口，340×160 点、正文宽 316 点、双语六行。原
 | 整段固定网格离线 | 103（36／67／0） | 182.22 | 11.894 |
 
 缺口独立计分有 494 个归一化参考词；补稿正确对齐 402 个（另有 32 替换、60 删除、1 插入）。删词大幅下降表明这段主要瓶颈是**覆盖**，不是已有窗的排序；不由此定位成因。补空档用原音的 81.2%，表内时间为单窗一次暖解码累加，不能宣称等预算优胜、实时效能或实时覆盖改善。窗外 592 个音频包中 240 个低于最低起音门槛；无逐包实际动态状态，不能归因于低音量或门槛。全片 103 是固定方案的经验对照，不是理论上限。没有新课堂外推或独立人工听审。保留初稿与补稿，下一步按冻结网格在独立录音验证。[聚合结果](results/2026-11-26-rq2-ami-gap-recovery.json)
+
+### C23 · RQ2 第二场远场会议的补缺复验（新的会话与参与者）
+
+[AMI EN2002a](https://groups.inf.ed.ac.uk/ami/AMICorpusMirror/amicorpus/EN2002a/audio/) 单桌面阵列 Array1-01，320.570–502.405 秒，共 181.835 秒。沿用 C22 的片首 30 秒固定网格，在首稿之前锁定可用语料顺序与切点。官方音频直链失败，实际使用可追溯到同名原轨的完整 WAV 并核对分片、轨长与 PCM。人工词稿 v1.6.2；独立首中末盲听未做。两场的参与者和会话不同，仍共享项目及录音环境。
+
+| 方案 | 标准词错 / 763（替换／删除／插入） | 较少归一化词错 / 737 | 额外音频（秒） | 额外暖解码（秒） |
+|---|---:|---:|---:|---:|
+| 初稿 | 406（16／390／0） | 405 | 0 | 0 |
+| 原窗全量重听 | 408（16／392／0） | 408 | 94.750 | 9.534 |
+| 保留初稿，仅补空档 | 193（29／161／3） | 206 | 87.085 | 6.842 |
+| 全片固定网格离线 | 187（26／157／4） | 200 | 181.835 | 14.086 |
+
+初稿 19 窗覆盖 52.11% 原音；18 个缺口合计 87.085 秒，含 270/723 个原始参考词中点。分缺口对齐后，280 个标准参考词正确匹配 215，替换／删除／插入 15／50／2；17 个空档相对无输出净改善，1 个持平。整段插入词不等同幻觉。本次只补缺的实测暖解码为全片的 48.6%，相差 6 错，但这不是同预算比较，也不是实时改善；共同初稿加速回放 25.153 秒不计入表内。两个会议均支持先辨别字幕是否缺席，再考虑修正已有文本。不外推到课堂或推断低音量、重叠或门限的因果；真实独立远场课堂仍无合格留出。会议线停止加样或调参，保留原稿与候选作为报告中的产品取舍。[聚合结果](results/2026-11-26-rq2-ami-second-meeting.json)

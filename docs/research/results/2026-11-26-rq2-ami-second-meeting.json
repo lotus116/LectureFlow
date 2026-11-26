@@ -1,0 +1,126 @@
+{
+  "id": "C23",
+  "comparison": "C22 replication on a second meeting, not a classroom",
+  "reference": "AMI 1.6.2",
+  "array_channel": "Array1-01",
+  "segment_seconds": [
+    320.57,
+    502.405
+  ],
+  "scoring": {
+    "arms": {
+      "draft": {
+        "standard": {
+          "N": 763,
+          "H": 357,
+          "S": 16,
+          "D": 390,
+          "I": 0,
+          "E": 406
+        },
+        "literal": {
+          "N": 737,
+          "H": 334,
+          "S": 20,
+          "D": 383,
+          "I": 2,
+          "E": 405
+        },
+        "frames": 0,
+        "calls": 0,
+        "warm_s": 0,
+        "nonempty_span_frames": 1516000
+      },
+      "existing_full": {
+        "standard": {
+          "N": 763,
+          "H": 355,
+          "S": 16,
+          "D": 392,
+          "I": 0,
+          "E": 408
+        },
+        "literal": {
+          "N": 737,
+          "H": 331,
+          "S": 20,
+          "D": 386,
+          "I": 2,
+          "E": 408
+        },
+        "frames": 1516000,
+        "calls": 19,
+        "warm_s": 9.533783958060667,
+        "nonempty_span_frames": 1516000
+      },
+      "fill": {
+        "standard": {
+          "N": 763,
+          "H": 573,
+          "S": 29,
+          "D": 161,
+          "I": 3,
+          "E": 193
+        },
+        "literal": {
+          "N": 737,
+          "H": 538,
+          "S": 33,
+          "D": 166,
+          "I": 7,
+          "E": 206
+        },
+        "frames": 1393360,
+        "calls": 22,
+        "warm_s": 6.841948670102283,
+        "nonempty_span_frames": 2909360
+      },
+      "whole": {
+        "standard": {
+          "N": 763,
+          "H": 580,
+          "S": 26,
+          "D": 157,
+          "I": 4,
+          "E": 187
+        },
+        "literal": {
+          "N": 737,
+          "H": 545,
+          "S": 31,
+          "D": 161,
+          "I": 8,
+          "E": 200
+        },
+        "frames": 2909360,
+        "calls": 7,
+        "warm_s": 14.085638541029766,
+        "nonempty_span_frames": 2909360
+      }
+    },
+    "gap_pooled": {
+      "standard": {
+        "N": 280,
+        "H": 215,
+        "S": 15,
+        "D": 50,
+        "I": 2,
+        "E": 67
+      },
+      "literal": {
+        "N": 273,
+        "H": 203,
+        "S": 16,
+        "D": 54,
+        "I": 3,
+        "E": 73
+      }
+    },
+    "unique_calls": 47,
+    "raw_words": 723,
+    "raw_outside": 270,
+    "raw_overlapping": 263,
+    "raw_overlap_outside": 55,
+    "draft_s": 25.153028999920934
+  }
+}

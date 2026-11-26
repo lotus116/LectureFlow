@@ -4,7 +4,7 @@
 <g font-family="-apple-system,BlinkMacSystemFont,PingFang SC,Noto Sans CJK SC,Microsoft YaHei,sans-serif">
 <rect x="0" y="0" width="1120" height="776" rx="22" fill="#f3f6fa" stroke="none"/>
 <text x="32" y="38" font-size="15" fill="#405972" font-weight="700">LECTUREFLOW   /   NLP 期末研究</text>
-<text x="861" y="38" font-size="15" fill="#405972" font-weight="600">2026-11-26  ·  C22 / L06</text>
+<text x="861" y="38" font-size="15" fill="#405972" font-weight="600">2026-11-26  ·  C23 / L06</text>
 <rect x="318" y="58" width="484" height="90" rx="17" fill="#10263d" stroke="none"/>
 <text x="343" y="95" font-size="28" fill="#ffffff" font-weight="700">Proposal：本地课堂字幕</text>
 <text x="343" y="124" font-size="18" fill="#dce9f6" font-weight="400">课中是否来得及？课后怎样补得准？</text>
@@ -55,15 +55,15 @@
 <rect x="431" y="411" width="43" height="22" rx="6" fill="#e9f1fb" stroke="none"/>
 <text x="438" y="427" font-size="13" fill="#235181" font-weight="700">已测</text>
 <text x="431" y="454" font-size="17" fill="#172d43" font-weight="700">没字幕的区间能补回来吗？</text>
-<text x="431" y="477" font-size="16" fill="#243b52" font-weight="500">单段 AMI 会议：519 → 119 词错</text>
-<text x="431" y="498" font-size="15" fill="#4d637a" font-weight="400">补听 81% 原音，预算并不相同</text>
+<text x="431" y="477" font-size="16" fill="#243b52" font-weight="500">两场会议均大幅减错</text>
+<text x="431" y="498" font-size="15" fill="#4d637a" font-weight="400">519 → 119；406 → 193</text>
 <path d="M404 579H417" fill="none" stroke="#096856" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
 <circle cx="404" cy="579" r="4" fill="#096856"/>
 <rect x="417" y="527" width="309" height="111" rx="13" fill="#ffffff" stroke="#d9e3ee"/>
-<rect x="431" y="539" width="43" height="22" rx="6" fill="#daefe8" stroke="none"/>
-<text x="438" y="555" font-size="13" fill="#075746" font-weight="700">在验</text>
-<text x="431" y="582" font-size="17" fill="#172d43" font-weight="700">换一段独立录音再试</text>
-<text x="431" y="605" font-size="16" fill="#243b52" font-weight="500">保持同一切窗和评价协议</text>
+<rect x="431" y="539" width="43" height="22" rx="6" fill="#fff1db" stroke="none"/>
+<text x="438" y="555" font-size="13" fill="#84510c" font-weight="700">待验</text>
+<text x="431" y="582" font-size="17" fill="#172d43" font-weight="700">真实远场课堂能否复现？</text>
+<text x="431" y="605" font-size="16" fill="#243b52" font-weight="500">复核已有课堂的字幕覆盖</text>
 <text x="431" y="626" font-size="15" fill="#4d637a" font-weight="400">会议代理不等同真实课堂</text>
 <rect x="756" y="184" width="332" height="70" rx="13" fill="#efe8f7" stroke="none"/>
 <text x="772" y="207" font-size="14" fill="#6b4c87" font-weight="700">补充研究</text>
@@ -96,5 +96,5 @@
 <rect x="32" y="665" width="1056" height="79" rx="14" fill="#112c44" stroke="none"/>
 <text x="50" y="696" font-size="19" fill="#ffffff" font-weight="700">报告交付</text>
 <text x="167" y="696" font-size="18" fill="#eff6fe" font-weight="500">整合中 · 正文按 RQ1 / RQ2 展开，探索分支放附录</text>
-<text x="50" y="723" font-size="16" fill="#cfdeee" font-weight="400">当前优先：复验课后补空档，同时保留“原文 + 候选”，App 默认不变。</text>
+<text x="50" y="723" font-size="16" fill="#cfdeee" font-weight="400">当前优先：核对课堂证据、整合报告，同时保留“原文 + 候选”，App 默认不变。</text>
 </g></svg>
