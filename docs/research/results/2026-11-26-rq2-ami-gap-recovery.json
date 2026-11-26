@@ -1,0 +1,138 @@
+{
+  "id": "C22",
+  "same_audio_as": "C21",
+  "plan_sha256": "711c2e7aa5b6e0ed319655229a2066a56968a38fcd009466d4292161dc822073",
+  "scoring": {
+    "arms": {
+      "draft": {
+        "standard": {
+          "N": 628,
+          "H": 109,
+          "S": 14,
+          "D": 505,
+          "I": 0,
+          "E": 519
+        },
+        "literal": {
+          "N": 599,
+          "H": 99,
+          "S": 17,
+          "D": 483,
+          "I": 3,
+          "E": 503
+        },
+        "decoded_frames": 0,
+        "extra_warm_s": 0,
+        "nonempty_span_frames": 548000
+      },
+      "prior_full": {
+        "standard": {
+          "N": 628,
+          "H": 113,
+          "S": 12,
+          "D": 503,
+          "I": 0,
+          "E": 515
+        },
+        "literal": {
+          "N": 599,
+          "H": 102,
+          "S": 15,
+          "D": 482,
+          "I": 3,
+          "E": 500
+        },
+        "decoded_frames": 548000,
+        "extra_warm_s": 3.565985706169158,
+        "nonempty_span_frames": 548000
+      },
+      "patch_draft": {
+        "standard": {
+          "N": 628,
+          "H": 511,
+          "S": 45,
+          "D": 72,
+          "I": 2,
+          "E": 119
+        },
+        "literal": {
+          "N": 599,
+          "H": 473,
+          "S": 53,
+          "D": 73,
+          "I": 6,
+          "E": 132
+        },
+        "decoded_frames": 2367520,
+        "extra_warm_s": 9.801409706939012,
+        "nonempty_span_frames": 2915520
+      },
+      "patch_prior_full": {
+        "standard": {
+          "N": 628,
+          "H": 515,
+          "S": 43,
+          "D": 70,
+          "I": 2,
+          "E": 115
+        },
+        "literal": {
+          "N": 599,
+          "H": 476,
+          "S": 51,
+          "D": 72,
+          "I": 6,
+          "E": 129
+        },
+        "decoded_frames": 2915520,
+        "extra_warm_s": 13.36739541310817,
+        "nonempty_span_frames": 2915520
+      },
+      "whole_grid": {
+        "standard": {
+          "N": 628,
+          "H": 525,
+          "S": 36,
+          "D": 67,
+          "I": 0,
+          "E": 103
+        },
+        "literal": {
+          "N": 599,
+          "H": 487,
+          "S": 44,
+          "D": 68,
+          "I": 6,
+          "E": 118
+        },
+        "decoded_frames": 2915520,
+        "extra_warm_s": 11.894003415945917,
+        "nonempty_span_frames": 2915520
+      }
+    },
+    "pooled_gap": {
+      "standard": {
+        "N": 494,
+        "H": 402,
+        "S": 32,
+        "D": 60,
+        "I": 1,
+        "E": 93
+      },
+      "literal": {
+        "N": 472,
+        "H": 374,
+        "S": 36,
+        "D": 62,
+        "I": 3,
+        "E": 101
+      }
+    },
+    "total_unique_windows": 17,
+    "patch_windows": 14,
+    "full_windows": 7,
+    "shared_windows": 4,
+    "gap_packets": 592,
+    "gap_packets_below_min_start": 240
+  }
+}
