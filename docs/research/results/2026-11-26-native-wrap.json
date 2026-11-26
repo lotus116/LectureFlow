@@ -1,0 +1,231 @@
+{
+  "id": "C19",
+  "source_commit": "8e38bf41b2e1ff7766ed9465f99b43ef6913a77e",
+  "fixture": {
+    "viewport_points": [
+      340,
+      160
+    ],
+    "content_width_points": 316,
+    "nominal_sampling_ms": 20,
+    "synthetic_only": true
+  },
+  "runs": [
+    {
+      "run": "r1-c18",
+      "geometry_samples": 376,
+      "max_sample_gap_ms": 36.8,
+      "all": {
+        "requests": 4,
+        "any_hidden_ms": 5053.3,
+        "travel_pt": 395,
+        "observed_ms": 7426.6
+      },
+      "following_updates": {
+        "requests": 1,
+        "any_hidden_ms": 1987.9,
+        "travel_pt": 28,
+        "observed_ms": 2479.2
+      },
+      "following_peak_hidden_pt": 59,
+      "detached_updates": {
+        "requests": 0,
+        "any_hidden_ms": 995.4,
+        "travel_pt": 0,
+        "observed_ms": 995.4
+      }
+    },
+    {
+      "run": "r1-layout",
+      "geometry_samples": 376,
+      "max_sample_gap_ms": 34.4,
+      "all": {
+        "requests": 4,
+        "any_hidden_ms": 2592,
+        "travel_pt": 593,
+        "observed_ms": 7421.8
+      },
+      "following_updates": {
+        "requests": 1,
+        "any_hidden_ms": 0,
+        "travel_pt": 168,
+        "observed_ms": 2484.6
+      },
+      "following_peak_hidden_pt": 0,
+      "detached_updates": {
+        "requests": 0,
+        "any_hidden_ms": 997.4,
+        "travel_pt": 0,
+        "observed_ms": 997.4
+      }
+    },
+    {
+      "run": "r1-stock",
+      "geometry_samples": 376,
+      "max_sample_gap_ms": 36.3,
+      "all": {
+        "requests": 9,
+        "any_hidden_ms": 4820.4,
+        "travel_pt": 371,
+        "observed_ms": 7452.8
+      },
+      "following_updates": {
+        "requests": 5,
+        "any_hidden_ms": 2483.7,
+        "travel_pt": 0,
+        "observed_ms": 2483.7
+      },
+      "following_peak_hidden_pt": 59,
+      "detached_updates": {
+        "requests": 2,
+        "any_hidden_ms": 235.4,
+        "travel_pt": 126,
+        "observed_ms": 993.7
+      }
+    },
+    {
+      "run": "r2-c18",
+      "geometry_samples": 376,
+      "max_sample_gap_ms": 38.3,
+      "all": {
+        "requests": 4,
+        "any_hidden_ms": 5051.6,
+        "travel_pt": 395,
+        "observed_ms": 7427.3
+      },
+      "following_updates": {
+        "requests": 1,
+        "any_hidden_ms": 1989.3,
+        "travel_pt": 28,
+        "observed_ms": 2480
+      },
+      "following_peak_hidden_pt": 59,
+      "detached_updates": {
+        "requests": 0,
+        "any_hidden_ms": 997.2,
+        "travel_pt": 0,
+        "observed_ms": 997.2
+      }
+    },
+    {
+      "run": "r2-layout",
+      "geometry_samples": 376,
+      "max_sample_gap_ms": 39.3,
+      "all": {
+        "requests": 4,
+        "any_hidden_ms": 3061.1,
+        "travel_pt": 563,
+        "observed_ms": 7425.6
+      },
+      "following_updates": {
+        "requests": 1,
+        "any_hidden_ms": 0,
+        "travel_pt": 168,
+        "observed_ms": 2479.2
+      },
+      "following_peak_hidden_pt": 0,
+      "detached_updates": {
+        "requests": 0,
+        "any_hidden_ms": 996.2,
+        "travel_pt": 0,
+        "observed_ms": 996.2
+      }
+    },
+    {
+      "run": "r2-stock",
+      "geometry_samples": 376,
+      "max_sample_gap_ms": 43,
+      "all": {
+        "requests": 9,
+        "any_hidden_ms": 1660.2,
+        "travel_pt": 623,
+        "observed_ms": 7443.1
+      },
+      "following_updates": {
+        "requests": 5,
+        "any_hidden_ms": 174.4,
+        "travel_pt": 168,
+        "observed_ms": 2484
+      },
+      "following_peak_hidden_pt": 49,
+      "detached_updates": {
+        "requests": 2,
+        "any_hidden_ms": 254.6,
+        "travel_pt": 126,
+        "observed_ms": 993.4
+      }
+    },
+    {
+      "run": "r3-c18",
+      "geometry_samples": 376,
+      "max_sample_gap_ms": 34,
+      "all": {
+        "requests": 4,
+        "any_hidden_ms": 3609.1,
+        "travel_pt": 451,
+        "observed_ms": 7430.2
+      },
+      "following_updates": {
+        "requests": 1,
+        "any_hidden_ms": 528.4,
+        "travel_pt": 56,
+        "observed_ms": 2478.3
+      },
+      "following_peak_hidden_pt": 49,
+      "detached_updates": {
+        "requests": 0,
+        "any_hidden_ms": 994.7,
+        "travel_pt": 0,
+        "observed_ms": 994.7
+      }
+    },
+    {
+      "run": "r3-layout",
+      "geometry_samples": 376,
+      "max_sample_gap_ms": 38.2,
+      "all": {
+        "requests": 4,
+        "any_hidden_ms": 2595.1,
+        "travel_pt": 593,
+        "observed_ms": 7426.4
+      },
+      "following_updates": {
+        "requests": 1,
+        "any_hidden_ms": 0,
+        "travel_pt": 168,
+        "observed_ms": 2487.4
+      },
+      "following_peak_hidden_pt": 0,
+      "detached_updates": {
+        "requests": 0,
+        "any_hidden_ms": 999.7,
+        "travel_pt": 0,
+        "observed_ms": 999.7
+      }
+    },
+    {
+      "run": "r3-stock",
+      "geometry_samples": 376,
+      "max_sample_gap_ms": 41.5,
+      "all": {
+        "requests": 9,
+        "any_hidden_ms": 1676.8,
+        "travel_pt": 623,
+        "observed_ms": 7446.4
+      },
+      "following_updates": {
+        "requests": 5,
+        "any_hidden_ms": 201.8,
+        "travel_pt": 168,
+        "observed_ms": 2483.2
+      },
+      "following_peak_hidden_pt": 49,
+      "detached_updates": {
+        "requests": 2,
+        "any_hidden_ms": 251.1,
+        "travel_pt": 126,
+        "observed_ms": 990.3
+      }
+    }
+  ]
+}
