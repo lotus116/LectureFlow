@@ -1,0 +1,125 @@
+{
+  "id": "C21",
+  "scope": "single far-field meeting acoustic proxy",
+  "sample": "AMI EN2001a Array1-01",
+  "segment_seconds": [
+    211.035,
+    393.255
+  ],
+  "normalized_reference_words": 628,
+  "light_reference_words": 599,
+  "normalized_errors": [
+    519,
+    519,
+    517.6666666666666,
+    515
+  ],
+  "light_errors": [
+    503,
+    503,
+    502,
+    500
+  ],
+  "arms": [
+    "draft",
+    "priority",
+    "exact_random_mean",
+    "same_window_full"
+  ],
+  "additional_warm_decode_seconds": [
+    0,
+    1.352,
+    1.297,
+    3.566
+  ],
+  "coverage_and_subset_audit": {
+    "raw_reference_words": 574,
+    "in_window_by_midpoint": 127,
+    "outside_by_midpoint": 447,
+    "overlap_words": 30,
+    "overlap_inside": 2,
+    "caption_frames": 548000,
+    "total_frames": 2915520,
+    "coverage_percent": 18.79596092635276,
+    "cap_frames": 219200,
+    "remaining_cap_frames": 19200,
+    "selected_frames": 200000,
+    "selected_window_indices_zero_based": [
+      0,
+      2,
+      5
+    ],
+    "individual_window_net_errors_removed": [
+      [
+        0,
+        0
+      ],
+      [
+        4,
+        3
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ]
+    ],
+    "exact_subsets_zero_based": [
+      [
+        3,
+        4
+      ],
+      [
+        0,
+        1,
+        5
+      ],
+      [
+        0,
+        2,
+        5
+      ]
+    ],
+    "exact_subset_word_errors": [
+      [
+        519,
+        503
+      ],
+      [
+        515,
+        500
+      ],
+      [
+        519,
+        503
+      ]
+    ],
+    "normalized_WER_percent": {
+      "draft": 82.64331210191082,
+      "priority": 82.64331210191082,
+      "exact_random_mean": 82.43099787685775,
+      "full": 82.00636942675159
+    },
+    "warm_draft_seconds": 8.783164625056088,
+    "packet_count": 729,
+    "packets_below_minimum_start_threshold": 277,
+    "packets_below_minimum_active_threshold": 147,
+    "median_packet_rms": 0.0024511462543159723,
+    "measured_peak_mlx_bytes": 2426619564
+  }
+}
