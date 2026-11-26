@@ -21,6 +21,15 @@ def unique(items, what):
         raise ValueError("invalid " + what)
     return items
 
+def transition_counts(matrix):
+    fixes = matrix["incorrect"]["correct"]
+    recoveries = matrix["missing"]["correct"]
+    regressions = matrix["correct"]["incorrect"]
+    omissions = matrix["correct"]["missing"]
+    return dict(new_corrections=fixes, recovered_omissions=recoveries,
+                regressions=regressions, new_omissions=omissions,
+                paired_correct_delta=fixes + recoveries - regressions - omissions)
+
 def score(plan, annotations):
     if required(plan, "mode") not in ("live_zh", "offline_en"):
         raise ValueError("unknown mode")
@@ -69,10 +78,9 @@ def score(plan, annotations):
                 incomplete += 1
             else:
                 matrix[pair[0]][pair[1]] += 1
-        fixes = matrix["incorrect"]["correct"]
-        recoveries = matrix["missing"]["correct"]
-        contradictions = matrix["correct"]["incorrect"]
-        losses = matrix["correct"]["missing"]
+        common_matrix = {label: dict.fromkeys(LABELS, 0) for label in LABELS}
+        for tid in common:
+            common_matrix[seen[arm, tid, before]][seen[arm, tid, after]] += 1
         rateable = sum(sum(v for b, v in row.items() if b != "uncertain")
                        for a, row in matrix.items() if a != "uncertain")
         report[arm] = dict(targets=len(targets), clusters=len({t["cluster"] for t in targets.values()}),
@@ -81,9 +89,10 @@ def score(plan, annotations):
                            common_rateable_pairs=len(common),
                            common_correct_before=sum(seen[arm, tid, before] == "correct" for tid in common),
                            common_correct_after=sum(seen[arm, tid, after] == "correct" for tid in common),
-                           new_corrections=fixes, recovered_omissions=recoveries,
-                           regressions=contradictions, new_omissions=losses,
-                           paired_correct_delta=fixes+recoveries-contradictions-losses)
+                           **transition_counts(matrix))
+        report[arm]["common_matrix"] = common_matrix
+        for name, count in transition_counts(common_matrix).items():
+            report[arm]["common_" + name] = count
     return dict(mode=plan["mode"], intended_action=plan["intended_action"], snapshots=[before, after],
                 selection=plan["selection"], coverage_scope=plan["coverage_scope"], clock=plan["clock"],
                 decision_rule=plan["decision_rule"], results=report)
