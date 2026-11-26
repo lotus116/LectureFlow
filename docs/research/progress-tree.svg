@@ -35,7 +35,7 @@
 <rect x="69" y="539" width="43" height="22" rx="6" fill="#daefe8" stroke="none"/>
 <text x="76" y="555" font-size="13" fill="#075746" font-weight="700">保留</text>
 <text x="69" y="582" font-size="17" fill="#172d43" font-weight="700">3 · 实时英文窗口对照</text>
-<text x="69" y="605" font-size="16" fill="#243b52" font-weight="500">30 秒未复现准确度收益</text>
+<text x="69" y="605" font-size="16" fill="#243b52" font-weight="500">30 秒未通过主评分门槛</text>
 <text x="69" y="626" font-size="15" fill="#4d637a" font-weight="400">保留 20 秒默认</text>
 <rect x="394" y="184" width="332" height="70" rx="13" fill="#e1f3ed" stroke="none"/>
 <text x="410" y="207" font-size="14" fill="#096856" font-weight="700">研究问题 2</text>
@@ -75,7 +75,7 @@
 <rect x="793" y="283" width="43" height="22" rx="6" fill="#e9f1fb" stroke="none"/>
 <text x="800" y="299" font-size="13" fill="#235181" font-weight="700">已测</text>
 <text x="793" y="326" font-size="17" fill="#172d43" font-weight="700">7 · A · 同堂现场 vs Zoom</text>
-<text x="793" y="349" font-size="16" fill="#243b52" font-weight="500">同一段内容配对比，不混样本</text>
+<text x="793" y="349" font-size="16" fill="#243b52" font-weight="500">四对同向，参考有渠道依赖</text>
 <text x="793" y="370" font-size="15" fill="#4d637a" font-weight="400">不能单独归因于麦克风</text>
 <path d="M766 451H779" fill="none" stroke="#6b4c87" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
 <circle cx="766" cy="451" r="4" fill="#6b4c87"/>
