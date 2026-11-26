@@ -4,7 +4,7 @@
 <g font-family="-apple-system,BlinkMacSystemFont,PingFang SC,Noto Sans CJK SC,Microsoft YaHei,sans-serif">
 <rect x="0" y="0" width="1120" height="776" rx="22" fill="#f3f6fa" stroke="none"/>
 <text x="32" y="38" font-size="15" fill="#405972" font-weight="700">LECTUREFLOW   /   NLP 期末研究</text>
-<text x="861" y="38" font-size="15" fill="#405972" font-weight="600">2026-11-26  ·  C32 / L06</text>
+<text x="861" y="38" font-size="15" fill="#405972" font-weight="600">2026-11-26  ·  C33 / L06</text>
 <rect x="318" y="58" width="484" height="90" rx="17" fill="#10263d" stroke="none"/>
 <text x="343" y="95" font-size="28" fill="#ffffff" font-weight="700">Proposal：本地课堂字幕</text>
 <text x="343" y="124" font-size="18" fill="#dce9f6" font-weight="400">课中是否来得及？课后怎样补得准？</text>
@@ -95,6 +95,6 @@
 <text x="793" y="626" font-size="15" fill="#4d637a" font-weight="400">不代表所有微调都没用</text>
 <rect x="32" y="665" width="1056" height="79" rx="14" fill="#112c44" stroke="none"/>
 <text x="50" y="696" font-size="19" fill="#ffffff" font-weight="700">当前优先</text>
-<text x="167" y="696" font-size="18" fill="#eff6fe" font-weight="500">课中英文 · 核查翻译故障能否隔离</text>
+<text x="167" y="696" font-size="18" fill="#eff6fe" font-weight="500">课中英文 · 中译抛异常时仍持续更新</text>
 <text x="50" y="723" font-size="16" fill="#cfdeee" font-weight="400">报告和打包先停。Mac 本地验证；保持原文、App 默认不变。</text>
 </g></svg>
