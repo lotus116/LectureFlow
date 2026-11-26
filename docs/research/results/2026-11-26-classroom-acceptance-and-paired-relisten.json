@@ -1,0 +1,49 @@
+{
+  "scope": "Aggregate-only reconstruction of existing classroom evidence, not a new experiment. C01/C03 excerpts reused. No audio, transcripts, or per-utterance records included.",
+  "C12": {
+    "protocol": "Leave one replacement out while keeping others fixed in the selected policy; direction of change in normalized whole-excerpt errors. Context-dependent counts, not additive error contributions. No new decoding.",
+    "aggregates": {
+      "room": {
+        "selected_windows": 32,
+        "normalized": {
+          "helped": 18,
+          "hurt": 3,
+          "tied": 11
+        }
+      },
+      "zoom": {
+        "selected_windows": 36,
+        "normalized": {
+          "helped": 9,
+          "hurt": 4,
+          "tied": 23
+        }
+      }
+    },
+    "private_manifest_sha256": "cd0523bd1111512f56903caa0125974d5a55d1657d651c6cc53f5d7b88ed9cec",
+    "source_summary_sha256": "184fb48c5e12cebaccee88eda644d36c187beadfcbb3947c2880bfb8831b0da4"
+  },
+  "C13": {
+    "protocol": "Same room drafts, room-selected windows and shared references on four paired excerpts. Source waveform alone switches to an already synchronized Zoom recording; prior offsets spot checked, no per-utterance realignment. Not an estimate of portable microphone effects.",
+    "aggregates": {
+      "reference_words": 2262,
+      "selected_windows": 32,
+      "all_windows": 79,
+      "standard_errors": {
+        "base": 440,
+        "room_selected": 374,
+        "zoom_selected": 348,
+        "room_all": 345,
+        "zoom_all": 264
+      },
+      "invalid_replacements": {
+        "room_selected": 0,
+        "zoom_selected": 0,
+        "room_all": 0,
+        "zoom_all": 0
+      }
+    },
+    "private_manifest_sha256": "b06bda81af4d96cfc7639832c6387879fe885a18d801157af31634a608780e27",
+    "source_summary_sha256": "820147e89a3ba9ed2d9db60b603a1a96832dcf1ba2e679b2edd947abb4a2cd92"
+  }
+}
