@@ -491,3 +491,16 @@ To compare selective methods fairly, we then kept the original caption windows f
 **Limits and follow-up.** The paired accuracy pilot is too small to estimate performance across instructors. References contain passages marked unclear, and our word error counts can include insertions against incomplete references. The second recording channel does not isolate an accent effect. The continuous run tests timing and coverage on one device, not translation correctness. Course-specific vocabulary prompting and two fixed audio preprocessing settings did not produce reliable overall gains in this pilot. The most useful follow-up is to repeat the fixed selective policy on previously unseen room recordings and review changed Chinese captions against the audio, blind to the system setting.
 
 **Evidence.** [Paired accuracy](results/2026-11-26-classroom-paired.json) · [Model/selection/guard](results/2026-11-26-classroom-followup.json) · [Short bilingual control](results/2026-11-26-classroom-bilingual.json) · [Continuous replay](results/2026-11-26-continuous-bilingual.json) · [Context follow-up](results/2026-11-26-classroom-late-context.json) · [Exact duration control](results/2026-11-26-classroom-budget-sensitivity.json).
+
+## 全项目进度图口径 · 2026-11-26
+
+后续按「已完成证据 → 尚未解决的判断 → 下一处验证」更新以下四块。不要用新增实验的数量替代 proposal 两个问题的进度。
+
+| 进度图块 | 目前可支持的判断 | 优先下一步 |
+|---|---|---|
+| **RQ1 · 课中实时英文字幕** | 正常速度双语长课已有连续性证据；首稿出现和最终稳定是不同指标。放宽窗口、继续调度均未表现出一致收益；中文晚回改的速度改善尚无人工语义验收。 | 保留当前默认；补独立讲次对英文稳定延迟的验证，并盲审中文回改有无关键信息损失。 |
+| **RQ2 · 课后重识别与修订** | 现场已测数据上，优先重听反复改写段胜同音频预算随机；优势不适用于所有录音。严格自动接受规则得不偿失；原稿和候选并存。 | 冻结当前排序和预算，独立讲次上同时测不重听、优先选段、同预算随机、同窗全量；逐讲记录纠错、误改和实际成本。 |
+| **扩展 · 录音 / 术语 / 讲师适配** | 现场与 Zoom 的差异已作配对，不能单独归因到设备或讲师。词表及两种固定降噪配置不作为默认。Qwen LoRA 已跑通，最新开发对照四个适配版均未超原模型。 | 先完成两讲冻结确认，不继续在第 10 讲调参，不上产品默认。如果确认没有明确收益，结束这条配置的扩量，资源回到 RQ1/RQ2；仅在确认支持稳定收益时再做同主题换讲者/换录音检查。 |
+| **交付 · 原型 / 复现 / 报告** | 已有原型、评测代码与结果草稿；未完成最终核对和第三方复现。 | 继续维护[总账](EXPERIMENT_LEDGER.md)和本页，不以新的重复文档代替，最终报告按 proposal 主线组织。 |
+
+**适配决策边界。** 原模型继续作为默认。新增的采用门槛是两种子在开发主评分均胜原模型，且保留原始词形的计分不恶化；该门槛在看过首个小臂后、打开确认预测前写入，不宣称独立事前注册。无开发赢家时，确认集仍报告冻结的两尺寸和两种子，用于检验迁移，不事后择优发布。详见[总账 L01–L04](EXPERIMENT_LEDGER.md#2026-11-26-更新--讲师适配扩展公开数据)。
