@@ -95,6 +95,6 @@
 <text x="793" y="626" font-size="15" fill="#4d637a" font-weight="400">不代表所有微调都没用</text>
 <rect x="32" y="665" width="1056" height="79" rx="14" fill="#112c44" stroke="none"/>
 <text x="50" y="696" font-size="19" fill="#ffffff" font-weight="700">报告交付</text>
-<text x="167" y="696" font-size="18" fill="#eff6fe" font-weight="500">整合中 · 正文按 RQ1 / RQ2 展开，探索分支放附录</text>
-<text x="50" y="723" font-size="16" fill="#cfdeee" font-weight="400">当前优先：核对图表、整合报告，同时保留“原文 + 候选”，App 默认不变。</text>
+<text x="167" y="696" font-size="18" fill="#eff6fe" font-weight="500">英文审阅稿已完成 · 待核对课程格式</text>
+<text x="50" y="723" font-size="16" fill="#cfdeee" font-weight="400">当前优先：终审前核对课程要求，同时保留“原文 + 候选”，App 默认不变。</text>
 </g></svg>
