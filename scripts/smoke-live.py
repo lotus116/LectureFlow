@@ -30,6 +30,7 @@ def main():
     parser.add_argument("--language", choices=["auto", "English"], default="English")
     parser.add_argument("--model-root", type=Path)
     parser.add_argument("--translate-only", action="store_true")
+    parser.add_argument("--isolated-translation", action="store_true")
     parser.add_argument("--accent", action="store_true")
     parser.add_argument("--backend-python", type=Path)
     parser.add_argument("--output", type=Path, required=True)
@@ -63,7 +64,7 @@ def main():
             str(args.backend_python or sys.executable), "-m", "lectureflow.cli",
             "--model-root", str(args.model_root or project / "models"),
             "--library-root", str(library_root), "live", "run", lecture["id"], session["id"],
-            "--asr", args.asr,
+            "--asr", args.asr, *(["--isolated-translation"] if args.isolated_translation else []),
         ], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=errors, text=True, env=backend_env)
 
         def receive():

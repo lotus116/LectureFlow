@@ -35,6 +35,7 @@ private struct ReviewQuery: Encodable, Equatable {
 }
 
 struct ReviewSpellingView: View {
+    @ThemePalette private var palette
     let backend: Backend
     let detail: ReviewDetail
     @AppStorage private var materialID: String
@@ -83,11 +84,13 @@ struct ReviewSpellingView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(line.id == detail.target_caption_id ? "标记时的当前句" : "上一句")
                                 .font(.caption).foregroundStyle(.secondary)
-                            if !line.english.isEmpty { Text(line.english) }
-                            if !line.chinese.isEmpty { Text(line.chinese).foregroundStyle(.secondary) }
+                            if !line.english.isEmpty { Text(line.english).lineSpacing(3) }
+                            if !line.chinese.isEmpty {
+                                Text(line.chinese).foregroundStyle(palette.transcriptTranslation).lineSpacing(3)
+                            }
                         }
                         .frame(maxWidth: .infinity, alignment: .leading).padding(9)
-                        .background(selectedID == line.id ? Color.accentColor.opacity(0.14) : Color.secondary.opacity(0.07),
+                        .background(selectedID == line.id ? palette.accent.opacity(0.14) : Color.secondary.opacity(0.07),
                                     in: RoundedRectangle(cornerRadius: 7))
                         .contentShape(Rectangle())
                     }

@@ -176,4 +176,4 @@ def test_cli_passes_selected_refresh_to_live_backend(monkeypatch, interval):
         '--temporary-refresh-seconds', str(interval),
     ])
     assert cli.main() == 0
-    assert calls == [{'temporary_refresh_seconds': interval}]
+    assert calls == [{'temporary_refresh_seconds': interval, 'isolated_translation': False}]

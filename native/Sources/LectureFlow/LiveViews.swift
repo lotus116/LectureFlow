@@ -8,21 +8,26 @@ struct LiveControlView: View {
     let lecture: Lecture
     let showingAudio: Bool
     var readingMode = false
+    var hasLiveCaptionControls = false
     var body: some View {
-        SessionControlBar(workspace: workspace, live: live, showingAudio: showingAudio, readingMode: readingMode)
+        SessionControlBar(workspace: workspace, live: live, showingAudio: showingAudio,
+                          readingMode: readingMode, hasLiveCaptionControls: hasLiveCaptionControls)
     }
 }
 
 struct LiveTranscriptView: View {
+    @ThemePalette private var palette
     @ObservedObject var workspace: Workspace
     @ObservedObject var live: LiveController
     let lecture: Lecture
     let backend: Backend
     @AppStorage("transcriptTextSize") private var textSize = 15.0
+    @State private var showPriorityReview = false
     @State private var search = ""
     @State private var language = "both"
     @State private var follow = true
     @State private var hoveredCaptionID: String?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     private var visible: [LiveCaption] {
         live.displayCaptions.filter { search.isEmpty || $0.english.localizedCaseInsensitiveContains(search) || $0.chinese.contains(search) }
     }
@@ -32,14 +37,13 @@ struct LiveTranscriptView: View {
 
     var body: some View {
         ScrollViewReader { proxy in
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 8) {
                 ViewThatFits(in: .horizontal) {
                     HStack(spacing: 8) {
                         transcriptFilters
                         Spacer(minLength: 8)
                         transcriptActions(proxy: proxy)
                     }
-                    .frame(minWidth: 460)
 
                     VStack(alignment: .leading, spacing: 8) {
                         transcriptFilters
@@ -47,15 +51,26 @@ struct LiveTranscriptView: View {
                             .frame(maxWidth: .infinity, alignment: .trailing)
                     }
                 }
-                Text(follow ? "跟随最新" : "已停止跟随 · 点“返回最新”继续")
-                    .font(.system(size: LFChrome.captionSize))
-                    .foregroundStyle(.secondary)
+                if live.flags.translate && live.pendingChinese > 0 {
+                    Text("中文处理队列 · \(live.pendingChinese) 段")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+                if !follow {
+                    Text("已停止跟随 · 点“返回最新”继续")
+                        .accessibilityIdentifier("caption-follow-paused")
+                        .font(.system(size: LFChrome.captionSize))
+                        .foregroundStyle(.secondary)
+                }
                 if live.displayCaptions.isEmpty {
                     EmptyPanel(
-                        title: "等待讲话",
+                        title: live.isCapturing && live.flags.needsASR ? "等待讲话" : "还没有实时字幕",
                         systemImage: "waveform",
                         description: "开启字幕后，实时内容会出现在这里。"
                     )
+                } else if visible.isEmpty {
+                    EmptyPanel(title: "没有匹配的字幕", systemImage: "magnifyingglass",
+                               description: "试试其他关键词，或清除搜索查看全部内容。",
+                               actionTitle: "清除搜索", action: { search = "" })
                 } else {
                     ScrollView {
                         LazyVStack(alignment: .leading, spacing: LFChrome.space16) {
@@ -64,7 +79,7 @@ struct LiveTranscriptView: View {
                                     HStack {
                                         Text(clock(caption.start))
                                             .font(.system(size: max(11, LFChrome.captionSize * (textSize / 15)), weight: .medium).monospacedDigit())
-                                            .foregroundStyle(LFChrome.accentInk.opacity(0.85))
+                                            .foregroundStyle(palette.accentInk.opacity(0.85))
                                         Spacer()
                                         ReviewCaptionButton(workspace: workspace, caption: caption,
                                                             revealed: hoveredCaptionID == caption.id)
@@ -78,7 +93,7 @@ struct LiveTranscriptView: View {
                                     if language != "en", !caption.chinese.isEmpty {
                                         Text(caption.chinese)
                                             .font(.system(size: zhSize))
-                                            .foregroundStyle(.secondary)
+                                            .foregroundStyle(palette.transcriptTranslation)
                                             .lineSpacing(max(3, zhSize * 0.28))
                                     }
                                 }
@@ -92,7 +107,7 @@ struct LiveTranscriptView: View {
                                 .id(caption.id)
                                 .padding(.bottom, LFChrome.space4)
                                 Rectangle()
-                                    .fill(LFChrome.hairline)
+                                    .fill(palette.hairline)
                                     .frame(height: 1)
                             }
                             Color.clear.frame(height: 1).id("latest-caption")
@@ -105,6 +120,12 @@ struct LiveTranscriptView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .sheet(isPresented: $showPriorityReview, onDismiss: { workspace.playback.stop() }) {
+                PriorityReview(lecture: lecture, backend: backend, playback: workspace.playback)
+            }
+            .onChange(of: showPriorityReview) { _, presented in
+                if !presented { workspace.playback.stop() }
+            }
             .onChange(of: updateKey) { _, _ in
                 if follow && search.isEmpty { proxy.scrollTo("latest-caption", anchor: .bottom) }
             }
@@ -119,6 +140,7 @@ struct LiveTranscriptView: View {
             .frame(width: 115)
             .layoutPriority(1)
             TextField("搜索字幕", text: $search)
+                .accessibilityIdentifier("caption-search")
                 .textFieldStyle(.roundedBorder)
                 .frame(minWidth: 56, maxWidth: 160)
                 .layoutPriority(0)
@@ -129,28 +151,48 @@ struct LiveTranscriptView: View {
     private func transcriptActions(proxy: ScrollViewProxy) -> some View {
         HStack(spacing: 8) {
             ReviewCurrentButton(workspace: workspace, live: live)
-            Button("复制") {
-                let text = visible.map { caption in
-                    [clock(caption.start), language == "en" ? "" : caption.chinese,
-                     language == "zh" ? "" : caption.english].filter { !$0.isEmpty }.joined(separator: "\n")
-                }.joined(separator: "\n\n")
-                NSPasteboard.general.clearContents(); NSPasteboard.general.setString(text, forType: .string)
-            }
-            .disabled(visible.isEmpty)
-            Button("导出实时字幕") {
-                Task {
-                    do {
-                        let data = try await backend.call(["live", "export", lecture.id])
-                        let result = try JSONDecoder().decode(Exported.self, from: data)
-                        NSWorkspace.shared.open(URL(fileURLWithPath: result.directory))
-                    } catch { live.error = error.localizedDescription }
+            Menu {
+                Button("课后优先复核…") { showPriorityReview = true }
+                    .disabled(live.isCapturing)
+                Button("复制") {
+                    let text = visible.map { caption in
+                        [clock(caption.start), language == "en" ? "" : caption.chinese,
+                         language == "zh" ? "" : caption.english].filter { !$0.isEmpty }.joined(separator: "\n")
+                    }.joined(separator: "\n\n")
+                    NSPasteboard.general.clearContents(); NSPasteboard.general.setString(text, forType: .string)
                 }
+                .disabled(visible.isEmpty)
+                Button("导出实时字幕") {
+                    Task {
+                        do {
+                            let data = try await backend.call(["live", "export", lecture.id])
+                            let result = try JSONDecoder().decode(Exported.self, from: data)
+                            NSWorkspace.shared.open(URL(fileURLWithPath: result.directory))
+                        } catch { live.error = error.localizedDescription }
+                    }
+                }
+                .disabled(live.displayCaptions.isEmpty)
+            } label: {
+                Image(systemName: "ellipsis.circle")
+                    .frame(width: 28, height: 24)
             }
-            .disabled(live.displayCaptions.isEmpty)
+            .menuStyle(.borderlessButton)
+            .menuIndicator(.hidden)
+            .fixedSize()
+            .help("实时字幕操作")
+            .accessibilityLabel("实时字幕操作")
+            .accessibilityIdentifier("caption-actions")
             Button("返回最新") {
                 follow = true; search = ""
-                DispatchQueue.main.async { withAnimation { proxy.scrollTo("latest-caption", anchor: .bottom) } }
+                DispatchQueue.main.async {
+                    withAnimation(reduceMotion ? nil : LFChrome.motion) {
+                        proxy.scrollTo("latest-caption", anchor: .bottom)
+                    }
+                }
             }
+            .help(follow ? "正在跟随最新字幕" : "已停止跟随，点击返回最新字幕")
+            .accessibilityValue(follow ? "正在跟随" : "已停止跟随")
+            .accessibilityIdentifier("caption-latest")
         }
         .fixedSize(horizontal: true, vertical: false)
     }
@@ -183,6 +225,8 @@ struct TranscriptFontControls: View {
             }
             .disabled(size <= range.lowerBound)
             .help("减小转写字号")
+            .accessibilityLabel("减小转写字号")
+            .accessibilityIdentifier("caption-font-smaller")
 
             Button {
                 size = min(range.upperBound, size + 1)
@@ -191,16 +235,18 @@ struct TranscriptFontControls: View {
             }
             .disabled(size >= range.upperBound)
             .help("增大转写字号")
+            .accessibilityLabel("增大转写字号")
+            .accessibilityIdentifier("caption-font-larger")
         }
         .buttonStyle(.borderless)
         .controlSize(.small)
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .contain)
         .accessibilityLabel("转写字号")
         .accessibilityValue("\(Int(size))")
     }
 }
 
-private struct ScrollActivityObserver: NSViewRepresentable {
+struct ScrollActivityObserver: NSViewRepresentable {
     let action: () -> Void
     func makeNSView(context: Context) -> ActivityView { let view = ActivityView(); view.action = action; return view }
     func updateNSView(_ view: ActivityView, context: Context) { view.action = action }

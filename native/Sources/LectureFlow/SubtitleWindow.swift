@@ -68,8 +68,12 @@ final class SubtitleWindow {
     }
 }
 
-/// One translucent surface: traffic-light row chrome + captions (no second toolbar strip).
+/// Translucent edges preserve the user's opacity preference. Text and controls
+/// have a local contrast floor so a white slide cannot wash them out.
 private struct FloatingSubtitlesRoot: View {
+    @ThemePalette private var palette
+    @Environment(\.colorSchemeContrast) private var contrast
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @ObservedObject var workspace: Workspace
     @ObservedObject var live: LiveController
     @AppStorage("subtitleSize") private var fontSize = 22.0
@@ -77,15 +81,17 @@ private struct FloatingSubtitlesRoot: View {
     @AppStorage("subtitleLanguage") private var language = "zh"
     @AppStorage("autoFloatingSubtitles") private var automatic = true
     @State private var settings = false
+    @State private var readingRows: [LiveCaption] = []
     @State private var follow = true
     @State private var hoveredCaptionID: String?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private let trafficLightInset: CGFloat = 78
     private let titlebarRow: CGFloat = 28
     private let maxVisibleCaptions = 6
 
     private var panelFill: Color {
-        Color(red: 0.06, green: 0.08, blue: 0.12).opacity(opacity)
+        palette.floating.opacity(contrast == .increased || reduceTransparency ? 1 : opacity)
     }
 
     var body: some View {
@@ -94,14 +100,21 @@ private struct FloatingSubtitlesRoot: View {
             VStack(alignment: .leading, spacing: 0) {
                 titlebar
                     .frame(height: titlebarRow)
+                    .background(palette.floating.opacity(LFFloatingContrast.backingOpacity))
                 captionStack(visibleCount: visibleCount)
-                    .padding(.horizontal, 12)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 4)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+                    .background(palette.floating.opacity(LFFloatingContrast.backingOpacity),
+                                in: RoundedRectangle(cornerRadius: 6))
+                    .padding(.horizontal, 6)
                     .padding(.top, 2)
                     .padding(.bottom, 6)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
             }
             .frame(width: geo.size.width, height: geo.size.height, alignment: .topLeading)
         }
+        .frame(minWidth: 320, minHeight: minimumReadableHeight)
         .background(panelFill)
         .preferredColorScheme(.dark)
         // Draw under the system titlebar so chrome shares the traffic-light row.
@@ -146,6 +159,7 @@ private struct FloatingSubtitlesRoot: View {
                 Image(systemName: "slider.horizontal.3")
             }
             .help("字号与显示")
+            .accessibilityLabel("字号与显示")
             .popover(isPresented: $settings) {
                 VStack(alignment: .leading, spacing: 12) {
                     Picker("显示", selection: $language) {
@@ -179,6 +193,7 @@ private struct FloatingSubtitlesRoot: View {
                 Image(systemName: "eye.slash")
             }
             .help("隐藏悬浮字幕")
+            .accessibilityLabel("隐藏悬浮字幕")
             .layoutPriority(1)
         }
         .font(.system(size: 10, weight: .medium))
@@ -209,13 +224,19 @@ private struct FloatingSubtitlesRoot: View {
 
     @ViewBuilder
     private func captionStack(visibleCount: Int) -> some View {
-        let captions = Array(live.displayCaptions.suffix(visibleCount))
+        let captions = follow ? Array(live.displayCaptions.suffix(visibleCount)) : readingRows.map { row in
+            live.displayCaptions.last(where: { $0.id == row.id && $0.session_id == row.session_id }) ?? row
+        }
         ScrollViewReader { proxy in
             VStack(alignment: .leading, spacing: 0) {
                 if !follow {
                     HStack {
                         Spacer()
-                        Button("最新") { follow = true }
+                        Button("最新") {
+                            readingRows = []
+                            follow = true
+                            proxy.scrollTo(FloatingCaptionAnchor.tail, anchor: .bottom)
+                        }
                             .font(.system(size: 10, weight: .medium))
                             .buttonStyle(.plain)
                             .foregroundStyle(.white.opacity(0.7))
@@ -226,13 +247,21 @@ private struct FloatingSubtitlesRoot: View {
                                        fontSize: fontSize, spacing: unitSpacing) { caption in
                     captionBlock(caption)
                 }
-                .scrollIndicators(.hidden)
-                .simultaneousGesture(DragGesture().onChanged { _ in follow = false })
+                .background(ScrollActivityObserver {
+                    if follow && !captions.isEmpty {
+                        readingRows = captions
+                        follow = false
+                    }
+                })
+                .onChange(of: live.displayCaptions.last?.session_id) { _, _ in
+                    readingRows = []
+                    follow = true
+                }
                 .onChange(of: captions.map { "\($0.session_id ?? ""):\($0.id):\($0.revision)" }) { _, _ in
                     guard follow, !captions.isEmpty else { return }
-                    withAnimation(.easeOut(duration: 0.12)) {
-                        proxy.scrollTo(FloatingCaptionAnchor.tail, anchor: .bottom)
-                    }
+                    // Streaming text and late translations update immediately;
+                    // animate user actions only, never each revision's geometry.
+                    proxy.scrollTo(FloatingCaptionAnchor.tail, anchor: .bottom)
                 }
                 .onChange(of: visibleCount) { _, _ in
                     guard follow else { return }
@@ -251,24 +280,24 @@ private struct FloatingSubtitlesRoot: View {
                 Text(caption.chinese)
                     .font(.system(size: fontSize, weight: .medium))
                     .lineSpacing(2)
-                    .lineLimit(language == "both" ? 3 : 4)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             if language == "both", !caption.english.isEmpty {
                 Text(caption.english)
                     .font(.system(size: max(12, fontSize * 0.58)))
-                    .foregroundStyle(.white.opacity(0.62))
+                    .foregroundStyle(.white.opacity(LFFloatingContrast.englishOpacity))
                     .lineSpacing(1)
-                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
             } else if language != "both", caption.chinese.isEmpty, !caption.english.isEmpty {
                 Text(caption.english)
                     .font(.system(size: fontSize, weight: .medium))
                     .lineSpacing(2)
-                    .lineLimit(4)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .textSelection(.enabled)
-        .opacity(caption.id == live.displayCaptions.last?.id ? 1 : 0.72)
+        .opacity(caption.id == live.displayCaptions.last?.id ? 1 : LFFloatingContrast.olderTextOpacity)
         ReviewCaptionButton(workspace: workspace, caption: caption, compact: true,
                             revealed: hoveredCaptionID == caption.id)
         }
@@ -277,7 +306,6 @@ private struct FloatingSubtitlesRoot: View {
             if inside { hoveredCaptionID = caption.id }
             else if hoveredCaptionID == caption.id { hoveredCaptionID = nil }
         })
-        .animation(.easeOut(duration: 0.12), value: caption.revision)
     }
 
     private func captionCapacity(for height: CGFloat) -> Int {
@@ -292,6 +320,12 @@ private struct FloatingSubtitlesRoot: View {
             return primary + max(12, fontSize * 0.58) * 1.15 + unitSpacing
         }
         return primary + unitSpacing
+    }
+
+    private var minimumReadableHeight: CGFloat {
+        // A scroll view shorter than one glyph cannot reveal that glyph even
+        // by scrolling. Keep at least one line of each selected language.
+        ceil(titlebarRow + estimatedUnitHeight + 14)
     }
 
     private var unitSpacing: CGFloat { 6 }

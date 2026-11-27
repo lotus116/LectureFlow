@@ -1,0 +1,151 @@
+import SwiftUI
+
+private struct PriorityItems: Decodable {
+    struct Item: Decodable, Identifiable {
+        let session: String, original: String, state: String
+        let id: String
+        let start: Double, score: Double
+    }
+    let items: [Item]
+}
+
+private struct PriorityCandidate: Decodable {
+    let candidate: String, original: String, state: String
+    let changes: [String]
+    let generation: Int
+    let audio: ReviewAudio
+}
+
+struct PriorityReview: View {
+    @ThemePalette private var palette
+    let lecture: Lecture
+    let backend: Backend
+    @ObservedObject var playback: AudioPlayback
+    @Environment(\.dismiss) private var dismiss
+    @State private var items: [PriorityItems.Item] = []
+    @State private var selected: PriorityItems.Item?
+    @State private var detail: PriorityCandidate?
+    @State private var busy = false
+    @State private var error: String?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("优先复核").font(.title2.bold())
+                Spacer()
+                Button("完成") { dismiss() }.keyboardShortcut(.cancelAction)
+            }
+            if let error { Text(error).foregroundStyle(.red).textSelection(.enabled) }
+            if busy { ProgressView("正在读取本机资料…").controlSize(.small) }
+            ScrollView {
+                VStack(alignment: .leading, spacing: 12) {
+                    if let detail {
+                        Text("实时原稿").font(.headline)
+                        Text(detail.original).font(.system(size: LFChrome.bodySize))
+                            .lineSpacing(3).fixedSize(horizontal: false, vertical: true)
+                        Text(detail.state == "accepted" ? "已接受的复核版本" : "候选英文").font(.headline)
+                        Text(detail.candidate).font(.system(size: LFChrome.bodySize))
+                            .lineSpacing(3).fixedSize(horizontal: false, vertical: true)
+                        if !detail.changes.isEmpty {
+                            Text(detail.changes.joined(separator: "   ")).font(.body.monospaced())
+                        }
+
+                    } else if items.isEmpty && !busy && error == nil {
+                        Text("没有可优先复核的片段。需要有撤回词记录的英文字幕，以及能准确定位的已保存原音。")
+                    } else {
+                        ForEach(items) { item in
+                            Button {
+                                Task { await act(item, "prepare") }
+                            } label: {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(String(format: "%.1f 秒 · %.2f 撤回词/秒", item.start, item.score))
+                                        .foregroundStyle(.secondary)
+                                    Text(item.original).lineLimit(2)
+                                    Text(label(item.state)).font(.caption)
+                                }.frame(maxWidth: .infinity, alignment: .leading)
+                            }.buttonStyle(.borderless)
+                            .accessibilityIdentifier("priority-item-\(item.id)")
+                            Divider()
+                        }
+                    }
+                }.frame(maxWidth: .infinity, alignment: .leading).textSelection(.enabled)
+            }.disabled(busy)
+            if let detail, let selected {
+                Divider()
+                reviewActions(detail, selected: selected)
+                    .disabled(busy)
+            }
+        }
+        .padding(20).frame(minWidth: 410, idealWidth: 550, minHeight: 320, idealHeight: 460)
+        .background(palette.canvas)
+        .tint(palette.accent)
+        .task { await refresh() }
+        .onDisappear { playback.stop() }
+    }
+
+    @ViewBuilder private func reviewActions(_ detail: PriorityCandidate, selected: PriorityItems.Item) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Button(playback.reviewID == selected.id ? "停止回听" : "回听这段原音") {
+                    playback.playReview(detail.audio, markID: selected.id)
+                }.accessibilityIdentifier("priority-play")
+                Spacer()
+                Button("返回片段") {
+                    playback.stop(); self.detail = nil
+                    Task { await refresh() }
+                }.buttonStyle(.borderless).accessibilityIdentifier("priority-back")
+            }
+            if let message = playback.error {
+                Text(message).foregroundStyle(.red).font(.callout)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            HStack(spacing: 10) {
+                if detail.state == "ready" {
+                    Button("接受为复核版本") { Task { await act(selected, "accept") } }
+                        .buttonStyle(.borderedProminent).accessibilityIdentifier("priority-accept")
+                    Button("忽略") { Task { await act(selected, "ignore") } }
+                        .accessibilityIdentifier("priority-ignore")
+                } else if detail.state == "same" {
+                    Label("候选与原稿相同", systemImage: "equal.circle")
+                        .foregroundStyle(.secondary)
+                } else {
+                    Button(detail.state == "accepted" ? "撤销接受" : "撤销忽略") {
+                        Task { await act(selected, "undo") }
+                    }.accessibilityIdentifier("priority-undo")
+                }
+            }
+        }
+        .controlSize(.regular)
+    }
+
+    private func label(_ state: String) -> String {
+        switch state {
+        case "accepted": "查看已接受版本"
+        case "ignored": "查看已忽略候选"
+        case "ready", "same": "比较已有候选"
+        default: "生成这段候选"
+        }
+    }
+
+    private func refresh() async {
+        guard !busy else { return }
+        busy = true; error = nil
+        defer { busy = false }
+        do {
+            let data = try await backend.call(["priority-review", "list", lecture.id])
+            items = try JSONDecoder().decode(PriorityItems.self, from: data).items
+        } catch { self.error = error.localizedDescription }
+    }
+
+    private func act(_ item: PriorityItems.Item, _ action: String) async {
+        guard !busy else { return }
+        busy = true; error = nil
+        defer { busy = false }
+        do {
+            let data = try await backend.call(["priority-review", action, lecture.id, "--session",
+                item.session, "--caption", item.id, "--generation", String(detail?.generation ?? 0)])
+            detail = try JSONDecoder().decode(PriorityCandidate.self, from: data)
+            selected = item
+        } catch { self.error = error.localizedDescription }
+    }
+}

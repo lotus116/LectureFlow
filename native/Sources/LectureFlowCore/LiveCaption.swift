@@ -24,6 +24,8 @@ public struct LiveCaption: Decodable, Identifiable {
         for fragment in fragments {
             if let previous = result.last, count < 3,
                previous.session_id != nil, previous.session_id == fragment.session_id,
+               previous.chinese.isEmpty == fragment.chinese.isEmpty,
+               previous.english.isEmpty == fragment.english.isEmpty,
                previous.status != "temporary", fragment.status != "temporary",
                fragment.start >= previous.end - 0.1, fragment.start - previous.end <= 0.35,
                fragment.end - previous.start <= 12, previous.end - previous.start <= 6,

@@ -1,27 +1,9 @@
 import AppKit
 import SwiftUI
 
-/// Cirno ice-blue accents over neutral reading surfaces, with a separate dark palette.
+/// Shared geometry and typography; semantic colors live in Theme.swift.
 enum LFChrome {
-    private static func adaptive(_ light: UInt32, _ dark: UInt32) -> Color {
-        Color(nsColor: NSColor(name: nil) { appearance in
-            let hex = appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua ? dark : light
-            return NSColor(srgbRed: Double((hex >> 16) & 255) / 255,
-                           green: Double((hex >> 8) & 255) / 255,
-                           blue: Double(hex & 255) / 255, alpha: 1)
-        })
-    }
-    static let accent = adaptive(0x2563EB, 0x3671DB)
-    static let accentInk = adaptive(0x1D4ED8, 0xB5D6FF)
-    static let ink = adaptive(0x17345C, 0xE5EEFF)
-    static let canvas = adaptive(0xF8FBFF, 0x101827)
-    static let sidebar = adaptive(0xEEF5FC, 0x0C1422)
-    static let panel = adaptive(0xFFFFFF, 0x172438)
-    static let selection = adaptive(0xDCEBFF, 0x203D66)
-    static let recorder = adaptive(0xEFF5FD, 0x192B43)
-    static let recordSignal = adaptive(0xE64D31, 0xFF8B69)
-    static let saved = adaptive(0x28724F, 0x92D3AC)
-
+    static let motion = Animation.easeInOut(duration: 0.16)
     static let space4: CGFloat = 4
     static let space8: CGFloat = 8
     static let space10: CGFloat = 10
@@ -55,43 +37,10 @@ enum LFChrome {
     /// English/Chinese sizes from the user-adjustable transcript base size.
     static func transcriptEnglish(_ base: Double) -> CGFloat { CGFloat(base) }
     static func transcriptChinese(_ base: Double) -> CGFloat { CGFloat(base) * (transcriptZH / transcriptEN) }
-
-    static let dropHighlight = accent.opacity(0.14)
-    static let dropStroke = accent.opacity(0.55)
-    static let hairline = Color.primary.opacity(0.07)
-    static let rowHover = accent.opacity(0.08)
-    static let iconWell = accent.opacity(0.12)
-
-    static let cardRadius = radiusM
-    static let cardFill = panel
-    static let softStroke = hairline
-
-    static let motion = Animation.easeInOut(duration: 0.16)
-
-    /// Flat surface with a subtle edge to distinguish it from the canvas.
-    static func softPanel() -> some View {
-        RoundedRectangle(cornerRadius: radiusM, style: .continuous)
-            .fill(panel)
-            .overlay(
-                RoundedRectangle(cornerRadius: radiusM, style: .continuous)
-                    .stroke(hairline, lineWidth: 1)
-            )
-
-    }
-
-    static func cardBackground() -> some View { softPanel() }
-
-    /// Top wash for course / lecture headers — quiet atmosphere, not a landing hero.
-    static func iceMist() -> some View {
-        LinearGradient(
-            colors: [accent.opacity(0.025), .clear],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
-    }
 }
 
 struct EmptyPanel: View {
+    @ThemePalette private var palette
     let title: String
     let systemImage: String
     let description: String
@@ -107,14 +56,14 @@ struct EmptyPanel: View {
                         .resizable()
                         .frame(width: 56, height: 56)
                         .clipShape(RoundedRectangle(cornerRadius: LFChrome.radiusM, style: .continuous))
-                        .shadow(color: LFChrome.accent.opacity(0.25), radius: 12, y: 4)
+                        .shadow(color: palette.accent.opacity(0.25), radius: 12, y: 4)
                 } else {
                     Image(systemName: systemImage)
                         .symbolRenderingMode(.hierarchical)
                         .font(.system(size: 28, weight: .medium))
-                        .foregroundStyle(LFChrome.accentInk)
+                        .foregroundStyle(palette.accentInk)
                         .frame(width: 52, height: 52)
-                        .background(LFChrome.iconWell, in: RoundedRectangle(cornerRadius: LFChrome.radiusM, style: .continuous))
+                        .background(palette.iconWell, in: RoundedRectangle(cornerRadius: LFChrome.radiusM, style: .continuous))
                 }
             }
             Text(title)
@@ -130,7 +79,7 @@ struct EmptyPanel: View {
             if let actionTitle, let action {
                 Button(actionTitle, action: action)
                     .buttonStyle(.borderedProminent)
-                    .tint(LFChrome.accent)
+                    .tint(palette.accent)
                     .controlSize(.large)
             }
         }
@@ -172,13 +121,14 @@ struct LFListRow<Leading: View, Trailing: View>: View {
 }
 
 struct LFIconWell: View {
+    @ThemePalette private var palette
     let systemImage: String
     var body: some View {
         Image(systemName: systemImage)
             .font(.system(size: 13, weight: .semibold))
-            .foregroundStyle(LFChrome.accentInk)
+            .foregroundStyle(palette.accentInk)
             .frame(width: 28, height: 28)
-            .background(LFChrome.iconWell, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+            .background(palette.iconWell, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
             .accessibilityHidden(true)
     }
 }
@@ -195,11 +145,7 @@ struct LFSectionLabel: View {
 }
 
 extension View {
-    func lfSoftPanelPadding() -> some View {
-        padding(.horizontal, LFChrome.space16)
-            .padding(.vertical, 10)
-            .background(LFChrome.softPanel())
-    }
+    func lfSoftPanelPadding() -> some View { modifier(LFPanelPaddingModifier()) }
 
     func lfCardPadding() -> some View { lfSoftPanelPadding() }
 
@@ -217,5 +163,13 @@ private struct LFContentPaddingModifier: ViewModifier {
     @Environment(\.lfCompactChrome) private var compact
     func body(content: Content) -> some View {
         content.padding(compact ? LFChrome.contentInsetCompact : LFChrome.contentInset)
+    }
+}
+
+private struct LFPanelPaddingModifier: ViewModifier {
+    @ThemePalette private var palette
+    func body(content: Content) -> some View {
+        content.padding(.horizontal, LFChrome.space16).padding(.vertical, 10)
+            .background(palette.softPanel())
     }
 }

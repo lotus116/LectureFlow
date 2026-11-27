@@ -9,4 +9,8 @@
 
 资源保持原位： [docs/assets](../assets/)、[合成界面截图说明](../assets/ui-redesign/README.md)、[第三方许可](../licenses/README.md)。打包使用原 logo.png，不移动资源目录。
 
+2026-11-28 本地前端优化：课程主页显示记录方式与直接导入入口、录音提示换行及操作文字、
+双语正文对比度和浮窗长句滚动。仅 macOS 展示改动，未发布；
+[具体范围、版本核对、隔离预览与验证限制](FRONTEND-2026-11-28.md)。
+
 完整设计理由、生成提示与历史视觉验收：[BRAND](../archive/2026-11-05/snapshot/docs/BRAND.md)、[冰蓝确认](../archive/2026-11-05/snapshot/docs/CIRNO_UI_REFINEMENT.md)、[旧 UI 任务书](../archive/2026-11-05/snapshot/docs/UI_REDESIGN_BRIEF.md)、[旧交接](../archive/2026-11-05/snapshot/docs/CURSOR_HANDOFF-2026-10-31.md)。浅／深色和窄窗只有局部抽查，完整采集中状态、多屏和辅助功能仍待验证，详见 STATUS。

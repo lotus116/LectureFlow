@@ -18,6 +18,8 @@ struct ModelDownloadProgress: Decodable {
 }
 
 struct SettingsView: View {
+    @ThemePalette private var palette
+    @AppStorage(LFTheme.preferenceKey) private var colorTheme = LFTheme.ice.rawValue
     @ObservedObject var workspace: Workspace
     @State private var message = ""
     @State private var devices: [InputDevice] = []
@@ -29,12 +31,32 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
+            Section("配色") {
+                Picker("工作区配色", selection: Binding(
+                    get: { LFTheme(preference: colorTheme).rawValue }, set: { colorTheme = $0 }
+                )) {
+                    ForEach(LFTheme.allCases) { theme in Text(theme.title).tag(theme.rawValue) }
+                }
+                .pickerStyle(.segmented)
+                .accessibilityIdentifier("settings-theme")
+                HStack(spacing: 8) {
+                    RoundedRectangle(cornerRadius: 4).fill(palette.sidebar).frame(width: 24, height: 24)
+                        .overlay(RoundedRectangle(cornerRadius: 4).stroke(palette.hairline))
+                    RoundedRectangle(cornerRadius: 4).fill(palette.accent).frame(width: 24, height: 24)
+                    Text("即时生效，保留当前录音和阅读位置。")
+                        .font(.caption).foregroundStyle(.secondary)
+                    Spacer()
+                    Button("恢复默认配色") { colorTheme = LFTheme.ice.rawValue }
+                        .disabled(colorTheme == LFTheme.ice.rawValue)
+                        .accessibilityIdentifier("settings-theme-reset")
+                }
+            }
             Section("本地模型") {
                 ForEach(workspace.installedModels) { model in
                     HStack {
                         Text(model.name)
                         Spacer()
-                        Text(model.installed ? "已就绪" : "未安装").foregroundStyle(model.installed ? .teal : .secondary)
+                        Text(model.installed ? "已就绪" : "未安装").foregroundStyle(model.installed ? palette.saved : .secondary)
                         if !model.installed {
                             Button("下载") { Task { await workspace.installModels([model.id]) } }
                                 .disabled(workspace.downloading)
@@ -98,8 +120,11 @@ struct SettingsView: View {
                     message = "诊断信息已复制（不含音频、转写、路径细节与密钥）。"
                 }
             }
-            if !message.isEmpty { Text(message).font(.callout).foregroundStyle(.teal) }
-        }.formStyle(.grouped).padding(10).frame(width: 610, height: 620)
+            if !message.isEmpty { Text(message).font(.callout).foregroundStyle(palette.saved) }
+        }.formStyle(.grouped).scrollContentBackground(.hidden)
+            .padding(10).frame(minWidth: 540, idealWidth: 610, minHeight: 520, idealHeight: 620)
+            .background(palette.canvas)
+            .tint(palette.accent)
             .task { devices = AudioDevices.inputs(); await workspace.refreshModels() }
             .onChange(of: workspace.live.inputDevice) { _, value in UserDefaults.standard.set(Int(value), forKey: "inputDevice") }
     }

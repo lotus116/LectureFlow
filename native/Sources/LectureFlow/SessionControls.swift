@@ -3,10 +3,12 @@ import LectureFlowCore
 import SwiftUI
 
 struct SessionControlBar: View {
+    @ThemePalette private var palette
     @ObservedObject var workspace: Workspace
     @ObservedObject var live: LiveController
     let showingAudio: Bool
     var readingMode = false
+    var hasLiveCaptionControls = false
     @State private var options = false
     @Environment(\.lfCompactChrome) private var compact
 
@@ -37,17 +39,21 @@ struct SessionControlBar: View {
                     }
                     if workspace.session.hasSession { transportStop }
                 }
-                if let notice = inlineNotice {
-                    Text(notice)
-                        .font(.system(size: LFChrome.captionSize))
-                        .foregroundStyle(.secondary)
-                }
             } else if workspace.session.state == .ended {
                 endedSummary
                 metaRow
             } else {
                 recordingIsland
                 metaRow
+            }
+
+            if let notice = inlineNotice {
+                Text(notice)
+                    .font(.system(size: LFChrome.captionSize))
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityIdentifier("session-notice")
             }
 
             if workspace.session.state == .running && workspace.session.desired.needsASR
@@ -57,7 +63,12 @@ struct SessionControlBar: View {
             }
 
             HStack(spacing: 10) {
-                if !workspace.session.desired.needsASR {
+                if readingMode {
+                    Text(workspace.session.modeTitle)
+                        .font(.caption).foregroundStyle(.secondary)
+                        .lineLimit(2).fixedSize(horizontal: false, vertical: true)
+                }
+                if !workspace.session.desired.needsASR && !hasLiveCaptionControls {
                     ReviewCurrentButton(workspace: workspace, live: live)
                 }
                 Button("复习标记\(workspace.reviews.activeCount == 0 ? "" : " · \(workspace.reviews.activeCount)")") {
@@ -79,10 +90,10 @@ struct SessionControlBar: View {
         .padding(.vertical, readingMode ? 8 : 12)
         .background {
             RoundedRectangle(cornerRadius: active || paused ? 28 : LFChrome.radiusM, style: .continuous)
-                .fill(active || paused ? LFChrome.recorder : LFChrome.panel)
+                .fill(active || paused ? palette.recorder : palette.panel)
                 .overlay {
                     RoundedRectangle(cornerRadius: active || paused ? 28 : LFChrome.radiusM, style: .continuous)
-                        .strokeBorder(LFChrome.hairline, lineWidth: 1)
+                        .strokeBorder(palette.hairline, lineWidth: 1)
                 }
         }
     }
@@ -100,7 +111,7 @@ struct SessionControlBar: View {
 
             TimelineView(.periodic(from: .now, by: 0.5)) { _ in
                 Text(clock(workspace.session.duration(at: ProcessInfo.processInfo.systemUptime)))
-                    .font(.system(size: compact ? 26 : 34, weight: .semibold, design: .rounded).monospacedDigit())
+                    .font(.system(size: compact ? 26 : 34, weight: .semibold).monospacedDigit())
                     .foregroundStyle(.primary)
                     .fixedSize(horizontal: true, vertical: true)
                     .accessibilityLabel("采集计时")
@@ -127,27 +138,32 @@ struct SessionControlBar: View {
             workspace.primarySessionAction()
         } label: {
             // Avoid SF Symbol record.circle.fill + extra circle (looks like a huge double ring).
-            ZStack {
-                Circle()
-                    .fill(Color.primary.opacity(0.07))
-                    .frame(width: transportSize, height: transportSize)
-                switch workspace.session.state {
-                case .idle, .ended:
+            VStack(spacing: 4) {
+                ZStack {
                     Circle()
-                        .fill(LFChrome.recordSignal)
-                        .frame(width: readingMode ? 11 : 16, height: readingMode ? 11 : 16)
-                case .running, .preparing:
-                    Image(systemName: "pause.fill")
-                        .font(.system(size: readingMode ? 12 : 17, weight: .semibold))
-                        .foregroundStyle(.primary)
-                case .paused:
-                    Image(systemName: "play.fill")
-                        .font(.system(size: readingMode ? 12 : 17, weight: .semibold))
-                        .foregroundStyle(.primary)
-                        .offset(x: 1)
+                        .fill(Color.primary.opacity(0.07))
+                        .frame(width: transportSize, height: transportSize)
+                    switch workspace.session.state {
+                    case .idle, .ended:
+                        Circle()
+                            .fill(palette.recordSignal)
+                            .frame(width: readingMode ? 11 : 16, height: readingMode ? 11 : 16)
+                    case .running, .preparing:
+                        Image(systemName: "pause.fill")
+                            .font(.system(size: readingMode ? 12 : 17, weight: .semibold))
+                            .foregroundStyle(.primary)
+                    case .paused:
+                        Image(systemName: "play.fill")
+                            .font(.system(size: readingMode ? 12 : 17, weight: .semibold))
+                            .foregroundStyle(.primary)
+                            .offset(x: 1)
+                    }
                 }
+                .frame(width: transportSize, height: transportSize)
+                Text(workspace.session.primaryTitle)
+                    .font(.system(size: 11, weight: .medium))
             }
-            .frame(width: transportSize, height: transportSize)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .disabled(!active && !paused && (workspace.busy || workspace.lecture == nil))
@@ -160,15 +176,20 @@ struct SessionControlBar: View {
         Button {
             workspace.endSession()
         } label: {
-            ZStack {
-                Circle()
-                    .strokeBorder(Color.primary.opacity(0.5), lineWidth: 2.5)
-                    .frame(width: transportSize, height: transportSize)
-                RoundedRectangle(cornerRadius: 3, style: .continuous)
-                    .fill(LFChrome.recordSignal)
-                    .frame(width: readingMode ? 11 : 17, height: readingMode ? 11 : 17)
+            VStack(spacing: 4) {
+                ZStack {
+                    Circle()
+                        .strokeBorder(Color.primary.opacity(0.5), lineWidth: 2.5)
+                        .frame(width: transportSize, height: transportSize)
+                    RoundedRectangle(cornerRadius: 3, style: .continuous)
+                        .fill(palette.recordSignal)
+                        .frame(width: readingMode ? 11 : 17, height: readingMode ? 11 : 17)
+                }
+                .frame(width: transportSize, height: transportSize)
+                Text("结束 Lecture")
+                    .font(.system(size: 11, weight: .medium))
             }
-            .frame(width: transportSize, height: transportSize)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .help("结束 Lecture；不会删除已有内容")
@@ -224,17 +245,6 @@ struct SessionControlBar: View {
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
                 .truncationMode(.tail)
-            if let notice = inlineNotice {
-                Text("·")
-                    .foregroundStyle(.tertiary)
-                    .accessibilityHidden(true)
-                Text(notice)
-                    .font(.system(size: LFChrome.captionSize))
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .truncationMode(.tail)
-                    .help(notice)
-            }
         }
         .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
     }
@@ -286,7 +296,7 @@ struct SessionControlBar: View {
             systemImage: live.pendingSaves > 0 ? "arrow.down.circle" : "checkmark.circle.fill"
         )
         .font(.system(size: LFChrome.captionSize))
-        .foregroundStyle(live.pendingSaves > 0 ? LFChrome.accentInk : LFChrome.saved)
+        .foregroundStyle(live.pendingSaves > 0 ? palette.accentInk : palette.saved)
         .lineLimit(1)
         .fixedSize(horizontal: true, vertical: true)
     }
@@ -297,9 +307,15 @@ struct SessionControlBar: View {
                 .disabled(workspace.busy || workspace.lecture == nil)
             if !showingAudio {
                 Button("查看录音") { workspace.requestedTab = "audio" }
-                Button("生成课后转写") { Task { await workspace.enqueue() } }
+                Button("生成课后转写") {
+                    let lectureID = workspace.selectedLecture
+                    Task {
+                        await workspace.enqueue()
+                        if workspace.selectedLecture == lectureID { workspace.requestedTab = "offline" }
+                    }
+                }
                     .buttonStyle(.borderedProminent)
-                    .tint(LFChrome.accent)
+                    .tint(palette.accent)
                     .disabled(workspace.lecture?.segments.isEmpty != false || workspace.busy || live.pendingSaves > 0)
             }
         }
@@ -307,9 +323,9 @@ struct SessionControlBar: View {
     }
 
     private var statusColor: Color {
-        if active { return LFChrome.recordSignal }
+        if active { return palette.recordSignal }
         if paused { return .orange }
-        return workspace.session.state == .ended ? LFChrome.saved : LFChrome.accentInk
+        return workspace.session.state == .ended ? palette.saved : palette.accentInk
     }
 
     private var status: String {
@@ -345,6 +361,7 @@ struct SessionControlBar: View {
 
 /// Scrolling mic waveform with an orange live playhead (voice-memo style).
 private struct RecordingWaveformStrip: View {
+    @ThemePalette private var palette
     var level: Float
     var active: Bool
     var paused: Bool
@@ -375,7 +392,7 @@ private struct RecordingWaveformStrip: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
 
                 Capsule()
-                    .fill(LFChrome.recordSignal)
+                    .fill(palette.recordSignal)
                     .frame(width: 2, height: geo.size.height * 0.92)
                     .offset(x: playheadX - 1)
                     .accessibilityHidden(true)
@@ -447,6 +464,7 @@ private struct RecordingWaveformStrip: View {
 }
 
 struct CaptureOptionsView: View {
+    @ThemePalette private var palette
     @ObservedObject var workspace: Workspace
     @State private var cancelling = false
     var body: some View {
@@ -456,7 +474,7 @@ struct CaptureOptionsView: View {
                 Button { workspace.configureSession(preset.flags) } label: {
                     HStack {
                         Image(systemName: workspace.session.desired == preset.flags ? "checkmark.circle.fill" : "circle")
-                            .foregroundStyle(LFChrome.accentInk)
+                            .foregroundStyle(palette.accentInk)
                         Text(preset.title)
                         Spacer()
                     }.padding(.vertical, 3)

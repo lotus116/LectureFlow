@@ -15,14 +15,17 @@
 
 | Role | Light | Dark | Notes |
 |------|-------|------|-------|
-| Accent | `#3A8FBF` | `#6BB3D9` | Sparse ice accent |
+| Accent fill | `#2563EB` | `#3671DB` | Existing native button palette |
+| Accent ink | `#1D4ED8` | `#B5D6FF` | Text and icons, separate from fill |
 | Accent soft | 12% fill | 18% fill | Selection / drop / icon wells |
-| Canvas | `#F5F8FB` | `#1C2128` | Cool reading surface |
-| Sidebar | `#EEF3F8` | `#161A20` | Soft ice mist |
+| Canvas | `#F8FBFF` | `#101827` | Cool reading surface |
+| Sidebar | `#EEF5FC` | `#0C1422` | Soft ice mist |
+| Panel | `#FFFFFF` | `#172438` | Reading surface |
+| Translation | `#43546A` | `#C3D0E0` | Reading content, not secondary metadata |
 | Foreground | system label | system label | Prefer semantic text |
 | Secondary | system secondary | system secondary | |
-| Hairline | label @ 7% | label @ 12% | No teal borders |
-| Record | system red | system red | Capture / destructive only |
+| Hairline | label @ 7% | label @ 7% | Existing native separators |
+| Record | `#E64D31` | `#FF8B69` | Existing capture signal |
 | Caution | system orange | system orange | Pause / attention |
 
 **Do not use:** teal wash, orange CTA, neon, glass over transcripts, full-page gradients, emoji icons.
@@ -36,7 +39,7 @@
 
 ### Spacing / Radius
 
-4 / 8 / 12 / 16 / 24 / 32 · content inset 28 · sidebar ideal 252  
+4 / 8 / 12 / 16 / 24 / 32 · content inset 24 (compact 14) · sidebar 220 (compact 168)
 Radius 8 / 12 / 16 (continuous) — softer than prior 6/10/14 harsh boxes
 
 ### Effects
@@ -60,4 +63,34 @@ Radius 8 / 12 / 16 (continuous) — softer than prior 6/10/14 harsh boxes
 | Course home | Course name hero + one primary “开始新 Lecture” + quiet Lecture list |
 | Lecture detail | Session strip (timer + record) above content; transcript is the product |
 | Sidebar | Brand mark + course/lecture tree; ice selection |
-| Empty | Cirno app icon + short copy + one CTA |
+| Empty | App icon on first open; quiet contextual symbol within a course; one primary CTA |
+
+## Native reading checks · 2026-11-28
+
+This table now matches `LFChrome` and the previously confirmed native palette;
+the older teal-like values were stale documentation, not a new theme direction.
+Only the translation foreground is new in this iteration.
+
+- Start a Lecture: keep the recording mode visible beside the primary action;
+  expose existing empty-Lecture and import actions as secondary buttons.
+- Session notices wrap independently of the mode/model controls. Keep pause and
+  end labels visible in the regular recorder, retaining the compact reading strip.
+- Main transcript: Chinese is body content; use the translation token for live
+  and offline text. Copy/export share a secondary menu; bookmark and latest stay visible.
+- Floating paragraphs wrap without a line cap. Keep scrolling available at the
+  smallest width and 56-point size; manual reading pauses following, latest resumes it.
+- Font buttons expose independent accessible names. Do not animate streaming caption updates; respect Reduce Motion for
+  user-triggered expansion and sidebar changes. Existing bookmark focus/reveal behavior stays intact.
+
+Evidence and remaining limits: [native frontend review](../../docs/design/FRONTEND-2026-11-28.md).
+
+## Two light palettes · 2026-11-28
+
+Ice remains the default without migration. The optional warm-stone / forest palette is now
+implemented under the user's authorization for Codex to finish the design; no external-review gate remains.
+Semantic colors live in `Theme.swift`; geometry and typography remain in `LFChrome`.
+No system/light/dark selector is added. Dark floating subtitles retain adjustable translucent edges,
+with a local contrast floor behind text and controls. Streaming updates never animate scrolling.
+
+Use the [surface inventory](../../docs/design/UI-SURFACES-2026-11-28.md) for primary, secondary and destructive
+controls, and [theme validation](../../docs/design/THEMES.md) for evidence and limits.

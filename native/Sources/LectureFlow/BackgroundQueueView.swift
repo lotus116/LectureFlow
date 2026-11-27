@@ -45,6 +45,7 @@ extension Workspace {
 }
 
 struct BackgroundQueueView: View {
+    @ThemePalette private var palette
     @ObservedObject var workspace: Workspace
     @Environment(\.dismiss) private var dismiss
     @State private var working = false
@@ -80,6 +81,7 @@ struct BackgroundQueueView: View {
             }
             if working { ProgressView().controlSize(.small) }
         }.padding(22).frame(width: 680, height: 440)
+            .background(palette.canvas).tint(palette.accent)
             .alert("操作未完成", isPresented: Binding(get: { error != nil }, set: { if !$0 { error = nil } })) {
                 Button("知道了") { error = nil }
             } message: { Text(error ?? "") }

@@ -69,6 +69,7 @@ struct KnowledgeJob: Decodable, Identifiable, Sendable {
 }
 
 struct MaterialsView: View {
+    @ThemePalette private var palette
     @ObservedObject var workspace: Workspace
     let courseID: String
     var showTermsInitially = false
@@ -112,7 +113,8 @@ struct MaterialsView: View {
                     Button("补全全部缺失中文") {
                         Task { await batch("translate", ids: materials.terms.filter { $0.chinese.isEmpty && $0.excluded == 0 }.map(\.id)) }
                     }
-                } label: { Image(systemName: "ellipsis") }.menuStyle(.borderlessButton).frame(width: 24)
+                } label: { Image(systemName: "ellipsis") }.menuStyle(.borderlessButton).frame(width: 28)
+                    .accessibilityLabel("资料操作").help("资料操作")
                 Button("导入课件", systemImage: "plus") { importing = true }.disabled(working)
             }
             Text("本课程共享 · 自动术语，相关时辅助识别与翻译")
@@ -150,6 +152,7 @@ struct MaterialsView: View {
             }.background(.background, in: RoundedRectangle(cornerRadius: 8))
             if let job { jobView(job) }
         }
+        .tint(palette.accent)
         .onAppear { if showTermsInitially { section = "terms" } }
         .task(id: courseID) {
             await reload()

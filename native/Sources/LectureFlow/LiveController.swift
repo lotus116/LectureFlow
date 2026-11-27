@@ -34,7 +34,7 @@ final class LivePipe {
     convenience init(paths: RuntimePaths, lectureID: String, sessionID: String, model: String,
                      completion: @escaping (Bool) -> Void, event: @escaping ([String: Any]) -> Void) throws {
         try FileManager.default.createDirectory(at: paths.logs, withIntermediateDirectories: true)
-        try self.init(process: paths.process(["live", "run", lectureID, sessionID, "--asr", model]),
+        try self.init(process: paths.process(["live", "run", lectureID, sessionID, "--asr", model, "--isolated-translation"]),
                       diagnosticURL: paths.logs.appendingPathComponent("live-health.json"),
                       sessionID: sessionID, model: model, completion: completion, event: event)
     }
@@ -255,6 +255,7 @@ final class LiveController: NSObject, ObservableObject {
         didSet { displayCaptions = LiveCaption.paragraphs(captions) }
     }
     @Published private(set) var displayCaptions: [LiveCaption] = []
+    @Published private(set) var pendingChinese = 0
     @Published private(set) var message = "随时开始，随时暂停"
     @Published private(set) var lectureID: String?
     @Published private(set) var isCapturing = false
@@ -326,6 +327,7 @@ final class LiveController: NSObject, ObservableObject {
             guard let self else { return }
             self.change(self.flags, lecture: lecture, backend: backend, model: model)
         }
+        if !desired.translate { pendingChinese = 0 }
         flags = desired; generation += 1
         let revision = generation
         Task { [self] in
@@ -488,6 +490,9 @@ final class LiveController: NSObject, ObservableObject {
         }
         switch event["type"] as? String {
         case "progress": break
+        case "translation_queue":
+            let count = event["count"] as? Int ?? 0
+            if pendingChinese != count { pendingChinese = count }
         case "ready":
             if let model = event["model"] as? String { modelSelection.acknowledge(model) }
             message = "实时字幕已就绪"
@@ -526,7 +531,12 @@ final class LiveController: NSObject, ObservableObject {
             if let index = captions.firstIndex(where: { $0.id == caption.id }) {
                 if captions[index].revision < caption.revision { captions[index] = caption }
             } else {
-                captions.append(caption)
+                if let last = captions.last, last.session_id == caption.session_id, last.start > caption.start,
+                   let index = captions.firstIndex(where: { $0.session_id == caption.session_id && $0.start > caption.start }) {
+                    captions.insert(caption, at: index)
+                } else {
+                    captions.append(caption)
+                }
                 if captions.count > 5000 { captions.removeFirst(captions.count - 5000) }
             }
         default: break
@@ -557,6 +567,7 @@ final class LiveController: NSObject, ObservableObject {
     }
 
     private func drainCaptions() {
+        pendingChinese = 0
         recoveryTask?.cancel(); recoveryTask = nil
         if let token = pipeToken, let sessionID {
             drainingTokens[token] = sessionID

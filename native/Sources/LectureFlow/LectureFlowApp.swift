@@ -178,6 +178,8 @@ private struct ArchiveTarget {
 }
 
 struct LibraryView: View {
+    @ThemePalette private var palette
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @ObservedObject var model: Workspace
     @State private var importing = false
     @AppStorage("librarySidebarVisible") private var sidebarVisible = true
@@ -224,20 +226,20 @@ struct LibraryView: View {
                         .resizable()
                         .frame(width: 30, height: 30)
                         .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
-                        .shadow(color: LFChrome.accent.opacity(0.2), radius: 6, y: 2)
+                        .shadow(color: palette.accent.opacity(0.2), radius: 6, y: 2)
                     VStack(alignment: .leading, spacing: 1) {
                         Text("LectureFlow")
                             .font(.system(size: 13, weight: .semibold))
                         Text("本地课堂")
                             .font(.system(size: 10, weight: .medium))
-                            .foregroundStyle(LFChrome.accentInk)
+                            .foregroundStyle(palette.accentInk)
                     }
                     Spacer(minLength: 0)
                 }
                 .padding(.horizontal, LFChrome.space12)
                 .padding(.vertical, 10)
                 .overlay(alignment: .bottom) {
-                    Rectangle().fill(LFChrome.hairline).frame(height: 1)
+                    Rectangle().fill(palette.hairline).frame(height: 1)
                 }
 
                 // No List(selection:) — system blue highlight cannot be recolored reliably on macOS.
@@ -259,7 +261,8 @@ struct LibraryView: View {
                                         .contentShape(Rectangle())
                                 }
                                 .buttonStyle(.plain)
-                                .foregroundStyle(model.selectedLecture == lecture.id ? LFChrome.accentInk : LFChrome.ink)
+                                .foregroundStyle(model.selectedLecture == lecture.id ? palette.accentInk : palette.ink)
+                                .accessibilityIdentifier("lecture-\(lecture.id)")
                                 .listRowBackground(lectureRowBackground(course.id, lectureID: lecture.id))
                                 .draggable("lectureflow-lecture:" + lecture.id)
                                 .dropDestination(for: String.self) { items, _ in
@@ -317,23 +320,24 @@ struct LibraryView: View {
                     Button { openSettings() } label: { Image(systemName: "gearshape") }
                         .help("设置")
                         .accessibilityLabel("设置")
+                        .accessibilityIdentifier("settings-open")
                 }
                 .buttonStyle(.borderless)
-                .foregroundStyle(LFChrome.accentInk)
+                .foregroundStyle(palette.accentInk)
                 .controlSize(.small)
                 .padding(.horizontal, LFChrome.space12)
                 .padding(.vertical, 10)
                 .frame(maxWidth: .infinity)
-                .background(LFChrome.sidebar)
+                .background(palette.sidebar)
                 .overlay(alignment: .top) {
-                    Rectangle().fill(LFChrome.hairline).frame(height: 1)
+                    Rectangle().fill(palette.hairline).frame(height: 1)
                 }
             }
-            .background(LFChrome.sidebar)
+            .background(palette.sidebar)
         } detail: {
             if let lecture = model.lecture {
                 ZStack(alignment: .top) {
-                    LFChrome.iceMist()
+                    palette.iceMist()
                         .frame(height: 120)
                         .allowsHitTesting(false)
                     VStack(alignment: .leading, spacing: compact ? LFChrome.space8 : LFChrome.space12) {
@@ -347,25 +351,29 @@ struct LibraryView: View {
                                 captionLayoutButton
                             }
                         } else {
-                            header(lecture)
+                            header(lecture, compact: compact)
                         }
                         modelDownloadBanner
                         LiveControlView(workspace: model, live: model.live, lecture: lecture,
-                                        showingAudio: tab == "audio", readingMode: readingCaptions)
+                                        showingAudio: tab == "audio", readingMode: readingCaptions || (compact && tab == "transcript"),
+                                        hasLiveCaptionControls: tab == "transcript" && transcriptSource == "live")
                         if !readingCaptions { contentChrome }
-                        if !readingCaptions, let task = model.activeTask { taskView(task) }
+                        if !readingCaptions, let task = model.activeTask,
+                           (tab == "transcript" && transcriptSource == "offline") || task.state != "completed" {
+                            taskView(task)
+                        }
                         Group {
                             if tab == "audio" { audioList(lecture) }
                             else { unifiedTranscript(lecture) }
                         }
                         .padding(compact ? LFChrome.space8 : LFChrome.space12)
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                        .background(LFChrome.softPanel())
+                        .background(palette.softPanel())
                     }
                     .lfContentPadding()
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                .background(LFChrome.canvas)
+                .background(palette.canvas)
                 .id(lecture.id)
                 .dropDestination(for: URL.self) { urls, _ in
                     let audio = urls.filter { ["m4a", "mp3", "wav", "flac"].contains($0.pathExtension.lowercased()) }
@@ -386,16 +394,16 @@ struct LibraryView: View {
                         onImportAudio: { importingForCourse = course.id; importing = true }
                     )
                 }
-                .background(LFChrome.canvas)
+                .background(palette.canvas)
             } else {
                 ZStack {
-                    LFChrome.iceMist().allowsHitTesting(false)
+                    palette.iceMist().allowsHitTesting(false)
                     VStack(spacing: LFChrome.space24) {
                         Image(nsImage: NSApp.applicationIconImage)
                             .resizable()
                             .frame(width: 80, height: 80)
                             .clipShape(RoundedRectangle(cornerRadius: LFChrome.radiusL, style: .continuous))
-                            .shadow(color: LFChrome.accent.opacity(0.28), radius: 16, y: 6)
+                            .shadow(color: palette.accent.opacity(0.28), radius: 16, y: 6)
                         Text("把每一堂课，留在本地")
                             .font(.system(size: LFChrome.titleSize, weight: .semibold))
                         Text("新建课程后即可开始 Lecture，或导入已有录音。课件资料可选。")
@@ -406,7 +414,7 @@ struct LibraryView: View {
                         HStack(spacing: LFChrome.space12) {
                             Button("新建课程") { newName = ""; form = "course" }
                                 .buttonStyle(.borderedProminent)
-                                .tint(LFChrome.accent)
+                                .tint(palette.accent)
                                 .controlSize(.large)
                             Button("设置") { openSettings() }
                                 .controlSize(.large)
@@ -416,7 +424,7 @@ struct LibraryView: View {
                     .lfContentPadding()
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(LFChrome.canvas)
+                .background(palette.canvas)
             }
         }
         .fileImporter(isPresented: $importing, allowedContentTypes: [.audio],
@@ -438,8 +446,11 @@ struct LibraryView: View {
         .onChange(of: importing) { _, open in
             if !open { importingForCourse = nil }
         }
-        .sheet(isPresented: $model.reviewPresented) {
+        .sheet(isPresented: $model.reviewPresented, onDismiss: { playback.stop() }) {
             ReviewMarksView(workspace: model, store: model.reviews, playback: model.playback)
+        }
+        .onChange(of: model.reviewPresented) { _, presented in
+            if !presented { playback.stop() }
         }
         .sheet(isPresented: Binding(get: { form != nil }, set: { if !$0 { form = nil } })) {
             VStack(alignment: .leading, spacing: 18) {
@@ -518,7 +529,15 @@ struct LibraryView: View {
         }
         .onChange(of: model.requestedTab) { _, value in
             if let value {
-                tab = value == "live" ? "transcript" : value
+                if value == "live" { transcriptSource = "live" }
+                else if value == "offline" { transcriptSource = "offline" }
+                else if value == "transcript" {
+                    // Starting or resuming a bilingual session opens its live
+                    // captions. An explicit offline action has its own route.
+                    let capturing = model.session.state == .running || model.session.state == .preparing
+                    transcriptSource = capturing && model.session.desired.needsASR ? "live" : "offline"
+                }
+                tab = ["live", "offline"].contains(value) ? "transcript" : value
                 model.requestedTab = nil
             }
         }
@@ -530,9 +549,10 @@ struct LibraryView: View {
         .toolbar {
             ToolbarItem(placement: .navigation) {
                 Button {
-                    withAnimation(.easeInOut(duration: 0.18)) { sidebarVisible.toggle() }
+                    withAnimation(reduceMotion ? nil : LFChrome.motion) { sidebarVisible.toggle() }
                 } label: { Image(systemName: "sidebar.left") }
                     .help("显示或隐藏侧边栏").accessibilityIdentifier("sidebar-toggle")
+                    .accessibilityLabel(sidebarVisible ? "隐藏侧边栏" : "显示侧边栏")
             }
             ToolbarItem(placement: .primaryAction) {
                 Button { showQueue = true } label: {
@@ -551,7 +571,7 @@ struct LibraryView: View {
         }
         .background(MainWindowMarker())
         .controlSize(.small)
-        .tint(LFChrome.accent)
+        .tint(palette.accent)
     }
 
     @ViewBuilder
@@ -565,13 +585,14 @@ struct LibraryView: View {
                     .font(.system(size: LFChrome.sectionSize, weight: .semibold))
                     .labelStyle(.titleAndIcon)
                     .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(LFChrome.ink)
+                    .foregroundStyle(palette.ink)
                     .lineLimit(1)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .help(course.name)
+            .accessibilityIdentifier("course-\(course.id)")
         }
         .padding(.vertical, LFChrome.space4)
         .padding(.horizontal, LFChrome.space4)
@@ -579,11 +600,11 @@ struct LibraryView: View {
         .contentShape(Rectangle())
         .background(
             RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(dropCourseID == course.id ? LFChrome.dropHighlight : .clear)
+                .fill(dropCourseID == course.id ? palette.dropHighlight : .clear)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .strokeBorder(dropCourseID == course.id ? LFChrome.dropStroke : .clear, lineWidth: 1.5)
+                .strokeBorder(dropCourseID == course.id ? palette.dropStroke : .clear, lineWidth: 1.5)
         )
         .draggable("lectureflow-course:" + course.id)
         .dropDestination(for: String.self) { items, _ in
@@ -603,7 +624,7 @@ struct LibraryView: View {
 
     private func courseDropBackground(_ courseID: String) -> some View {
         RoundedRectangle(cornerRadius: 6, style: .continuous)
-            .fill(dropCourseID == courseID ? LFChrome.dropHighlight : Color.clear)
+            .fill(dropCourseID == courseID ? palette.dropHighlight : Color.clear)
     }
 
     private func lectureRowBackground(_ courseID: String, lectureID: String) -> some View {
@@ -611,14 +632,14 @@ struct LibraryView: View {
         return RoundedRectangle(cornerRadius: 6, style: .continuous)
             .fill(
                 selected
-                    ? LFChrome.selection
-                    : (dropCourseID == courseID ? LFChrome.dropHighlight : Color.clear)
+                    ? palette.selection
+                    : (dropCourseID == courseID ? palette.dropHighlight : Color.clear)
             )
             .padding(.horizontal, 2)
     }
 
     private func updateDropTarget(_ courseID: String, targeted: Bool) {
-        withAnimation(.easeInOut(duration: 0.12)) {
+        withAnimation(reduceMotion ? nil : LFChrome.motion) {
             if targeted {
                 dropCourseID = courseID
             } else if dropCourseID == courseID {
@@ -673,7 +694,7 @@ struct LibraryView: View {
                 if let fraction = model.downloadFraction { ProgressView(value: fraction) }
                 Text("可先新建课程、导入资料或保存录音；模型就绪后即可识别与翻译。")
                     .font(.caption).foregroundStyle(.secondary)
-            }.padding(12).background(.blue.opacity(0.07), in: RoundedRectangle(cornerRadius: 10))
+            }.padding(12).background(palette.accent.opacity(0.07), in: RoundedRectangle(cornerRadius: 10))
         } else if !model.hasModel("asr-small") || !model.hasModel("translate") {
             HStack {
                 Text("本地模型尚未就绪").font(.callout).foregroundStyle(.secondary)
@@ -685,7 +706,7 @@ struct LibraryView: View {
         }
     }
 
-    private func header(_ lecture: Lecture) -> some View {
+    private func header(_ lecture: Lecture, compact: Bool) -> some View {
         HStack(alignment: .center, spacing: LFChrome.space12) {
             VStack(alignment: .leading, spacing: 3) {
                 if let course = model.course {
@@ -695,14 +716,16 @@ struct LibraryView: View {
                         .lineLimit(1)
                 }
                 Text(lecture.title)
-                    .font(.system(size: LFChrome.titleSize, weight: .semibold))
+                    .font(.system(size: compact ? 20 : LFChrome.titleSize, weight: .semibold))
                     .lineLimit(1)
                     .truncationMode(.middle)
                     .help(lecture.title)
-                Text("\(lecture.segments.count) 段录音 · 共 \(duration(lecture.segments.reduce(0) { $0 + $1.duration }))")
-                    .font(.system(size: LFChrome.captionSize))
-                    .foregroundStyle(.secondary)
-                    .monospacedDigit()
+                if !compact || tab == "audio" {
+                    Text("\(lecture.segments.count) 段录音 · 共 \(duration(lecture.segments.reduce(0) { $0 + $1.duration }))")
+                        .font(.system(size: LFChrome.captionSize))
+                        .foregroundStyle(.secondary)
+                        .monospacedDigit()
+                }
             }
             .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
             headerActions(lecture)
@@ -719,7 +742,7 @@ struct LibraryView: View {
                     headerActionLabel("课程资料", systemImage: "doc.richtext")
                 }
                 .buttonStyle(.borderless)
-                .foregroundStyle(LFChrome.accentInk)
+                .foregroundStyle(palette.accentInk)
                 .controlSize(.small)
                 .help("课程资料")
             }
@@ -732,10 +755,11 @@ struct LibraryView: View {
                 )
             }
             .buttonStyle(.borderless)
-            .foregroundStyle(LFChrome.accentInk)
+            .foregroundStyle(palette.accentInk)
             .controlSize(.small)
             .help(model.floatingSubtitlesVisible ? "隐藏悬浮字幕窗口" : "打开悬浮字幕窗口")
             .accessibilityLabel(model.floatingSubtitlesVisible ? "关闭悬浮字幕" : "悬浮字幕")
+            .accessibilityIdentifier("floating-open")
             .accessibilityAddTraits(model.floatingSubtitlesVisible ? .isSelected : [])
 
             Menu {
@@ -753,7 +777,7 @@ struct LibraryView: View {
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(.secondary)
                     .frame(width: 28, height: 28)
-                    .background(LFChrome.iconWell, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+                    .background(palette.iconWell, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
                     .contentShape(Rectangle())
             }
             .menuStyle(.borderlessButton)
@@ -768,7 +792,7 @@ struct LibraryView: View {
                 Label("导入", systemImage: "plus")
             }
             .buttonStyle(.bordered)
-            .tint(LFChrome.accent)
+            .tint(palette.accent)
             .controlSize(.small)
             .disabled(model.busy)
         }
@@ -788,7 +812,7 @@ struct LibraryView: View {
         VStack(alignment: .leading, spacing: LFChrome.space4) {
             HStack(spacing: LFChrome.space8) {
                 Image(systemName: task.state == "completed" ? "checkmark.circle.fill" : "waveform")
-                    .foregroundStyle(task.state == "completed" ? .secondary : LFChrome.accent)
+                    .foregroundStyle(task.state == "completed" ? .secondary : palette.accent)
                 Text(task.label)
                     .font(.system(size: LFChrome.bodySize, weight: .medium))
                 Text(task.scopeLabel)
@@ -857,10 +881,13 @@ struct LibraryView: View {
                 Button("生成课后转写") {
                     tab = "transcript"
                     transcriptSource = "offline"
-                    Task { await model.enqueue() }
+                    Task {
+                        await model.enqueue()
+                        if model.selectedLecture == lecture.id { model.requestedTab = "offline" }
+                    }
                 }
                 .buttonStyle(.borderedProminent)
-                .tint(LFChrome.accent)
+                .tint(palette.accent)
                 .controlSize(.small)
                 .disabled(model.busy || lecture.segments.isEmpty || model.live.pendingSaves > 0)
             }
@@ -893,9 +920,9 @@ struct LibraryView: View {
                                 Button { playback.play(segment) } label: {
                                     Image(systemName: playback.segmentID == segment.id ? "stop.fill" : "play.fill")
                                         .font(.system(size: 11, weight: .semibold))
-                                        .foregroundStyle(LFChrome.accentInk)
+                                        .foregroundStyle(palette.accentInk)
                                         .frame(width: 28, height: 28)
-                                        .background(LFChrome.iconWell, in: Circle())
+                                        .background(palette.iconWell, in: Circle())
                                 }
                                 .buttonStyle(.plain)
                                 .help(segment.original_name)
@@ -931,7 +958,7 @@ struct LibraryView: View {
                                         .font(.system(size: 12, weight: .semibold))
                                         .foregroundStyle(.secondary)
                                         .frame(width: 28, height: 28)
-                                        .background(LFChrome.iconWell, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+                                        .background(palette.iconWell, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
                                         .contentShape(Rectangle())
                                 }
                                 .menuStyle(.borderlessButton)
@@ -965,7 +992,7 @@ struct LibraryView: View {
 
     private var contentChrome: some View {
         HStack(spacing: LFChrome.space12) {
-            Picker("内容", selection: $tab) {
+            Picker("内容", selection: Binding(get: { tab }, set: selectContentTab)) {
                 Text("录音").tag("audio")
                 Text("转写").tag("transcript")
             }
@@ -977,7 +1004,7 @@ struct LibraryView: View {
 
             if tab == "transcript" {
                 Rectangle()
-                    .fill(LFChrome.hairline)
+                    .fill(palette.hairline)
                     .frame(width: 1, height: 18)
                 Picker("来源", selection: $transcriptSource) {
                     Text("实时记录").tag("live")
@@ -998,21 +1025,25 @@ struct LibraryView: View {
         .padding(.horizontal, 2)
         .padding(.vertical, LFChrome.space8)
         .overlay(alignment: .bottom) {
-            Rectangle().fill(LFChrome.hairline).frame(height: 1)
+            Rectangle().fill(palette.hairline).frame(height: 1)
         }
-        .onChange(of: tab) { _, value in
-            guard value == "transcript" else { return }
-            if model.session.hasSession || model.live.flags.needsMicrophone {
-                transcriptSource = "live"
-            } else if model.transcript?.units.isEmpty == false {
-                transcriptSource = "offline"
-            }
+    }
+
+    /// Apply the ordinary tab preference only to a user tab selection. Explicit
+    /// live/offline navigation must keep its requested source on first mount.
+    private func selectContentTab(_ value: String) {
+        tab = value
+        guard value == "transcript" else { return }
+        if model.session.hasSession || model.live.flags.needsMicrophone {
+            transcriptSource = "live"
+        } else if model.transcript?.units.isEmpty == false {
+            transcriptSource = "offline"
         }
     }
 
     private var captionLayoutButton: some View {
         Button {
-            captionsExpanded.toggle()
+            withAnimation(reduceMotion ? nil : LFChrome.motion) { captionsExpanded.toggle() }
         } label: {
             Label(readingCaptions ? "恢复布局" : "展开字幕",
                   systemImage: readingCaptions ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right")
@@ -1058,7 +1089,12 @@ struct LibraryView: View {
                             .font(.system(size: LFChrome.captionSize))
                             .foregroundStyle(.secondary)
                         Spacer()
-                        Button("重新转写") { Task { await model.enqueue() } }.disabled(model.busy)
+                        Button("重新转写") {
+                            Task {
+                                await model.enqueue()
+                                if model.selectedLecture == lecture.id { model.requestedTab = "offline" }
+                            }
+                        }.disabled(model.busy)
                     }
                 }
                 if model.transcript?.source_missing == true {
@@ -1104,7 +1140,7 @@ struct LibraryView: View {
                                     HStack(spacing: LFChrome.space8) {
                                         Text(clock(unit.logical_start))
                                             .font(.system(size: LFChrome.captionSize, weight: .medium).monospacedDigit())
-                                            .foregroundStyle(LFChrome.accentInk.opacity(0.85))
+                                            .foregroundStyle(palette.accentInk.opacity(0.85))
                                         if unit.isEdited {
                                             Text(unit.englishEdited ? "英文已修改" : "已编辑")
                                                 .font(.system(size: LFChrome.captionSize))
@@ -1171,7 +1207,7 @@ struct LibraryView: View {
                                     if textLanguage != "en", !unit.chinese.isEmpty {
                                         Text(unit.chinese)
                                             .font(.system(size: LFChrome.transcriptChinese(transcriptTextSize)))
-                                            .foregroundStyle(.secondary)
+                                            .foregroundStyle(palette.transcriptTranslation)
                                             .lineSpacing(max(3, LFChrome.transcriptChinese(transcriptTextSize) * 0.28))
                                     }
                                 }
@@ -1179,7 +1215,7 @@ struct LibraryView: View {
                                 .textSelection(.enabled)
                                 .padding(.bottom, LFChrome.space4)
                                 Rectangle()
-                                    .fill(LFChrome.hairline)
+                                    .fill(palette.hairline)
                                     .frame(height: 1)
                             }
                         }
@@ -1197,11 +1233,6 @@ struct LibraryView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .onChange(of: model.requestedTab) { _, value in
-            if value == "transcript" || value == "live" {
-                transcriptSource = value == "live" ? "live" : "offline"
-            }
-        }
     }
 
     /// Soften UUID-heavy import names in the list; full name stays in help.

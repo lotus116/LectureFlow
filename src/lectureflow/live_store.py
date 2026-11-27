@@ -74,7 +74,8 @@ def validate_session(library, session_id: str, lecture_id: str) -> None:
         raise ValueError("实时字幕会话不属于当前课堂")
 
 
-def save(library, session_id: str, event: dict, *, english: bool, translate: bool) -> dict:
+def save(library, session_id: str, event: dict, *, english: bool, translate: bool,
+         sequential=False) -> dict:
     event = {k: event[k] for k in (
         "id", "start", "end", "english", "chinese", "status", "revision",
     )}
@@ -91,6 +92,9 @@ def save(library, session_id: str, event: dict, *, english: bool, translate: boo
             "SELECT * FROM live_captions WHERE session_id=? AND id=?",
             (session_id, event["id"]),
         ).fetchone()
+        if sequential and previous and (previous["status"] == "locked"
+                                        or previous["revision"] + 1 != event["revision"]):
+            return {**{k: previous[k] for k in event}, "_conflict": True}
         if previous and (previous["status"] == "locked"
                          or previous["revision"] >= event["revision"]):
             return {k: previous[k] for k in event}
@@ -189,14 +193,22 @@ def save_translation_failure(library, session_id, event, *, english):
             return
         clean = {k: event[k] for k in (
             "id", "state", "kind", "attempts", "error_type", "start", "end", "source_version",
+            "caption_revision",
         ) if k in event}
         if english:
             clean.update({k: event[k] for k in (
                 "source_text", "context", "following",
             ) if k in event})
+        if clean["state"] == "waiting_capacity":
+            waiting = library.db.execute("""SELECT count(*) FROM live_translation_failures
+                WHERE session_id=? AND json_extract(event,'$.state')='waiting_capacity'""",
+                                         (session_id,)).fetchone()[0]
+            if waiting >= 24:
+                clean.update(state="deferred", error_type="Capacity")
         library.db.execute("""INSERT INTO live_translation_failures VALUES(?,?,?)
             ON CONFLICT(session_id,caption_id) DO UPDATE SET event=excluded.event""",
             (session_id, event["id"], json.dumps(clean, ensure_ascii=False)))
+        return clean["state"]
 
 
 def translation_failures(library, session_id):
@@ -209,3 +221,25 @@ def translation_failures(library, session_id):
         "SELECT event FROM live_translation_failures WHERE session_id=? ORDER BY caption_id",
         (session_id,),
     )]
+
+def resumable_translations(library, session_id, limit):
+    """Return intact bilingual snapshots only. A changed caption needs manual review."""
+    if not library.db.execute(
+        "SELECT 1 FROM sqlite_master WHERE name='live_translation_failures'"
+    ).fetchone():
+        return []
+    rows = library.db.execute("""
+        SELECT c.*, f.event FROM live_translation_failures f JOIN live_captions c
+          ON c.session_id=f.session_id AND c.id=f.caption_id
+        WHERE f.session_id=? AND c.status <> 'locked' AND c.english <> ''
+          AND c.english=json_extract(f.event,'$.source_text')
+          AND c.revision=json_extract(f.event,'$.caption_revision')
+          AND json_extract(f.event,'$.state') IN ('pending','waiting_capacity','retrying')
+        ORDER BY c.start,c.id LIMIT ?""", (session_id, limit))
+    result = []
+    for row in rows:
+        entry = dict(row)
+        event = json.loads(entry.pop("event"))
+        entry.update(_source_text=entry["english"], source_version=event["source_version"])
+        result.append((entry, event))
+    return result

@@ -156,16 +156,21 @@ class CaptionEngine:
             self.english, self.translate = english, translate
             self.pre_roll = None
 
-    def emit(self, entry: dict, status: str) -> None:
+    def emit(self, entry: dict, status: str):
+        if entry.get("_persist_conflict"):
+            return False
         if entry.get("_source_text") != entry["english"]:
             entry["source_version"] = entry.get("source_version", 0) + 1
             entry["_source_text"] = entry["english"]
         entry["status"] = status
         entry["revision"] += 1
-        self.publish(entry.copy(), self.english, self.translate)
+        if self.publish(entry.copy(), self.english, self.translate) is False:
+            entry["_persist_conflict"] = entry["edited"] = True
+            return False
         if entry.pop("_translation_recovered", False):
             self.translation_audit({"id": entry["id"], "state": "resolved"})
             entry.pop("translation_incomplete", None)
+        return True
 
     def translated(self, text: str, *, context: str = "", following: str = "") -> str:
         if not self.translate or not text:
@@ -345,18 +350,25 @@ class CaptionEngine:
                 lambda: self.translated(job.source_text),
             )
         except Exception as error:
-            job.attempts += 1
-            job.retry_at = time.monotonic() + 6
-            self.translation_failures += 1
-            job.entry["translation_incomplete"] = True
-            self.translation_audit({
-                "id": key, "state": "retrying", "kind": "required",
-                "attempts": job.attempts, "error_type": type(error).__name__,
-                "source_text": job.source_text, "context": job.context,
-                "following": job.following, "source_version": job.source_version,
-                "start": job.entry["start"], "end": job.entry["end"],
-            })
+            self.translation_failed(key, job, error)
             return
+        self.accept_translation(key, job, chosen)
+
+    def translation_failed(self, key, job, error):
+        job.attempts += 1
+        job.retry_at = time.monotonic() + 6
+        self.translation_failures += 1
+        job.entry["translation_incomplete"] = True
+        self.translation_audit({
+            "id": key, "state": "retrying", "kind": "required",
+            "attempts": job.attempts, "error_type": type(error).__name__,
+            "source_text": job.source_text, "context": job.context,
+            "following": job.following, "source_version": job.source_version,
+            "caption_revision": job.entry["revision"],
+            "start": job.entry["start"], "end": job.entry["end"],
+        })
+
+    def accept_translation(self, key, job, chosen):
         if self.pending_translations.get(key) is not job:
             return
         if job.entry.get("edited") or job.entry["status"] == "locked":
@@ -369,10 +381,13 @@ class CaptionEngine:
         if job.entry.get("translation_incomplete"):
             job.entry["_translation_recovered"] = True
         job.entry["chinese"] = chosen
-        self.emit(job.entry, "revised")
+        if not self.emit(job.entry, "revised"):
+            del self.pending_translations[key]
+            return False
         del self.pending_translations[key]
         self.translations_completed += 1
         self.context_translations_completed += bool(job.following)
+        return True
 
     def translation_progress(self) -> dict:
         return {
@@ -609,7 +624,7 @@ def output(event: dict) -> None:
 
 def run_live(
     root: Path, model_root: Path, lecture_id: str, session_id: str, asr: str,
-    *, temporary_refresh_seconds: float = 1.0,
+    *, temporary_refresh_seconds: float = 1.0, isolated_translation=False,
 ) -> None:
     configure(model_root)
     buffer = InputBuffer()
@@ -659,8 +674,13 @@ def run_live(
             translator = None
 
             def publish(event, english, translate):
-                clean = save(library, session_id, event, english=english, translate=translate)
+                clean = save(library, session_id, event, english=english, translate=translate,
+                             sequential=isolated_translation)
+                conflict = clean.pop("_conflict", False)
                 output({"type": "caption", "session_id": session_id, **clean})
+                if conflict:
+                    output({"type": "warning", "message": "该段已有更新，已保留资料库中的版本。"})
+                return not conflict
 
             from .documents import context
 
@@ -676,19 +696,43 @@ def run_live(
 
             def translation_audit(event):
                 from .live_store import save_translation_failure
-                save_translation_failure(library, session_id, event, english=captions.english)
-                if event["state"] == "deferred":
+                state = save_translation_failure(
+                    library, session_id, event, english=captions.english)
+                if state == "deferred":
                     output({"type": "warning",
                             "message": "部分中文未完成，已有字幕保留；后续识别继续。"})
+                return state
 
-            captions = CaptionEngine(
+            engine_type = CaptionEngine
+            if isolated_translation:
+                from .isolated_translation import IsolatedCaptionEngine, TranslationProcess
+                engine_type = IsolatedCaptionEngine
+            captions = engine_type(
                 engine.session, None, publish, english=False, translate=False, deferred=True,
                 translation_audit=translation_audit,
                 temporary_refresh_seconds=temporary_refresh_seconds,
                 language=source_language(configuration(library, session_id)),
                 audit=audit, **materials
             )
+            if isolated_translation:
+                from functools import partial
+
+                from .live_store import resumable_translations
+                captions.reload_jobs = partial(resumable_translations, library, session_id)
             output({"type": "ready", "model": asr})
+            last_pending = 0
+
+            def service():
+                nonlocal last_pending
+                captions.service(buffer.backlog())
+                if isolated_translation:
+                    count = len(captions.pending_translations)
+                    if captions.active and not captions.active[1]:
+                        count += 1
+                    if count != last_pending:
+                        output({"type": "translation_queue", "count": count})
+                        last_pending = count
+
             dropped = 0
             requested_model = asr
             try:
@@ -697,7 +741,7 @@ def run_live(
                     if item is None:
                         if buffer.closed:
                             break
-                        captions.service(buffer.backlog())
+                        service()
                         if (captions.state is None and buffer.backlog() == 0
                                 and time.monotonic() - captions.last_optional_at >= 20):
                             captions.polish()
@@ -711,9 +755,12 @@ def run_live(
                     if not isinstance(english, bool) or not isinstance(translate, bool):
                         raise ValueError("字幕开关格式错误")
                     if translate and translator is None:
-                        translator = HyMTTranslator(
-                            Path(resolve("translate", model_root, "translation")["path"])
-                        )
+                        if isolated_translation:
+                            translator = TranslationProcess(model_root)
+                        else:
+                            translator = HyMTTranslator(
+                                Path(resolve("translate", model_root, "translation")["path"])
+                            )
                         captions.translator = translator
                     accent = item.get("accent", False)
                     if not isinstance(accent, bool):
@@ -742,6 +789,8 @@ def run_live(
                         asr = requested_model
                         output({"type": "model_changed", "model": asr})
                     if not translate and translator is not None:
+                        if isolated_translation:
+                            translator.close()
                         translator = captions.translator = None
                         sys.modules["mlx.core"].clear_cache()
                     if item["type"] == "configure" or not (english or translate):
@@ -763,7 +812,7 @@ def run_live(
                     gap_start = captions.last_end
                     started = time.monotonic()
                     captions.feed(pcm, start)
-                    captions.service(buffer.backlog())
+                    service()
                     output({"type": "progress", "processed_audio": start + len(pcm) / 16000,
                             "input_audio": buffer.input_end, "backlog": buffer.backlog(),
                             "dropped_packets": buffer.dropped,
@@ -771,8 +820,12 @@ def run_live(
                             "gap_start": gap_start if gap_start is not None else start,
                             "gap_end": start, **captions.translation_progress()})
             finally:
-                captions.finish()
-                captions.lock_all()
+                try:
+                    captions.finish()
+                    captions.lock_all()
+                finally:
+                    if isolated_translation and translator is not None:
+                        translator.close()
             output(
                 {"type": "stopped", "dropped_packets": buffer.dropped, "mlx_memory": mlx_memory(),
                  "processed_audio": captions.last_end or 0, "inference_seconds": 0, "backlog": 0,

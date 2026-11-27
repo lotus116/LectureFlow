@@ -39,6 +39,12 @@ def parser() -> argparse.ArgumentParser:
     stream.add_argument("--chunk-seconds", type=float, default=2)
     stream.add_argument("--context-file", type=Path)
     stream.add_argument("--output", type=Path, required=True)
+    priority = commands.add_parser("priority-review", help="课后逐段复核英文")
+    priority.add_argument("action", choices=["list", "prepare", "accept", "ignore", "undo"])
+    priority.add_argument("lecture_id")
+    priority.add_argument("--session")
+    priority.add_argument("--caption")
+    priority.add_argument("--generation", type=int, default=0)
     library = commands.add_parser("library", help="课程资料库与后台任务")
     actions = library.add_subparsers(dest="action", required=True)
     actions.add_parser("status")
@@ -100,6 +106,7 @@ def parser() -> argparse.ArgumentParser:
     run.add_argument("lecture_id")
     run.add_argument("session_id")
     run.add_argument("--asr", choices=["asr-small", "asr-large"], default="asr-small")
+    run.add_argument("--isolated-translation", action="store_true")
     run.add_argument("--temporary-refresh-seconds", type=int, choices=[1, 3], default=1,
                      help="已有临时中文的刷新间隔；3秒为实验节流，首次中文不变")
     retry = live_actions.add_parser("retry-accent", help="从已封存原音补做口音候选；不覆盖旧字幕")
@@ -298,6 +305,7 @@ def main() -> int:
                     args.session_id,
                     args.asr,
                     temporary_refresh_seconds=args.temporary_refresh_seconds,
+                    isolated_translation=args.isolated_translation,
                 )
             else:
                 from . import live_store
@@ -325,6 +333,17 @@ def main() -> int:
                     else:
                         result = live_store.history(library, args.lecture_id)
                     print(json.dumps(result, ensure_ascii=False))
+        elif args.command == "priority-review":
+            from . import priority_review
+            from .library import Library
+
+            with Library(args.library_root) as library:
+                if args.action == "list":
+                    result = priority_review.listing(library, args.lecture_id)
+                else:
+                    result = priority_review.review(library, args.lecture_id, args.session,
+                        args.caption, args.action, args.generation, args.model_root)
+                print(json.dumps(result, ensure_ascii=False))
         elif args.command == "review":
             from . import review_marks
             from .library import Library

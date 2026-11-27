@@ -194,6 +194,7 @@ private func reviewDate(_ value: String) -> String {
 }
 
 struct ReviewCurrentButton: View {
+    @ThemePalette private var palette
     @ObservedObject var workspace: Workspace
     @ObservedObject var live: LiveController
     var compact = false
@@ -204,12 +205,12 @@ struct ReviewCurrentButton: View {
         Button { workspace.markCurrentForReview() } label: {
             if compact {
                 Image(systemName: marked ? "bookmark.fill" : "bookmark")
-                    .foregroundStyle(marked ? Color.blue : Color.primary.opacity(0.7))
+                    .foregroundStyle(marked ? palette.bookmark : Color.primary.opacity(0.7))
                     .frame(width: 26, height: 24)
             }
             else {
                 Label("标记当前", systemImage: marked ? "bookmark.fill" : "bookmark")
-                    .foregroundStyle(marked ? Color.blue : Color.primary)
+                    .foregroundStyle(marked ? palette.bookmark : Color.primary)
             }
         }
         .disabled((workspace.currentReviewCaption == nil && !live.isCapturing)
@@ -222,6 +223,7 @@ struct ReviewCurrentButton: View {
 }
 
 struct ReviewCaptionButton: View {
+    @ThemePalette private var palette
     @ObservedObject var workspace: Workspace
     let caption: LiveCaption
     var compact = false
@@ -233,7 +235,7 @@ struct ReviewCaptionButton: View {
         Button { workspace.markCaptionForReview(caption, lecture: workspace.selectedLecture ?? "") } label: {
             Image(systemName: marked ? "bookmark.fill" : "bookmark")
                 .font(.system(size: compact ? 13 : 15, weight: .medium))
-                .foregroundStyle(marked ? Color.blue : Color.primary.opacity(0.85))
+                .foregroundStyle(marked ? palette.bookmark : Color.primary.opacity(0.85))
                 .opacity(marked || revealed || hovered || keyboardFocused ? 1 : 0)
                 .frame(width: 28, height: 28)
                 .background(hovered ? Color.primary.opacity(0.07) : .clear,
@@ -252,6 +254,7 @@ struct ReviewCaptionButton: View {
 }
 
 struct ReviewMarksView: View {
+    @ThemePalette private var palette
     @ObservedObject var workspace: Workspace
     @ObservedObject var store: ReviewMarks
     @ObservedObject var playback: AudioPlayback
@@ -299,9 +302,13 @@ struct ReviewMarksView: View {
             }
         }
         .padding(20).frame(minWidth: 620, idealWidth: 760, minHeight: 400, idealHeight: 540)
+        .background(palette.canvas).tint(palette.accent)
         .task { await store.refresh(); store.loadDetail() }
         .onDisappear { playback.stop() }
         .onReceive(store.$detail) { updated in
+            // A detail read can finish while the sheet is dismissing. Do not
+            // restart playback after Escape or the Done button closes it.
+            guard workspace.reviewPresented else { playback.stop(); return }
             guard let detail = updated else {
                 playback.stop()
                 attemptedPlayback = nil

@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct CourseHomeView: View {
+    @ThemePalette private var palette
     @ObservedObject var workspace: Workspace
     let course: Course
     var onOpenMaterials: () -> Void
@@ -12,7 +13,7 @@ struct CourseHomeView: View {
 
     var body: some View {
         ZStack(alignment: .topLeading) {
-            LFChrome.iceMist()
+            palette.iceMist()
                 .frame(height: 120)
                 .allowsHitTesting(false)
 
@@ -31,109 +32,124 @@ struct CourseHomeView: View {
                     Button {
                         onOpenMaterials()
                     } label: {
-                        Label("课程资料", systemImage: "doc.richtext")
+                        Label("课程资料 · \(documentCount) 份", systemImage: "doc.richtext")
                     }
                     .buttonStyle(.borderless)
-                    .foregroundStyle(LFChrome.accentInk)
+                    .foregroundStyle(palette.accentInk)
                     .help(termCount == 0 ? "管理课件与辅助术语" : "\(documentCount) 份资料 · \(termCount) 个术语")
                     .accessibilityLabel("课程资料，\(documentCount) 份")
                 }
 
-                HStack(spacing: LFChrome.space8) {
-                    Button {
-                        onStartNew()
-                    } label: {
-                        Label {
-                            Text("开始新 Lecture")
-                                .font(.system(size: LFChrome.bodySize, weight: .semibold))
-                        } icon: {
-                            Image(systemName: "record.circle")
-                                .symbolRenderingMode(.monochrome)
-                        }
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: LFChrome.space12) {
+                        startButton
+                        recordingMode
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(LFChrome.accent)
-                    .controlSize(.large)
-                    .accessibilityHint("创建 Lecture 并开始采集")
-
-                    Menu {
-                        Button("新建空 Lecture", action: onCreateLecture)
-                        Button("导入已有录音", action: onImportAudio)
-                    } label: {
-                        Image(systemName: "ellipsis.circle")
-                            .font(.system(size: 16, weight: .medium))
-                            .foregroundStyle(.secondary)
-                            .frame(width: 28, height: 28)
-                            .contentShape(Rectangle())
+                    VStack(alignment: .leading, spacing: LFChrome.space8) {
+                        startButton
+                        recordingMode
                     }
-                    .menuStyle(.borderlessButton)
-                    .help("新建空记录或导入录音")
-                    .accessibilityLabel("更多")
-
-                    Spacer(minLength: 0)
                 }
                 .padding(.top, LFChrome.space16)
+
+                HStack(spacing: LFChrome.space16) {
+                    Button("新建空 Lecture", action: onCreateLecture)
+                    Button("导入已有录音", action: onImportAudio)
+                }
+                .buttonStyle(.borderless)
+                .foregroundStyle(palette.accentInk)
+                .padding(.top, LFChrome.space12)
                 .padding(.bottom, LFChrome.space20)
 
                 if course.lectures.isEmpty {
                     EmptyPanel(
                         title: "还没有 Lecture",
                         systemImage: "waveform",
-                        description: "开始新 Lecture 会创建并启动采集。也可以先建空记录，或导入已有录音。",
-                        actionTitle: "开始新 Lecture",
-                        action: onStartNew,
-                        useAppIcon: true
+                        description: "开始新 Lecture 即可采集。也可以先建空记录，或导入已有录音。"
                     )
                 } else {
-                    HStack(alignment: .firstTextBaseline) {
-                        LFSectionLabel(text: "Lecture")
-                        Spacer(minLength: 0)
-                    }
-                    .padding(.bottom, LFChrome.space8)
-
-                    Rectangle()
-                        .fill(LFChrome.hairline)
-                        .frame(height: 1)
-
-                    ScrollView {
-                        LazyVStack(alignment: .leading, spacing: 0) {
-                            ForEach(Array(course.lectures.enumerated()), id: \.element.id) { index, lecture in
-                                Button {
-                                    workspace.selectCourse(course.id)
-                                    workspace.selectLecture(lecture.id)
-                                } label: {
-                                    LFListRow(
-                                        title: lecture.title,
-                                        subtitle: "\(lecture.segments.count) 段录音"
-                                    ) {
-                                        LFIconWell(systemImage: "waveform")
-                                    } trailing: {
-                                        Image(systemName: "chevron.right")
-                                            .font(.caption.weight(.semibold))
-                                            .foregroundStyle(.tertiary)
-                                    }
-                                    .contentShape(Rectangle())
-                                }
-                                .buttonStyle(LFQuietRowButtonStyle())
-
-                                if index < course.lectures.count - 1 {
-                                    Rectangle()
-                                        .fill(LFChrome.hairline)
-                                        .frame(height: 1)
-                                        .padding(.leading, 48)
-                                }
-                            }
-                        }
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                    lectureList
                 }
             }
             .lfContentPadding()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(LFChrome.canvas)
+        .background(palette.canvas)
         .task(id: course.id) { await loadCounts() }
         .onChange(of: workspace.overview.courses.map(\.id)) { _, _ in Task { await loadCounts() } }
+    }
+
+    private var recordingMode: some View {
+        Text(workspace.session.modeTitle)
+            .font(.system(size: LFChrome.captionSize))
+            .foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityLabel("记录方式：\(workspace.session.modeTitle)")
+    }
+
+    private var startButton: some View {
+        Button {
+            onStartNew()
+        } label: {
+            Label {
+                Text("开始新 Lecture")
+                    .font(.system(size: LFChrome.bodySize, weight: .semibold))
+            } icon: {
+                Image(systemName: "record.circle")
+                    .symbolRenderingMode(.monochrome)
+            }
+        }
+        .buttonStyle(.borderedProminent)
+        .tint(palette.accent)
+        .controlSize(.large)
+        .accessibilityHint("创建 Lecture 并开始采集")
+        .accessibilityIdentifier("course-start")
+    }
+
+    private var lectureList: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .firstTextBaseline) {
+                LFSectionLabel(text: "Lecture")
+                Spacer(minLength: 0)
+            }
+            .padding(.bottom, LFChrome.space8)
+
+            Rectangle()
+                .fill(palette.hairline)
+                .frame(height: 1)
+
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 0) {
+                    ForEach(Array(course.lectures.enumerated()), id: \.element.id) { index, lecture in
+                        Button {
+                            workspace.selectCourse(course.id)
+                            workspace.selectLecture(lecture.id)
+                        } label: {
+                            LFListRow(
+                                title: lecture.title,
+                                subtitle: "\(lecture.segments.count) 段录音"
+                            ) {
+                                LFIconWell(systemImage: "waveform")
+                            } trailing: {
+                                Image(systemName: "chevron.right")
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(.tertiary)
+                            }
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(LFQuietRowButtonStyle())
+
+                        if index < course.lectures.count - 1 {
+                            Rectangle()
+                                .fill(palette.hairline)
+                                .frame(height: 1)
+                                .padding(.leading, 48)
+                        }
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        }
     }
 
     private var metaLine: String {
@@ -159,12 +175,14 @@ struct CourseHomeView: View {
 }
 
 private struct LFQuietRowButtonStyle: ButtonStyle {
+    @ThemePalette private var palette
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .background(
                 RoundedRectangle(cornerRadius: LFChrome.radiusS, style: .continuous)
-                    .fill(configuration.isPressed ? LFChrome.rowHover : Color.clear)
+                    .fill(configuration.isPressed ? palette.rowHover : Color.clear)
             )
-            .animation(LFChrome.motion, value: configuration.isPressed)
+            .animation(reduceMotion ? nil : LFChrome.motion, value: configuration.isPressed)
     }
 }

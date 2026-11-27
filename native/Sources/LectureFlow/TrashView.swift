@@ -19,6 +19,7 @@ private struct TrashPreview: Decodable {
 }
 
 struct TrashView: View {
+    @ThemePalette private var palette
     @ObservedObject var workspace: Workspace
     @Environment(\.dismiss) private var dismiss
     @State private var items: [TrashItem] = []
@@ -58,6 +59,7 @@ struct TrashView: View {
             }
             if working { ProgressView().controlSize(.small) }
         }.padding(22).frame(width: 680, height: 440).task { await reload() }
+            .background(palette.canvas).tint(palette.accent)
             .alert("永久清空废纸篓？", isPresented: Binding(get: { preview != nil }, set: { if !$0 { preview = nil } })) {
                 Button("取消", role: .cancel) { preview = nil }
                 Button("永久清空", role: .destructive) {

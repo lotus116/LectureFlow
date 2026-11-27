@@ -2,6 +2,8 @@ import SwiftUI
 
 /// Owns the sidebar so the toolbar toggle stays fixed (system split view adds its own).
 struct LibrarySplitLayout<Sidebar: View, Detail: View>: View {
+    @ThemePalette private var palette
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Binding var sidebarVisible: Bool
     let sidebar: Sidebar
     let detail: Detail
@@ -19,19 +21,19 @@ struct LibrarySplitLayout<Sidebar: View, Detail: View>: View {
                 if sidebarVisible {
                     sidebar
                         .frame(width: sidebarWidth)
-                        .background(LFChrome.sidebar)
+                        .background(palette.sidebar)
                     Rectangle()
-                        .fill(LFChrome.hairline)
+                        .fill(palette.hairline)
                         .frame(width: 1)
                 }
                 detail
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                    .background(LFChrome.canvas)
+                    .background(palette.canvas)
                     .environment(\.lfCompactChrome, compact)
             }
-            .background(LFChrome.canvas)
+            .background(palette.canvas)
         }
-        .animation(LFChrome.motion, value: sidebarVisible)
+        .animation(reduceMotion ? nil : LFChrome.motion, value: sidebarVisible)
     }
 }
 
