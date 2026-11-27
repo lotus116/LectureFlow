@@ -1,6 +1,6 @@
 # LectureFlow 课程实验总账
 
-当前取舍和执行顺序以[全项目进度图](README.md)为准。本页是报告/AI 的唯一实验总账：保留比较条件、负结果、原始分母、证据入口及复算方法。读者可直接查 H01–H19（历史研究）、P01–P14（公开机制探索）、A01–A07（误差/计时复核）、C01–C38（目标课堂、公开迁移与缓存诊断）或 L01–L06（同讲师适配）；不要把早期计划当成当前结论。
+当前取舍和执行顺序以[全项目进度图](README.md)为准。本页是报告/AI 的唯一实验总账：保留比较条件、负结果、原始分母、证据入口及复算方法。读者可直接查 H01–H19（历史研究）、P01–P14（公开机制探索）、A01–A07（误差/计时复核）、C01–C39（目标课堂、公开迁移与缓存诊断）或 L01–L07（同讲师适配）；不要把早期计划当成当前结论。
 
 按讲次的原始对照与新增对照分别见[首轮数值](results/2026-11-25.json)、[固定英语复核](results/2026-11-25-fixed-english.json)、[连续演讲切段](results/2026-11-25-continuous.json)和[两模型复核](results/2026-11-25-asr-ensemble.json)。每次新增实验时在对应问题下追加，保留原分数、失败及后验分析的身份。
 
@@ -249,7 +249,7 @@ One working outline, not a final submission. It follows the two Group 35 proposa
 | **Table 1. Real-time caption delivery (RQ1).** | A07 jointly lengthened the ASR and segment caps (20 to 26 s) at 1× on two public excerpts: standard errors remained 8/149 and 22/151; the first affected stable event during continuous speech arrived about 6 s later. H13 separately reduced provisional translation refresh (35–42% less translation compute under normal load, slower first Chinese output under stress). Use C02/C05 for accuracy/speed and bilingual load controls and C09 for long-run delivery. [A07](results/2026-11-25-context-replay.json) · [C09](results/2026-11-26-continuous-bilingual.json) |
 | **Table 2A. Selective reprocessing with original caption windows (RQ2).** | Four paired excerpts, two courses, 20.20 min of distinct speech, 2,262 normalized English reference words per channel. Draft / C03 priority / exact-frame matched random mean / all original windows: room 440 / 374 / 397.89 / 345; Zoom 265 / 257 / 261.86 / 257. Room priority recovered 66/95 of the all-window net error reduction in 22.58/57.73 s of warm candidate decoding. Keep raw-word sensitivity and C04 guard results visible: stronger guarding cut aligned regressions from 12 to 7 but also corrections from 61 to 25 in the room data. Independent whole-audio comparison C01 reached 331 room and 231 Zoom errors, not the same-window baseline. [C01](results/2026-11-26-classroom-paired.json) · [C03/C04](results/2026-11-26-classroom-followup.json) · [C11](results/2026-11-26-classroom-budget-sensitivity.json) |
 | **Table 2B. Transfer and coverage boundary.** | Same columns for original-window comparisons: Yale astronomy 42 / 42 / 41.202 / 40 (1,116 words; 28 windows), Yale economics 64 / 64 / 63.675 / 63 (845 words; 22 windows), AMI 519 / 519 / 517.67 / 515 (628 normalized words; seven windows). Only three Yale windows changed after normalization. In AMI, 34.25/182.22 s fell inside draft windows and the priority rule missed the only improving window. C22 is a **same-recording diagnosis** with unequal budgets: 119 errors after adding only gaps, 103 with full-audio fixed-grid decoding. Do not add C21 and C22 as independent test samples. A second AMI meeting (C23; 763 normalized words) replicated the coverage result: 406 draft, 408 all original windows, 193 gap-only, and 187 whole-audio errors. Both samples are meeting proxies, not a classroom replication. C24 found full draft-window coverage in five of eight paired classroom tracks; whole-audio decoding still reduced errors on some of these tracks. Segmentation and decoding context changed, so classroom gains cannot be attributed to gap recovery. [AMI selection](results/2026-11-26-rq2-ami-coverage.json) · [AMI gap recovery](results/2026-11-26-rq2-ami-gap-recovery.json) · [Second AMI meeting](results/2026-11-26-rq2-ami-second-meeting.json) · [Classroom coverage audit](results/2026-11-26-rq2-classroom-coverage-audit.json) |
-| **Appendix and non-adoption decisions.** | C10 shortened late Chinese revision on a deliberately selected excerpt but changed 10/24 final outputs, with no blinded fidelity judgment. C20 measured geometry on synthetic captions, across 18 runs (six per method), not classroom reading. L01–L06: training and reload worked; development-based selection did not justify deployment, though four fixed adapters reduced errors on two same-speaker confirmation lectures while increasing deletions. Instructor adaptation is exploratory, not a primary comparison. [C10](results/2026-11-26-classroom-late-context.json) · [C20](results/2026-11-26-rq1-viewport-audit.json) |
+| **Appendix and non-adoption decisions.** | C10 shortened late Chinese revision on a deliberately selected excerpt but changed 10/24 final outputs, with no blinded fidelity judgment. C20 measured geometry on synthetic captions, across 18 runs (six per method), not classroom reading. L01–L07: training and reload worked but did not justify deployment. Earlier frozen adapters had fewer total errors but more deletions; the new scale-up on another two lectures increased both. Instructor adaptation is exploratory, not a primary comparison. [C10](results/2026-11-26-classroom-late-context.json) · [C20](results/2026-11-26-rq1-viewport-audit.json) |
 
 **C09 timing definition.** At 16 kHz and 1×, the clock started at the observed arrival (immediately before enqueueing) of the first 250 ms audio packet whose end reached the eventual segment boundary; a boundary of zero uses replay time zero. First output means a nonempty English or Han-containing Chinese backend callback, measured from the start-boundary packet. Last change uses arrival of the end-boundary packet. All 52,960,125 input frames were consumed and the input queue discarded zero audio packets. This does not assess microphone capture, missing speech coverage, or screen delivery.
 
@@ -459,3 +459,23 @@ H13 72 分钟使用更早的后端；归档同版集成检查从现成英文开�
 外部来源筛查只核查资格，不计新实验：[NIST RT-06S](https://www.nist.gov/publications/rich-transcription-2006-spring-meeting-recognition-evaluation) 有远场的教学会议；[CHIL 分发说明](https://www.talp.upc.edu/content/chil-evaluation-packages.html) 有近远场和转写，但未取得可用的原音与参考权限。[ClassBank](https://talkbank.org/class/access.html) 媒体及稿件需注册，未核对合格麦距与覆盖。公开方法页或已有会议代理不能填成独立课堂实证。
 
 **九项收口复核。** C09/C20/C32 三个课中卡片从原时间戳、几何采样和评分脚本重算；C01/C06/C08/C13 由旧预测原样重算。C22/C23 两场会议与 C38 三条旧课堂轨严格分开，不把两轨算两段课。LoRA 沿用 L04–L06 冻结的边界，不重新训练或使用用户设备上的 Windows。所有决定同步至[九个方向的结论](README.md#九个方向的结论)，研究不增加第十项。
+
+### C39 · 同堂双轨参考敏感性
+
+复用 C01／C13 的逆向课两段固定输出，无新解码、无窗口重选。换稿前后 75 个时间点不变，17 处文字有变；组员据提交者描述重听录音，是否独立于旧稿未验证。C01 手机 230／1,073 → 220／1,078（21.44%→20.41%），Zoom 140／1,073 → 119／1,078（13.05%→11.04%），两段方向均未翻转。C13 同窗策略的手机候选 200→183 错、Zoom 候选 180→161 错（旧／新参考分母同上）。另一门课未换稿，保持原四对汇总，不混合参考版本。结果不能量化参考偏差，不是 Zoom 自带字幕成绩，也不是设备因果。两版计数、固定输出复算脚本与校验保留在 Mac 研究目录；课堂录音和逐句稿不进仓库。
+
+### L07 · 公开课 LoRA 扩量验证
+
+同一讲师的 [MIT 18.06 公开课](https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/video_galleries/video-lectures/)及发布方字幕。Qwen3-ASR 1.7B，RTX 3060 Laptop CUDA BF16，rank 4、末四个解码层 Q/V、每臂 480 步。240 个独立片段（约 43 分钟）过两遍，480 个（约 87 分钟）过一遍；扩量同时改变了训练课次。开发第 10 讲无一配置达到采用门槛，按已锁定协议评估第 19、22 讲各 48 窗口。
+
+| 条件 | L19 错／1,239 | L22 错／1,105 | 合并 WER | 合并 S／D／I |
+|---|---:|---:|---:|---:|
+| 原模型 | 84 | 96 | 7.68% | 79／45／56 |
+| 240／26 | 102 | 115 | 9.26% | 97／66／54 |
+| 240／2027 | 85 | 110 | 8.32% | 83／59／53 |
+| 480／26 | 84 | 103 | 7.98% | 76／52／59 |
+| 480／2027 | 87 | 113 | 8.53% | 86／62／52 |
+
+480 相对 240，种子 26 两讲分别少 18／12 错，2027 分别多 2／3 错。四组都比原模型多错、多漏。事后逐窗复算，额外漏词涉及 15／96 个不同窗口；每臂前三个窗口占其毛增加量的 74%–82%。无空白输出，缺生成停止元数据，不能确认漏词原因。适配器在 Windows 严格重载，逐段输出、评分复算和校验保留在 Windows／Mac 研究档案。维持默认，停止同配方扩量。不能推出港大课堂结果。
+
+**港大数据预检（未训练、未评测）：** 第 4 讲筛出 225 个自动对齐候选（约 45 分钟），尚待人工抽听核对；第 8 讲全程只予评估。不把自动对齐或工程冒烟当成目标教师的微调成绩。

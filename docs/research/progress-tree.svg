@@ -4,7 +4,7 @@
 <g font-family="-apple-system,BlinkMacSystemFont,PingFang SC,Noto Sans CJK SC,Microsoft YaHei,sans-serif">
 <rect x="0" y="0" width="1120" height="776" rx="22" fill="#f3f6fa" stroke="none"/>
 <text x="32" y="38" font-size="15" fill="#405972" font-weight="700">LECTUREFLOW   /   NLP 期末研究</text>
-<text x="861" y="38" font-size="15" fill="#405972" font-weight="600">2026-11-26  ·  C38 / L06</text>
+<text x="861" y="38" font-size="15" fill="#405972" font-weight="600">2026-11-27  ·  C39 / L07</text>
 <rect x="318" y="58" width="484" height="90" rx="17" fill="#10263d" stroke="none"/>
 <text x="343" y="95" font-size="28" fill="#ffffff" font-weight="700">Proposal：本地课堂字幕</text>
 <text x="343" y="124" font-size="18" fill="#dce9f6" font-weight="400">课中是否来得及？课后怎样补得准？</text>
@@ -75,8 +75,8 @@
 <rect x="793" y="283" width="43" height="22" rx="6" fill="#e9f1fb" stroke="none"/>
 <text x="800" y="299" font-size="13" fill="#235181" font-weight="700">已测</text>
 <text x="793" y="326" font-size="17" fill="#172d43" font-weight="700">7 · A · 同堂现场 vs Zoom</text>
-<text x="793" y="349" font-size="16" fill="#243b52" font-weight="500">四对同向，参考有渠道依赖</text>
-<text x="793" y="370" font-size="15" fill="#4d637a" font-weight="400">不能单独归因于麦克风</text>
+<text x="793" y="349" font-size="16" fill="#243b52" font-weight="500">逆向课换校对稿，方向不变</text>
+<text x="793" y="370" font-size="15" fill="#4d637a" font-weight="400">不是硬件因果或字幕服务对比</text>
 <path d="M766 451H779" fill="none" stroke="#6b4c87" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
 <circle cx="766" cy="451" r="4" fill="#6b4c87"/>
 <rect x="779" y="399" width="309" height="111" rx="13" fill="#ffffff" stroke="#d9e3ee"/>
@@ -91,8 +91,8 @@
 <rect x="793" y="539" width="43" height="22" rx="6" fill="#f2eaf6" stroke="none"/>
 <text x="800" y="555" font-size="13" fill="#694581" font-weight="700">关停</text>
 <text x="793" y="582" font-size="17" fill="#172d43" font-weight="700">9 · C · 按讲师做 LoRA</text>
-<text x="793" y="605" font-size="16" fill="#243b52" font-weight="500">训练可行，当前配方不采用</text>
-<text x="793" y="626" font-size="15" fill="#4d637a" font-weight="400">不代表所有微调都没用</text>
+<text x="793" y="605" font-size="16" fill="#243b52" font-weight="500">MIT 扩量未胜原模型</text>
+<text x="793" y="626" font-size="15" fill="#4d637a" font-weight="400">港大候选字幕待抽审</text>
 <rect x="32" y="665" width="1056" height="79" rx="14" fill="#112c44" stroke="none"/>
 <text x="50" y="696" font-size="19" fill="#ffffff" font-weight="700">本轮收口</text>
 <text x="167" y="696" font-size="18" fill="#eff6fe" font-weight="500">九个方向各有决定，见下方证据表</text>
