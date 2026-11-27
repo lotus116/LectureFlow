@@ -7,7 +7,7 @@ struct Overview: Decodable, Sendable {
 struct Course: Decodable, Identifiable, Sendable {
     let id: String
     let name: String
-    let lectures: [Lecture]
+    var lectures: [Lecture]
 }
 struct Lecture: Decodable, Identifiable, Sendable {
     let id: String

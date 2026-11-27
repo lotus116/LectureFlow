@@ -299,13 +299,15 @@ final class Workspace: ObservableObject {
         lecture?.tasks.first { $0.version_id == selectedVersion } ?? lecture?.tasks.first
     }
 
+    private func loadOverview() async throws -> Overview {
+        try JSONDecoder().decode(Overview.self, from: await backend.call(["library", "status"]))
+    }
+
     func refresh() async {
         guard !isExiting else { return }
         let request = UUID(); refreshToken = request
         do {
-            let latest = try JSONDecoder().decode(Overview.self, from: await backend.call([
-                "library", "status"
-            ]))
+            let latest = try await loadOverview()
             guard !isExiting, refreshToken == request else { return }
             overview = latest
             refreshError = nil
@@ -314,7 +316,7 @@ final class Workspace: ObservableObject {
                 for lecture in overview.courses.flatMap(\.lectures) {
                     _ = try await backend.call(["library", "recover-recordings", lecture.id])
                 }
-                let recoveredState = try JSONDecoder().decode(Overview.self, from: await backend.call(["library", "status"]))
+                let recoveredState = try await loadOverview()
                 guard refreshToken == request else { return }
                 overview = recoveredState
             }
@@ -481,7 +483,25 @@ final class Workspace: ObservableObject {
             return
         }
         guard let id = await createLecture(courseID) else { return }
-        selectedLecture = id
+        guard !isExiting, selectedCourse == courseID, selectedLecture == id else { return }
+        // A polling refresh can supersede createLecture's refresh before it publishes the new row.
+        if lecture == nil {
+            do {
+                let snapshot = try await loadOverview()
+                guard !isExiting, selectedCourse == courseID, selectedLecture == id else { return }
+                if lecture == nil {
+                    guard let created = snapshot.courses.first(where: { $0.id == courseID })?.lectures.first(where: { $0.id == id }),
+                          let index = overview.courses.firstIndex(where: { $0.id == courseID }) else {
+                        error = "无法读取刚创建的 Lecture，采集尚未开始。"
+                        return
+                    }
+                    overview.courses[index].lectures.append(created)
+                }
+            } catch {
+                self.error = "读取新 Lecture 失败，采集尚未开始：" + error.localizedDescription
+                return
+            }
+        }
         primarySessionAction()
     }
 
