@@ -1,8 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="776" viewBox="0 0 1120 776" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="930" viewBox="0 0 1120 930" role="img" aria-labelledby="title desc">
 <title id="title">LectureFlow 从 proposal 展开的研究进度树</title>
-<desc id="desc">课中字幕与课后重听是两条主线；现场与 Zoom、术语去噪、讲师微调为探索分支。九张卡片逐项给出取舍。图后有可读文字版。</desc>
+<desc id="desc">课中字幕与课后重听是两条主线；现场与 Zoom、术语去噪、讲师微调为探索分支。九张卡片给出研究取舍。下排为审查、报告、视频及复现的交付状态。图后有可读文字版。</desc>
 <g font-family="-apple-system,BlinkMacSystemFont,PingFang SC,Noto Sans CJK SC,Microsoft YaHei,sans-serif">
-<rect x="0" y="0" width="1120" height="776" rx="22" fill="#f3f6fa" stroke="none"/>
+<rect x="0" y="0" width="1120" height="930" rx="22" fill="#f3f6fa" stroke="none"/>
 <text x="32" y="38" font-size="15" fill="#405972" font-weight="700">LECTUREFLOW   /   NLP 期末研究</text>
 <text x="861" y="38" font-size="15" fill="#405972" font-weight="600">2026-11-27  ·  C40 / L07</text>
 <rect x="318" y="58" width="484" height="90" rx="17" fill="#10263d" stroke="none"/>
@@ -19,7 +19,7 @@
 <rect x="69" y="283" width="43" height="22" rx="6" fill="#e9f1fb" stroke="none"/>
 <text x="76" y="299" font-size="13" fill="#235181" font-weight="700">已测</text>
 <text x="69" y="326" font-size="17" fill="#172d43" font-weight="700">1 · 55 分钟连续双语跑通</text>
-<text x="69" y="349" font-size="16" fill="#243b52" font-weight="500">隔离故障短测通过</text>
+<text x="69" y="349" font-size="16" fill="#243b52" font-weight="500">另有 80 秒隔离故障短测</text>
 <text x="69" y="370" font-size="15" fill="#4d637a" font-weight="400">没有改产品默认</text>
 <path d="M42 451H55" fill="none" stroke="#255b99" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
 <circle cx="42" cy="451" r="4" fill="#255b99"/>
@@ -94,7 +94,27 @@
 <text x="793" y="605" font-size="16" fill="#243b52" font-weight="500">MIT 扩量未胜原模型</text>
 <text x="793" y="626" font-size="15" fill="#4d637a" font-weight="400">港大未训练，不纳入结果</text>
 <rect x="32" y="665" width="1056" height="79" rx="14" fill="#112c44" stroke="none"/>
-<text x="50" y="696" font-size="19" fill="#ffffff" font-weight="700">本轮收口</text>
-<text x="167" y="696" font-size="18" fill="#eff6fe" font-weight="500">九方向课程研究收口，进入报告准备</text>
-<text x="50" y="723" font-size="16" fill="#cfdeee" font-weight="400">保持原稿、候选预览与 App 默认；不启动新方向。</text>
+<text x="50" y="696" font-size="19" fill="#ffffff" font-weight="700">结项阶段</text>
+<text x="167" y="696" font-size="18" fill="#eff6fe" font-weight="500">九方向已收口，进入交付准备</text>
+<text x="50" y="723" font-size="16" fill="#cfdeee" font-weight="400">视频 5 分钟：动机 / 方法 / 实现 / 关键结果；传统讲解或 AI 辅助均可。</text>
+<rect x="32" y="770" width="252" height="123" rx="13" fill="#ffffff" stroke="#d9e3ee"/>
+<text x="48" y="799" font-size="17" fill="#172d43" font-weight="700">结项审查</text>
+<rect x="48" y="811" width="68" height="23" rx="6" fill="#e4f3ec"/>
+<text x="62" y="828" font-size="13" fill="#096856" font-weight="700">已完成</text>
+<text x="48" y="865" font-size="16" fill="#4d637a">九线结论、复算与风险</text>
+<rect x="300" y="770" width="252" height="123" rx="13" fill="#ffffff" stroke="#d9e3ee"/>
+<text x="316" y="799" font-size="17" fill="#172d43" font-weight="700">最终报告</text>
+<rect x="316" y="811" width="68" height="23" rx="6" fill="#fff1db"/>
+<text x="330" y="828" font-size="13" fill="#84510c" font-weight="700">待定稿</text>
+<text x="316" y="865" font-size="16" fill="#4d637a">旧草稿按最新证据更新</text>
+<rect x="568" y="770" width="252" height="123" rx="13" fill="#ffffff" stroke="#d9e3ee"/>
+<text x="584" y="799" font-size="17" fill="#172d43" font-weight="700">5 分钟视频</text>
+<rect x="584" y="811" width="68" height="23" rx="6" fill="#fff1db"/>
+<text x="598" y="828" font-size="13" fill="#84510c" font-weight="700">待制作</text>
+<text x="584" y="865" font-size="16" fill="#4d637a">要求已确认，先定分镜</text>
+<rect x="836" y="770" width="252" height="123" rx="13" fill="#ffffff" stroke="#d9e3ee"/>
+<text x="852" y="799" font-size="17" fill="#172d43" font-weight="700">复现材料</text>
+<rect x="852" y="811" width="68" height="23" rx="6" fill="#fff1db"/>
+<text x="866" y="828" font-size="13" fill="#84510c" font-weight="700">待验收</text>
+<text x="852" y="865" font-size="16" fill="#4d637a">匿名样例、干净环境</text>
 </g></svg>

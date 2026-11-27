@@ -104,7 +104,7 @@ Salesky 等人的 ACL 60/60 提供十场技术演讲、主办方初始 ASR 和�
 | 参考是否近似原话 | C01 两条音源统一按人工校对稿评估同一个模型，Zoom 平台字幕不是对照。H19 缺段保留旧分数但更正归因；C32 对官方关联和全段评分重算。 | 参考不足或缺少听核仍是边界；主指标是相对参考的 WER，不能写成逐词客观真值或 Zoom 服务成绩。 |
 | 是否真的更快、更准 | C28 把首次正确和末次改字分开；C32 用固定录音时点复核稳定延迟，保留 20 秒。 | 本机后端时间不是屏幕时延；字幕覆盖不等于语音或事实覆盖；30 秒联合策略不能分别归因。 |
 | 对→错是否被净分抵消 | C04/C12 重算词级副作用；C28/C31 按可判定事实单列回归、不确定和新增遗漏；C30 未验证的规则停线。 | 事实抽样不是人口误改率；没有通过自动替换验收，改错问题本身未解决。 |
-| 翻译失败会不会阻断英文 | C33 可返回异常时英文逐段一致；C34 补验固定短阻塞，英文更新确实暂停，恢复以后追上。 | 不应称故障已全面隔离；永久挂起、进程崩溃和新调度方案还未验证。 |
+| 翻译失败会不会阻断英文 | C33 可返回异常时英文逐段一致；C34 补验固定短阻塞，英文更新确实暂停，恢复以后追上。 | C40 补验了单片段短阻塞时的隔离原型（见后文）；永久挂起、生产数据库、进程崩溃自动恢复和长期压力仍未验证。 |
 | 复现与旧记录 | 检查关键原始输出、冻结哈希、C04/C12、C21 和 C27–C34 可用复算入口；保留原始负结果。一次核验覆盖 43 份已有清单共 546 条文件散列记录（同文件可能出现多次），不计为新增样本。 | 复算复现保存的评分，不等于重新判读事实或重复推理；历史样本不为每次复算重新计数。 |
 
 
@@ -242,7 +242,7 @@ C14/C15 开始与结束的短语经参考与识别输出交叉核对，两个目
 
 ## Course report outline and verified wording
 
-One working outline, not a final submission. It follows the two Group 35 proposal questions. Score English transcription as the quality endpoint; treat Chinese translation as a concurrent workload. Keep source/recording differences, timing, and after-class recovery as separate comparisons. Two main tables suffice; put appendix material in one place.
+Historical drafting aid, not final wording. Use the [current report evidence table](#报告取数表九方向研究收口) as the source of truth, and include C32 and C40 in RQ1 where appropriate; they were added after this outline. This outline follows the two Group 35 proposal questions. Score English transcription as the quality endpoint; treat Chinese translation as a concurrent workload. Keep source/recording differences, timing, and after-class recovery as separate comparisons. Two main tables suffice; put appendix material in one place.
 
 | Exhibit | Inputs, outcomes and exact source |
 |---|---|
