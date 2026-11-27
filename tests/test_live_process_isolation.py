@@ -172,3 +172,76 @@ def test_intervening_manual_edit_survives_late_result_and_lock(tmp_path):
             assert audit[-1]["state"] == "conflict"
         finally:
             worker.close()
+
+
+def controlled_reply(pipe, controller):
+    """Retain a test-side copy of this attempt's sender before the worker is killed."""
+    with pipe, controller:
+        request = pipe.recv()
+        controller.send((request, pipe))
+        result = controller.recv()
+        pipe.send((True, result, request[5]))
+
+
+def test_late_sender_after_timeout_cannot_replace_same_source_retry(tmp_path):
+    import multiprocessing
+
+    from lectureflow import live_store
+    from lectureflow.library import Library
+
+    control, child_control = multiprocessing.get_context("spawn").Pipe()
+    worker = TranslationProcess(child_control, target=controlled_reply)
+    with Library(tmp_path) as lib, control, child_control:
+        lecture = lib.create_lecture(lib.create_course("Synthetic")["id"], "Retry")["id"]
+        session = live_store.create(lib, lecture)["id"]
+
+        def publish(row, en, zh):
+            saved = live_store.save(lib, session, row, english=en, translate=zh, sequential=True)
+            return not saved.get("_conflict")
+
+        engine = IsolatedCaptionEngine(Session(), worker, publish, deferred=True)
+        engine.translation_audit = lambda e: live_store.save_translation_failure(
+            lib, session, e, english=True)
+        try:
+            finish_utterance(engine, 0)
+            engine.service(0)
+            key = engine.active[0].entry["id"]
+            source_version = engine.active[0].source_version
+            assert control.poll(10)
+            request_a, old_sender = control.recv()
+            with old_sender:
+                # Trigger the production timeout path deterministically after A received its job.
+                worker.deadline = time.monotonic() - 1
+                engine.collect()
+                assert worker.connection is None and engine.translation_failures == 1
+                engine.service(0, closing=True)
+                assert engine.active[0].source_version == source_version
+                assert control.poll(10)
+                request_b, new_sender = control.recv()
+                new_sender.close()
+                assert request_b == request_a
+                control.send("B")
+                assert worker.connection.poll(10)
+                engine.collect()
+                # Attempt delivery after B committed, through the actual old endpoint.
+                with pytest.raises(BrokenPipeError):
+                    old_sender.send((True, "late A", {}))
+
+            args = (session, key)
+            query = "SELECT revision,chinese,status FROM live_revisions WHERE session_id=? AND id=?"
+            before = list(map(tuple, lib.db.execute(query + " ORDER BY revision", args)))
+            assert sum(zh == "B" for _, zh, _ in before) == 1
+            assert all(zh != "late A" for _, zh, _ in before)
+            row = dict(lib.db.execute("SELECT * FROM live_captions WHERE session_id=? AND id=?",
+                                      args).fetchone())
+            assert row["status"] == "revised" and row["chinese"] == "B"
+            duplicate = live_store.save(lib, session, row, english=True, translate=True,
+                                        sequential=True)
+            assert duplicate["_conflict"]
+            assert before == list(map(tuple, lib.db.execute(query + " ORDER BY revision", args)))
+            engine.lock_all()
+            assert engine.translations_completed == 1 and not engine.pending_translations
+            after = list(map(tuple, lib.db.execute(query + " ORDER BY revision", args)))
+            assert after == before + [(row["revision"] + 1, "B", "locked")]
+        finally:
+            worker.close()
