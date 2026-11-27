@@ -1,0 +1,84 @@
+{
+  "interval": [
+    20.685075709130615,
+    27.690154291689396
+  ],
+  "seconds": 7.005078582558781,
+  "design": "same frozen public input, model and ASR boundary; C34 shared arms are archival not randomized contemporary controls; isolated healthy then stall; no product DB, crash restart, on-screen latency or semantic correctness measured",
+  "healthy": {
+    "english_during": 7,
+    "largest_gap_overlapping_s": 1.124600499868393,
+    "peak_backlog_packets": 2,
+    "drain_after_release_s": 0.06190620828419924,
+    "packet_services_during": 28,
+    "arrivals_during": 28,
+    "frames": 1280000,
+    "drops": 0,
+    "exact_final_english_vs_shared": true,
+    "final_english_segments": 5,
+    "final_chinese_text_equal_to_shared": 5,
+    "common_chinese_boundaries": 5,
+    "final_chinese_nonempty": 5,
+    "published_state_counts": {
+      "locked": 5
+    },
+    "final_flush_s": 1.6180432089604437,
+    "peak_asr_mlx_bytes": 2476722164,
+    "peak_mt_mlx_bytes": 1413199284,
+    "min_system_memory_free_pct": 26,
+    "calls": 81,
+    "stale_rejected": 35,
+    "required_applied": 12,
+    "required_completed_after_release": 11,
+    "ordered_identity_exact_vs_shared": false,
+    "matching_input_multiset_vs_shared": 60
+  },
+  "stall": {
+    "english_during": 7,
+    "largest_gap_overlapping_s": 1.1409940831363201,
+    "peak_backlog_packets": 1,
+    "drain_after_release_s": 0.06327958311885595,
+    "packet_services_during": 29,
+    "arrivals_during": 28,
+    "frames": 1280000,
+    "drops": 0,
+    "exact_final_english_vs_shared": true,
+    "final_english_segments": 5,
+    "final_chinese_text_equal_to_shared": 5,
+    "common_chinese_boundaries": 5,
+    "final_chinese_nonempty": 5,
+    "published_state_counts": {
+      "locked": 5
+    },
+    "final_flush_s": 2.191276625264436,
+    "peak_asr_mlx_bytes": 2477353756,
+    "peak_mt_mlx_bytes": 1413199284,
+    "min_system_memory_free_pct": 27,
+    "calls": 78,
+    "stale_rejected": 35,
+    "required_applied": 12,
+    "required_completed_after_release": 11,
+    "ordered_identity_exact_vs_shared": false,
+    "matching_input_multiset_vs_shared": 56
+  },
+  "final_chinese_exact_candidate_pair": true,
+  "shared_archival": {
+    "healthy": {
+      "english_changes_during": 7,
+      "largest_gap_overlapping_s": 1.3705330407246947,
+      "peak_queue_packets": 4,
+      "elapsed_from_release_to_zero_s": 0.2777007077820599,
+      "drops": 0,
+      "total_translation_calls": 61
+    },
+    "stall": {
+      "english_changes_during": 0,
+      "largest_gap_overlapping_s": 8.154158958233893,
+      "peak_queue_packets": 29,
+      "elapsed_from_release_to_zero_s": 4.153160666115582,
+      "drops": 0,
+      "total_translation_calls": 56
+    }
+  },
+  "continuity_gate_pass": true
+}
