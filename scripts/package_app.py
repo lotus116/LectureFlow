@@ -65,7 +65,7 @@ def package(with_models: bool, archive: bool, test_build: bool = False,
                      "print(json.dumps({'python':sys.version.split()[0],"
                      "'packages':{d.metadata['Name']:d.version for d in m.distributions()}}))")
             reused_runtime = json.loads(subprocess.check_output(
-                [str(source_runtime / "bin/python3.12"), "-I", "-c", query], text=True))
+                [str(source_runtime / "bin/python3.12"), "-I", "-B", "-c", query], text=True))
             if reused_runtime["packages"].get("lectureflow") != VERSION:
                 raise RuntimeError("Runtime wheel version does not match")
             import tomllib
