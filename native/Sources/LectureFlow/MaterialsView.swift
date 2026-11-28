@@ -139,7 +139,8 @@ struct MaterialsView: View {
                                     Button("移除课件", role: .destructive) { removing = document }
                                 }
                         }
-                    }.listStyle(.sidebar)
+                    }.accessibilityLabel("课程资料文件")
+                    .listStyle(.sidebar)
                     Text("PDF · PPTX · PPT\n可批量导入或拖入文件")
                         .font(.system(size: LFChrome.captionSize)).lineSpacing(2)
                         .foregroundStyle(palette.transcriptTranslation).padding(10)

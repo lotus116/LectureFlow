@@ -72,7 +72,9 @@ struct BackgroundQueueView: View {
                         Task { await control(item, item.active ? "pause" : item.state == "failed" ? "retry" : "resume") }
                     }.disabled(working)
                 }.padding(.vertical, 5)
-            }.overlay {
+            }
+            .accessibilityLabel("后台任务列表")
+            .overlay {
                 if workspace.backgroundItems.isEmpty {
                     EmptyPanel(title: "没有待处理任务", systemImage: "checkmark.circle", description: "后台转写和词库补全会出现在这里。")
                 }
