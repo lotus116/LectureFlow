@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/hero-notebook.png" alt="LectureFlow · 听懂课堂，留下文字。把每一堂课，留在本地。" width="100%">
+  <img src="docs/assets/release/logo.png" alt="LectureFlow" width="112">
 </p>
 
 <p align="center"><strong>为英语课堂准备的 macOS 与 Windows 本地助手</strong><br>上课看双语字幕，听不懂时留个书签，下课回到那句话听原音。录音、识别和翻译都在自己的电脑上完成。</p>
@@ -13,19 +13,7 @@
 
 <p align="center"><sub>Apple Silicon · macOS 26+ ／ Windows 11 x64 · 安装无需 Python 或 Xcode</sub></p>
 
-## 30 秒认识 LectureFlow
-
-https://github.com/user-attachments/assets/bce2ea8e-fe6d-42c6-8753-bb23f85fd44c
-
-<p align="center"><sub>音轨来源：休憩うさぎ「おてんば恋娘 ～笛のテストに向けて～」（<a href="https://x.com/QK_rabbit_2/status/1968963279730233345">@QK_rabbit_2 · 原帖</a>）</sub></p>
-
----
-
 ## 从上课到复习
-
-<p align="center">
-  <img src="docs/assets/lecture-review-story.jpg" alt="琪露诺听到「千万别运行 sudo rm -rf /」，给这句忠告打了书签，戴上耳机回听时看到课件写着「作业还在！」。" width="100%">
-</p>
 
 1. **开始记录。** 新建课程并开始一个 Lecture，选择录音与双语字幕、仅录音或仅字幕。课件可按需添加，也可以导入已有录音做课后转写。
 2. **听到疑问就打书签。** 在主窗口或置顶浮窗看英文转写和流式中文初译。后文到来时，应用会回改前两段译文。遇到没听懂的地方，点「标记当前」就能继续听课。

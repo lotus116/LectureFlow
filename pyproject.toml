@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "lectureflow"
-version = "0.6.5"
+version = "0.6.6"
 description = "Local-first macOS and Windows classroom assistant"
 requires-python = ">=3.11"
 license = "GPL-3.0-only"

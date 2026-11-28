@@ -59,7 +59,8 @@ def relocate_runtime(runtime: Path) -> None:
 
 def package(with_models: bool, archive: bool, test_build: bool = False,
             test_kind: str = "accent", runtime_source: Path | None = None,
-            model_source: Path | None = None) -> Path:
+            model_source: Path | None = None,
+            ffmpeg_root: Path | None = None) -> Path:
     from lectureflow.models import CATALOG, resolve
 
     commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=PROJECT,
@@ -165,6 +166,35 @@ def package(with_models: bool, archive: bool, test_build: bool = False,
         shutil.rmtree(site / "bin", ignore_errors=True)
         for record in site.rglob("direct_url.json"):
             record.unlink()
+        packaged_ffmpeg = runtime / "bin/lectureflow-ffmpeg"
+        if ffmpeg_root is not None:
+            source = ffmpeg_root / "probe/ffmpeg"
+            archive_source = ffmpeg_root / "ffmpeg-7.1.5-source.tar.gz"
+            recipe = PROJECT / "scripts/build-macos-ffmpeg.sh"
+            source_info = ffmpeg_root / "source"
+            if not all(p.is_file() for p in (source, archive_source, recipe)):
+                raise RuntimeError("Missing replacement FFmpeg binary or corresponding source")
+            ffmpeg_commit = subprocess.check_output(
+                ["git", "-C", str(source_info), "rev-parse", "HEAD"], text=True).strip()
+            if ffmpeg_commit != "3a0867c2bfda4a4d4309ca1a8cbdc6175e67f587":
+                raise RuntimeError("FFmpeg source does not match the exact release pin")
+            # Do not ship the unrelated prebuilt executable included in imageio-ffmpeg.
+            vendor = site / "imageio_ffmpeg/binaries"
+            for executable in vendor.glob("ffmpeg-*"):
+                executable.unlink()
+            shutil.copy2(source, packaged_ffmpeg)
+            source_delivery = resources / "FFmpeg-source"
+            source_delivery.mkdir()
+            shutil.copy2(archive_source, source_delivery)
+            shutil.copy2(recipe, source_delivery)
+            for name in ("COPYING.LGPLv2.1", "LICENSE.md"):
+                shutil.copy2(source_info / name, source_delivery)
+            for name in ("buildconf.txt", "license.txt", "linked-libraries.txt", "version.txt"):
+                shutil.copy2(ffmpeg_root / "probe" / name, source_delivery)
+            (source_delivery / "UPSTREAM.txt").write_text(
+                f"https://github.com/FFmpeg/FFmpeg/tree/{ffmpeg_commit}\n",
+                encoding="utf-8",
+            )
         relocate_runtime(runtime)
         # No editable install or symlink may point back to a developer's machine.
         for link in runtime.rglob("*"):
@@ -191,7 +221,8 @@ def package(with_models: bool, archive: bool, test_build: bool = False,
             )
         icons = Path(temporary) / "LectureFlow.iconset"
         icons.mkdir()
-        run(["swift", "scripts/make-app-icon.swift", PROJECT / "docs/assets/logo.png", icons])
+        icon_source = "docs/assets/logo.png" if test_build else "docs/assets/release/logo.png"
+        run(["swift", "scripts/make-app-icon.swift", PROJECT / icon_source, icons])
         codes = [
             ("icp4", "16x16"),
             ("ic11", "16x16@2x"),
@@ -249,6 +280,8 @@ def package(with_models: bool, archive: bool, test_build: bool = False,
             smoke_env = {**os.environ, "PYTHONNOUSERSITE": "1", "PYTHONDONTWRITEBYTECODE": "1"}
             smoke_env.pop("PYTHONPATH", None)
             smoke_env.pop("PYTHONHOME", None)
+            if ffmpeg_root is not None:
+                smoke_env["IMAGEIO_FFMPEG_EXE"] = str(packaged_ffmpeg)
             if with_models:
                 smoke_env["LECTUREFLOW_BUNDLED_MODELS"] = str(resources / "Models")
             result = subprocess.run(
@@ -310,7 +343,8 @@ if __name__ == "__main__":
                         help="Read-only reuse of a signed same-version app runtime")
     parser.add_argument("--model-source", type=Path,
                         help="Read-only pinned model cache for --with-models")
+    parser.add_argument("--ffmpeg-root", type=Path, help="Pinned local FFmpeg build and source")
     args = parser.parse_args()
     output = package(args.with_models, args.zip, args.test_build, args.test_kind,
-                     args.runtime_source, args.model_source)
+                     args.runtime_source, args.model_source, args.ffmpeg_root)
     print(f"Built standalone app: {output}")

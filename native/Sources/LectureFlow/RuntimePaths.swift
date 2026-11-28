@@ -77,6 +77,11 @@ struct RuntimePaths: Sendable {
         // A packaged runtime must not accidentally import a shell's Python packages.
         environment.removeValue(forKey: "PYTHONPATH")
         environment.removeValue(forKey: "PYTHONHOME")
+        let bundledFFmpeg = python.deletingLastPathComponent()
+            .appendingPathComponent("lectureflow-ffmpeg")
+        if FileManager.default.isExecutableFile(atPath: bundledFFmpeg.path) {
+            environment["IMAGEIO_FFMPEG_EXE"] = bundledFFmpeg.path
+        }
         if let bundledModels { environment["LECTUREFLOW_BUNDLED_MODELS"] = bundledModels.path }
         child.environment = environment
         return child
