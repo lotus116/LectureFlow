@@ -16,9 +16,10 @@
 1. **导航轨和课程文字栏**：44 点工具轨常驻，保留原侧栏显隐绑定；课程栏窄窗 168、宽窗 192 点，
    名称最多两行并提供完整名称提示。设置、队列、废纸篓放轨底；新建课程在上方。常用图标下加短标签，保留 tooltip 与可访问名称。
    没有强迁 NavigationSplitView，也没有虚构 Home、最近访问日期或快捷键页面。
-2. **贴边录音带**：移除录音岛的圆角和外边距，状态、20 点等宽计时、波形及操作置于一行，
-   方式和辅助操作在下方；长提示自然增高。开始／暂停／继续用主要原生按钮，结束保持文字和危险红。
-   不硬锁 72 点，不隐藏暂停和结束，不改变采集命令。
+2. **保留旧圆角录音卡**：用户最终明确否决紧凑录制带。先将 `SessionControls.swift` 整文件恢复为
+   ba47f7c（随后按用户图示仅做下节列出的可见修正）：大计时器、波形、圆形暂停／恢复及独立红色结束；状态、警告、标记恢复旧位置。
+   普通录制／暂停、阅读中的紧凑卡、已结束原摘要三种表现全部保留。新容器只增加水平 16、上下 8 点留白。
+   已废弃录制带里程碑为 `86f962a`，保留旧预览作历史；它不代表最终交付。
 3. **完整阅读区**：去除正文外层大卡片，合并紧凑显示／搜索／字号／书签／更多／返回最新工具行，
    长时阅读仍用原有滚动容器与最大行宽。中文缩进 16 点、段间 24 点，保留原字号比例及放大范围。
    没有把搜索／书签改成侧抽屉，避免改变筛选和阅读位置；一级录音／转写与下级来源仍是不同层级。
@@ -32,6 +33,47 @@
 浮窗保持已有暗底／文字衬底、透明度、焦点、最大字号和长文本滚动；不为统一外观去掉可读性保护。
 未添加逐条字幕动画；原用户主动展开／切换动效继续读取减少动态效果设置。
 
+## Opus 字体与控件精修（录音卡恢复之后）
+
+本轮继续采用收到的 `reports/private/opus-redesign/OPUS-TYPOGRAPHY.md`，独立预览为
+`lecture-rail-polish`；`lecture-rail-card` 是恢复圆角卡但尚未精修的对照，不混作最终成果。
+
+- **采纳**：外壳／课程页标题统一为原有 23 点；sheet 仍 20 点。导轨短标签从 10 点增至辅助 12 点。
+  课程侧栏与区段标题原本已是 13 点 semibold，经检查保留；没有为制造差异再改一遍。
+- **采纳并限定范围**：课程、资料、队列、设置中的多行辅助说明增加 2 点行距；资料格式／拖放提示用
+  原有 translation 语义色提高可读性。未全仓替换，录音卡及其共享状态组件未改。
+- **采纳并适配原生控件**：课程主操作 14 点 medium 的 prominent、次操作 bordered，窄处允许布局换行；
+  复核正文按普通 14 点、4 点行距，接受 prominent、回听／忽略 bordered、返回仍轻量。
+  使用两主题现有 accent／accentInk，不硬编码冰蓝或改色板。
+- **有选择采纳**：单行混合控件行用 firstTextBaseline；有多行标题／图标的容器保留适当 center／top，
+  不机械替换所有 HStack。宽复核现有分隔及窄窗标题、滚动提示已有效，不叠加会增加窄窗空白的装饰。
+- **核对后保留**：未发现 `focusEffectDisabled`；保留原生焦点、禁用和系统按下反馈。
+- **拒绝**：全局 40% opacity、手动覆盖 isEnabled、Web 式 cursor、裸 system red；这些并不保证原生可访问性，
+  也可能弱化现有危险色或禁用语义。未因 `.tertiary` 一词全局改色；保留纯装饰图标的低强调。
+- **不接受无证据的色彩结论**：按未改的实际 sRGB 角色值计算白字／强调底、链接／面板、译文／面板与侧栏，
+  两主题及已有深色组合最低 4.624:1；这不是屏幕像素、hover、系统合成 disabled 或全部文字的实测。
+
+字体精修阶段 `SessionControls.swift` 与 ba47f7c 完全相同；随后仅应用下节用户明确覆盖的局部可见改动。
+字号常量未改，字幕字号语义、浮窗、后台均不变。
+本轮证据使用 `polish-` 日志及单独的精修前后对照，前轮结果不代替新候选验收。
+
+## 用户图示的四处最终修正
+
+用户明确允许覆盖“录音卡原字节不动”，范围仅限以下可见调整，其余圆角卡布局、计时、波形、状态、模式和动作保留：
+
+1. 导轨品牌位恢复真正产品图标：优先读取正式包 `AppIcon.icns`，隔离预览读取同源 `logo.png`；
+   二者来源均为项目已有 `docs/assets/logo.png`（正式打包脚本可核对），30 点、7 点圆角，不加淡化。
+   直接读取随包资源避免预览初次渲染取得系统占位图；不改 App 生命周期或其他品牌位。
+2. 仅隐藏圆键下方的可见操作词，使用 `.hidden()` 保留原布局和点击区域，不删除状态文字。
+   原 30／40／48 点圆形尺寸、tooltip、AccessibilityLabel、identifier、结束说明与动作全保留。
+3. 仅 `.attention` 的恢复警告改为 12 点正常字重、2 点行距、简洁警告图标，取消重色背景及竖线。
+   原文字不变，支持任意自然折行；`.failure` 仍使用原醒目错误条，不改变严重级别判断。
+4. 仅活跃未封存的空录音区使用剩余列表区域的 GeometryReader 居中；普通高度纵排，低于 160 点可用高度横排，
+   内容仍作为整体在工具行以下居中。滚动容器为极小高度兜底；闲置导入空态和已有录音列表不变。
+
+本阶段使用 `lecture-rail-refined` 独立预览与 `refined-` 日志。此前 card、polish 预览及其证据保留，
+17 组整轮对照、8 组字体精修对照和最后图示修正证据分开标注，避免把旧图冒充最终效果。
+
 ## 逐屏组件核对
 
 | 界面 | 本轮处理；主要／辅助／危险操作 | 验证层级 |
@@ -39,7 +81,7 @@
 | 首次空库 | 紧凑顶栏、靠上内容；新建课程为主，设置为辅；保留模型准备入口 | 合成窗口渲染 |
 | 课程空／有讲次 | 课程标题与开始新 Lecture 同行、窄则换行；下行新建空记录／导入／资料；去重复资料提示 | 两尺寸渲染、实际开课按钮事件 |
 | 课程／讲次导航 | 工具轨 + 可展开文字栏；名称两行；上下文菜单、拖放和选中绑定保留 | 路由与选中断言、长名称渲染；拖放本轮未实操 |
-| 录制前／中／暂停／结束 | 贴边控制带；主操作原生强调按钮，独立危险红结束；暂停不等于封存 | 静音 PCM 真实写盘／暂停／恢复／封存 |
+| 录制前／中／暂停／结束 | 恢复旧圆角卡与三种布局；圆形暂停／恢复、独立红结束；暂停不等于封存 | 静音 PCM 真实写盘／暂停／恢复／封存 |
 | 模式／模型弹出层 | 保留原生选项、文字、禁用和取消确认；原状态决定可用性 | 代码核对，未下载模型或更改真实设备 |
 | 实时、展开阅读、搜索空态 | 紧凑工具行、平面正文、双语间距；图标有名称和提示；保留清除与返回最新 | 搜索／字号／回阅／回填／最新事件及两尺寸渲染 |
 | 录音空态 | 活跃且未封存显示“暂无已保存录音”；按是否保存音频说明；闲置保留导入 | 录制和仅字幕暂停合成渲染 |
@@ -62,15 +104,15 @@
 `PYTHONPATH` 明确指向候选源码。预览单独禁用后台模型 worker 和真实麦克风；生产源码没有这些替换。
 
 ```sh
-python3 scripts/preview-frontend.py --name lecture-rail --python /absolute/path/to/existing/.venv/bin/python
-python3 scripts/verify-frontend.py --name lecture-rail --probe=--suite --no-capture
-python3 scripts/verify-frontend.py --name lecture-rail --probe=--presentation-audit --no-capture
-python3 scripts/verify-frontend.py --name lecture-rail --probe=--classroom-flow --no-capture
-python3 scripts/verify-frontend.py --name lecture-rail --probe=--theme-controls --no-capture
-python3 scripts/verify-frontend.py --name lecture-rail --probe=--verify-theme-persistence --no-capture
+python3 scripts/preview-frontend.py --name lecture-rail-complete --python /absolute/path/to/existing/.venv/bin/python
+python3 scripts/verify-frontend.py --name lecture-rail-complete --probe=--suite --no-capture
+python3 scripts/verify-frontend.py --name lecture-rail-complete --probe=--presentation-audit --no-capture
+python3 scripts/verify-frontend.py --name lecture-rail-complete --probe=--classroom-flow --no-capture
+python3 scripts/verify-frontend.py --name lecture-rail-complete --probe=--theme-controls --no-capture
+python3 scripts/verify-frontend.py --name lecture-rail-complete --probe=--verify-theme-persistence --no-capture
 ```
 
-预览：`dist/frontend-preview/lecture-rail/LectureFlow Frontend Preview.app`。
+预览：`dist/frontend-preview/lecture-rail-complete/LectureFlow Frontend Preview.app`。
 本地证据：`reports/private/opus-redesign/`，其中 `index.html` 提供同尺寸前后对照；
 `scope-check.json`、测试日志及交付 manifest 记录精确源码和运行依据。
 旧 ba47f7c 预览保留，复制后只改独立运行目录与 bundle 标识并重新签名，代码段哈希核验相同。
@@ -84,3 +126,30 @@ python3 scripts/verify-frontend.py --name lecture-rail --probe=--verify-theme-pe
 静音写盘不证明麦克风硬件和三小时课堂质量，合成字幕不证明 ASR／翻译质量。
 本轮无法确认外部投影片普通／全屏 Page Down 焦点、系统减少动态效果、完整 Tab／VoiceOver 和屏幕像素对比度。
 前轮独立桌面验收仅作为基线资料，不能冒充本候选通过。
+
+精修验收曾在“返回最新”失败：锁屏下 LazyVStack 首次估计底部间距为 106 点，窗口渲染后为 8 点，
+滚动位置同为 1158 点。保留初次失败及诊断日志。验收改为观察点击后的实际渲染帧再测距，
+原 <=9 点阈值不变，没有重复点击、手动补滚或修改产品滚动逻辑；不据此声称真实桌面响应延迟通过。
+
+
+## 全页面空态收口（最终 complete 候选）
+
+用户追加要求优先于初版布局。`LFCenteredContent` 使用当前内容区的有界尺寸，横纵居中；
+内容超过可用高度时允许滚动，标题、工具栏、错误和已有数据不进入居中容器。
+窄复核的“滚动查看差异”提示只在真正打开比较详情时出现，不在空列表误导用户。
+共享 EmptyPanel 在较低内容区改为横向图标与说明，普通高度保留纵向阅读，不依赖屏幕坐标。
+
+- 欢迎页：顶部品牌／模型状态保留，欢迎说明和建课入口在其下居中。
+- 无讲次课程、闲置／录制／暂停空录音：仅列表区域居中。保存音频与仅字幕说明仍由原状态决定。
+- 实时等待、实时无记录和搜索无结果：复用共享空态；已有字幕和阅读锚点不变。
+- 课后无转写、搜索无结果：原过滤条件完全保留，零匹配增加明确空提示和清除入口。
+- 课程资料：将独立空态移出无限高 LazyVStack；已有文件列表保持原滚动结构。
+- 术语空列表／零匹配、后台队列、废纸篓、复习标记和优先复核空列表：内容区居中，动作行保留。
+- 不改侧栏课程树、资料树、非空列表中的说明、加载与错误区；它们不属于独立空页面。
+
+验收使用实际菜单／页签／sheet。`complete-empty-audit.log` 逐项记录小／常规窗口、内容区和空态矩形，
+居中误差阈值 1 点；欢迎页和活跃录音见 `complete-suite.log`。照片不足以代替位置检查，位置检查也不代替阅读检查。
+测试首次创建夹具遇到刷新请求被正常计时刷新替代，验收脚本增加有界等待；业务代码未变。
+另一次检查发现切换页签后点击过早，补上显示等待后重测，旧日志保留且不作为最终通过证据。
+最终图像和各阶段区别以私有报告 `README.md`、`index.html`、`empty-states.html` 为准。
+预览可用 `--app-icon /absolute/path/to/existing/AppIcon.icns` 复用正式图标；仅复制资源到隔离包，不改安装版。

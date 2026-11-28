@@ -278,9 +278,9 @@ struct ReviewMarksView: View {
                 }.font(.callout)
             }
             if store.marks.isEmpty {
-                ContentUnavailableView(store.showingRemoved ? "没有已移除的标记" : "还没有复习标记",
-                    systemImage: "scope", description: Text(store.showingRemoved
-                        ? "移除的标记会保留在这里，可以恢复。" : "听不懂时点“标记当前”或段落右侧的书签；下课后在这里复习。"))
+                EmptyPanel(title: store.showingRemoved ? "没有已移除的标记" : "还没有复习标记",
+                    systemImage: "scope", description: store.showingRemoved
+                        ? "移除的标记会保留在这里，可以恢复。" : "听不懂时点“标记当前”或段落右侧的书签；下课后在这里复习。")
             } else {
                 HSplitView {
                     List(store.marks, selection: $store.selectedID) { mark in

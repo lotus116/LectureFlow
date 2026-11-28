@@ -313,6 +313,7 @@ struct LibraryView: View {
                         LiveControlView(workspace: model, live: model.live, lecture: lecture,
                                         showingAudio: tab == "audio", readingMode: readingCaptions || (compact && tab == "transcript"),
                                         hasLiveCaptionControls: tab == "transcript" && transcriptSource == "live")
+                            .padding(.horizontal, 16).padding(.vertical, 8)
                         if !readingCaptions { contentChrome.padding(.horizontal, 16).padding(.top, 4) }
                         if !readingCaptions, let task = model.activeTask,
                            (tab == "transcript" && transcriptSource == "offline") || task.state != "completed" {
@@ -354,7 +355,9 @@ struct LibraryView: View {
                     HStack { Text("LectureFlow").font(.system(size: 20, weight: .semibold)); Spacer() }
                         .padding(16)
                     Divider()
-                    VStack(alignment: .leading, spacing: 20) {
+                    modelDownloadBanner.padding(16)
+                    LFCenteredContent { _ in
+                    VStack(spacing: 20) {
                         Image(nsImage: NSApp.applicationIconImage)
                             .resizable()
                             .frame(width: 48, height: 48)
@@ -364,7 +367,7 @@ struct LibraryView: View {
                         Text("新建课程后即可开始 Lecture，或导入已有录音。课件资料可选。")
                             .font(.system(size: LFChrome.bodySize))
                             .foregroundStyle(palette.secondaryText)
-                            .multilineTextAlignment(.leading)
+                            .multilineTextAlignment(.center)
                             .frame(maxWidth: 360)
                         HStack(spacing: LFChrome.space12) {
                             Button("新建课程") { newName = ""; form = "course" }
@@ -374,10 +377,8 @@ struct LibraryView: View {
                             Button("设置") { openSettings() }
                                 .controlSize(.large)
                         }
-                        modelDownloadBanner.frame(maxWidth: 480)
                     }
-                    .padding(32)
-                    Spacer(minLength: 0)
+                    }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 .background(palette.canvas)
@@ -534,8 +535,10 @@ struct LibraryView: View {
 
     private var navigationRail: some View {
         VStack(spacing: 12) {
-            Image(systemName: "waveform").font(.system(size: 21, weight: .semibold))
-                .foregroundStyle(palette.accentInk).frame(height: 38).help("LectureFlow")
+            Image(nsImage: brandImage)
+                .resizable().frame(width: 30, height: 30)
+                .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+                .frame(height: 38).help("LectureFlow").accessibilityLabel("LectureFlow")
             Button { sidebarVisible.toggle() } label: { railLabel("课程", systemImage: "sidebar.left") }
                 .help(sidebarVisible ? "收起课程列表" : "显示课程列表")
                 .accessibilityLabel("显示或隐藏课程列表")
@@ -554,10 +557,18 @@ struct LibraryView: View {
         .padding(.vertical, 12).frame(maxWidth: .infinity)
     }
 
+    private var brandImage: NSImage {
+        for (name, type) in [("AppIcon", "icns"), ("logo", "png")] {
+            if let url = Bundle.main.url(forResource: name, withExtension: type),
+               let image = NSImage(contentsOf: url) { return image }
+        }
+        return NSApp.applicationIconImage
+    }
+
     private func railLabel(_ title: String, systemImage: String) -> some View {
         VStack(spacing: 3) {
             Image(systemName: systemImage).font(.system(size: 16))
-            Text(title).font(.system(size: 10)).lineLimit(1)
+            Text(title).font(.system(size: LFChrome.captionSize)).lineLimit(1)
         }.frame(width: 40, height: 42).contentShape(Rectangle())
     }
 
@@ -701,7 +712,7 @@ struct LibraryView: View {
                         .lineLimit(1)
                 }
                 Text(lecture.title)
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(.system(size: LFChrome.titleSize, weight: .semibold))
                     .lineLimit(1)
                     .truncationMode(.middle)
                     .help(lecture.title)
@@ -847,6 +858,39 @@ struct LibraryView: View {
         .padding(.vertical, LFChrome.space4)
     }
 
+    private var activeAudioEmptyState: some View {
+        LFCenteredContent { size in
+                Group {
+                    if size.height < 160 {
+                        HStack(spacing: 12) {
+                            Image(systemName: "waveform").font(.system(size: 28))
+                                .foregroundStyle(palette.accentInk)
+                            VStack(alignment: .leading, spacing: 5) {
+                                Text("暂无已保存录音").font(.system(size: 15, weight: .semibold))
+                                Text(audioEmptyExplanation).font(.system(size: 12)).lineSpacing(2)
+                                    .foregroundStyle(palette.transcriptTranslation)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
+                    } else {
+                        VStack(spacing: 10) {
+                            Image(systemName: "waveform").font(.system(size: 32))
+                                .foregroundStyle(palette.accentInk)
+                            Text("暂无已保存录音").font(.system(size: 17, weight: .semibold))
+                            Text(audioEmptyExplanation).font(.system(size: 14)).lineSpacing(2)
+                                .foregroundStyle(palette.transcriptTranslation)
+                                .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                }
+                .accessibilityIdentifier("audio-empty-content")
+        }.accessibilityIdentifier("audio-empty-region")
+    }
+
+    private var audioEmptyExplanation: String {
+        model.session.desired.recording ? "当前录音保存后会显示在这里。" : "当前记录方式不保存录音。"
+    }
+
     private func audioList(_ lecture: Lecture) -> some View {
         VStack(alignment: .leading, spacing: LFChrome.space12) {
             HStack(spacing: LFChrome.space12) {
@@ -875,13 +919,7 @@ struct LibraryView: View {
             }
             if lecture.segments.isEmpty {
                 if model.live.lectureID == lecture.id && model.session.hasSession {
-                    EmptyPanel(
-                        title: "暂无已保存录音",
-                        systemImage: "waveform",
-                        description: model.session.desired.recording
-                            ? "当前录音保存后会显示在这里。"
-                            : "当前记录方式不保存录音。"
-                    )
+                    activeAudioEmptyState
                 } else {
                     EmptyPanel(
                         title: "还没有录音",
@@ -1086,7 +1124,7 @@ struct LibraryView: View {
                 NSPasteboard.general.clearContents()
                 NSPasteboard.general.setString(text, forType: .string)
             }
-            TextField("搜索", text: $search)
+            TextField("搜索", text: $search).accessibilityIdentifier("offline-search")
                 .textFieldStyle(.roundedBorder)
                 .frame(minWidth: 56, maxWidth: 160)
             TranscriptFontControls(size: $transcriptTextSize)
@@ -1145,100 +1183,107 @@ struct LibraryView: View {
                 }
 
                 if let transcript = model.transcript, !transcript.units.isEmpty {
-                    ScrollView {
-                        LazyVStack(alignment: .leading, spacing: LFChrome.space16) {
-                            ForEach(transcript.units.filter {
-                                search.isEmpty
-                                    || $0.english.localizedCaseInsensitiveContains(search)
-                                    || $0.chinese.localizedCaseInsensitiveContains(search)
-                            }) { unit in
-                                VStack(alignment: .leading, spacing: 6) {
-                                    HStack(spacing: LFChrome.space8) {
-                                        Text(clock(unit.logical_start))
-                                            .font(.system(size: LFChrome.captionSize, weight: .medium).monospacedDigit())
-                                            .foregroundStyle(palette.accentInk.opacity(0.85))
-                                        if unit.isEdited {
-                                            Text(unit.englishEdited ? "英文已修改" : "已编辑")
-                                                .font(.system(size: LFChrome.captionSize))
-                                                .foregroundStyle(.orange)
-                                        }
-                                        Spacer()
-                                        Menu {
-                                            Button("编辑本段") {
-                                                editEnglish = unit.english
-                                                editChinese = unit.chinese
-                                                editingUnit = unit.sequence
-                                            }
-                                            if unit.englishEdited {
-                                                Button("重新翻译本段") {
-                                                    Task {
-                                                        guard let version = model.activeTask?.version_id else { return }
-                                                        await model.perform([
-                                                            "library", "retranslate-unit", version,
-                                                            String(unit.sequence)
-                                                        ])
-                                                    }
-                                                }
-                                            }
-                                            if unit.isEdited {
-                                                Button("恢复原文") {
-                                                    Task {
-                                                        guard let version = model.activeTask?.version_id else { return }
-                                                        await model.perform([
-                                                            "library", "edit-unit", version,
-                                                            String(unit.sequence), "--restore"
-                                                        ])
-                                                    }
-                                                }
-                                            }
-                                            Button("复制本段") {
-                                                var parts: [String] = []
-                                                if textLanguage != "zh" { parts.append(unit.english) }
-                                                if textLanguage != "en", !unit.chinese.isEmpty {
-                                                    parts.append(unit.chinese)
-                                                }
-                                                NSPasteboard.general.clearContents()
-                                                NSPasteboard.general.setString(
-                                                    parts.joined(separator: "\n"), forType: .string
-                                                )
-                                            }
-                                        } label: {
-                                            Image(systemName: "ellipsis")
-                                                .font(.system(size: 12, weight: .semibold))
-                                                .foregroundStyle(palette.secondaryText)
-                                                .frame(width: 28, height: 28)
-                                                .contentShape(Rectangle())
-                                        }
-                                        .menuStyle(.borderlessButton)
-                                        .help("段落操作")
-                                        .accessibilityLabel("段落操作")
-                                    }
-                                    // Main window: English above, Chinese below (product design).
-                                    if textLanguage != "zh" {
-                                        Text(unit.english)
-                                            .font(.system(size: LFChrome.transcriptEnglish(transcriptTextSize)))
-                                            .foregroundStyle(palette.bodyText)
-                                            .lineSpacing(max(3, LFChrome.transcriptEnglish(transcriptTextSize) * 0.28))
-                                    }
-                                    if textLanguage != "en", !unit.chinese.isEmpty {
-                                        Text(unit.chinese)
-                                            .font(.system(size: LFChrome.transcriptChinese(transcriptTextSize)))
-                                            .foregroundStyle(palette.transcriptTranslation)
-                                            .lineSpacing(max(3, LFChrome.transcriptChinese(transcriptTextSize) * 0.28))
-                                    }
-                                }
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .textSelection(.enabled)
-                                .padding(.bottom, LFChrome.space4)
-                                Rectangle()
-                                    .fill(palette.hairline)
-                                    .frame(height: 1)
-                            }
-                        }
-                        .lfReadingColumn()
-                        .padding(.vertical, LFChrome.space8)
+                    let matchingUnits = transcript.units.filter {
+                        search.isEmpty
+                            || $0.english.localizedCaseInsensitiveContains(search)
+                            || $0.chinese.localizedCaseInsensitiveContains(search)
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    if matchingUnits.isEmpty {
+                        EmptyPanel(title: "没有匹配的转写", systemImage: "magnifyingglass",
+                                   description: "试试其他关键词，或清除搜索查看全部内容。",
+                                   actionTitle: "清除搜索", action: { search = "" })
+                    } else {
+                        ScrollView {
+                            LazyVStack(alignment: .leading, spacing: LFChrome.space16) {
+                                ForEach(matchingUnits) { unit in
+                                    VStack(alignment: .leading, spacing: 6) {
+                                        HStack(spacing: LFChrome.space8) {
+                                            Text(clock(unit.logical_start))
+                                                .font(.system(size: LFChrome.captionSize, weight: .medium).monospacedDigit())
+                                                .foregroundStyle(palette.accentInk.opacity(0.85))
+                                            if unit.isEdited {
+                                                Text(unit.englishEdited ? "英文已修改" : "已编辑")
+                                                    .font(.system(size: LFChrome.captionSize))
+                                                    .foregroundStyle(.orange)
+                                            }
+                                            Spacer()
+                                            Menu {
+                                                Button("编辑本段") {
+                                                    editEnglish = unit.english
+                                                    editChinese = unit.chinese
+                                                    editingUnit = unit.sequence
+                                                }
+                                                if unit.englishEdited {
+                                                    Button("重新翻译本段") {
+                                                        Task {
+                                                            guard let version = model.activeTask?.version_id else { return }
+                                                            await model.perform([
+                                                                "library", "retranslate-unit", version,
+                                                                String(unit.sequence)
+                                                            ])
+                                                        }
+                                                    }
+                                                }
+                                                if unit.isEdited {
+                                                    Button("恢复原文") {
+                                                        Task {
+                                                            guard let version = model.activeTask?.version_id else { return }
+                                                            await model.perform([
+                                                                "library", "edit-unit", version,
+                                                                String(unit.sequence), "--restore"
+                                                            ])
+                                                        }
+                                                    }
+                                                }
+                                                Button("复制本段") {
+                                                    var parts: [String] = []
+                                                    if textLanguage != "zh" { parts.append(unit.english) }
+                                                    if textLanguage != "en", !unit.chinese.isEmpty {
+                                                        parts.append(unit.chinese)
+                                                    }
+                                                    NSPasteboard.general.clearContents()
+                                                    NSPasteboard.general.setString(
+                                                        parts.joined(separator: "\n"), forType: .string
+                                                    )
+                                                }
+                                            } label: {
+                                                Image(systemName: "ellipsis")
+                                                    .font(.system(size: 12, weight: .semibold))
+                                                    .foregroundStyle(palette.secondaryText)
+                                                    .frame(width: 28, height: 28)
+                                                    .contentShape(Rectangle())
+                                            }
+                                            .menuStyle(.borderlessButton)
+                                            .help("段落操作")
+                                            .accessibilityLabel("段落操作")
+                                        }
+                                        // Main window: English above, Chinese below (product design).
+                                        if textLanguage != "zh" {
+                                            Text(unit.english)
+                                                .font(.system(size: LFChrome.transcriptEnglish(transcriptTextSize)))
+                                                .foregroundStyle(palette.bodyText)
+                                                .lineSpacing(max(3, LFChrome.transcriptEnglish(transcriptTextSize) * 0.28))
+                                        }
+                                        if textLanguage != "en", !unit.chinese.isEmpty {
+                                            Text(unit.chinese)
+                                                .font(.system(size: LFChrome.transcriptChinese(transcriptTextSize)))
+                                                .foregroundStyle(palette.transcriptTranslation)
+                                                .lineSpacing(max(3, LFChrome.transcriptChinese(transcriptTextSize) * 0.28))
+                                        }
+                                    }
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .textSelection(.enabled)
+                                    .padding(.bottom, LFChrome.space4)
+                                    Rectangle()
+                                        .fill(palette.hairline)
+                                        .frame(height: 1)
+                                }
+                            }
+                            .lfReadingColumn()
+                            .padding(.vertical, LFChrome.space8)
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    }
                 } else {
                     EmptyPanel(
                         title: "还没有课后转写",

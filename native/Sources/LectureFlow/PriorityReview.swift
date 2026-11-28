@@ -38,13 +38,17 @@ struct PriorityReview: View {
                 Button("完成") { dismiss() }.keyboardShortcut(.cancelAction)
             }.padding(compact ? 12 : 16)
             Divider()
-            if compact {
+            if compact && detail != nil {
                 Label("上下滚动查看完整原稿、候选与差异", systemImage: "arrow.up.arrow.down")
                     .font(.caption).foregroundStyle(palette.secondaryText)
                     .padding(.horizontal, 12).padding(.vertical, 4)
             }
             if let error { LFStatusBanner(error, tone: .failure).textSelection(.enabled) }
             if busy { ProgressView("正在读取本机资料…").controlSize(.small) }
+            if items.isEmpty && !busy && error == nil && detail == nil {
+                EmptyPanel(title: "没有可优先复核的片段", systemImage: "text.badge.checkmark",
+                           description: "需要有撤回词记录的英文字幕，以及能准确定位的已保存原音。")
+            } else {
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
                     if let detail {
@@ -99,6 +103,7 @@ struct PriorityReview: View {
                     }
                 }.frame(maxWidth: .infinity, alignment: .leading).padding(compact ? 12 : 20).textSelection(.enabled)
             }.scrollIndicators(.visible).disabled(busy)
+            }
             if let detail, let selected {
                 Divider()
                 reviewActions(detail, selected: selected)
@@ -117,17 +122,17 @@ struct PriorityReview: View {
     private func comparisonColumn(_ title: String, text: String) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(title).font(.system(size: 13, weight: .semibold)).foregroundStyle(palette.secondaryText)
-            Text(text).font(.system(size: 15)).lineSpacing(5)
+            Text(text).font(.system(size: LFChrome.bodySize)).lineSpacing(4)
                 .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
         }.frame(maxWidth: .infinity, alignment: .leading)
     }
 
     @ViewBuilder private func reviewActions(_ detail: PriorityCandidate, selected: PriorityItems.Item) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack {
+            HStack(alignment: .firstTextBaseline) {
                 Button(playback.reviewID == selected.id ? "停止回听" : "回听这段原音") {
                     playback.playReview(detail.audio, markID: selected.id)
-                }.accessibilityIdentifier("priority-play")
+                }.buttonStyle(.bordered).accessibilityIdentifier("priority-play")
                 Spacer()
                 Button("返回片段") {
                     playback.stop(); self.detail = nil
@@ -137,12 +142,12 @@ struct PriorityReview: View {
             if let message = playback.error {
                 LFStatusBanner(message, tone: .failure)
             }
-            HStack(spacing: 10) {
+            HStack(alignment: .firstTextBaseline, spacing: 10) {
                 if detail.state == "ready" {
                     Button("接受为复核版本") { Task { await act(selected, "accept") } }
                         .buttonStyle(.borderedProminent).accessibilityIdentifier("priority-accept")
                     Button("忽略") { Task { await act(selected, "ignore") } }
-                        .accessibilityIdentifier("priority-ignore")
+                        .buttonStyle(.bordered).accessibilityIdentifier("priority-ignore")
                 } else if detail.state == "same" {
                     Label("候选与原稿相同", systemImage: "equal.circle")
                         .foregroundStyle(palette.secondaryText)
@@ -153,6 +158,7 @@ struct PriorityReview: View {
                 }
             }
         }
+        .font(.system(size: LFChrome.bodySize, weight: .medium))
         .controlSize(.regular)
     }
 

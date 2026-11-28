@@ -35,10 +35,10 @@ struct SettingsView: View {
     var body: some View {
         GeometryReader { geometry in
             VStack(spacing: 0) {
-                HStack {
+                HStack(alignment: .firstTextBaseline) {
                     Text("设置").font(.system(size: 20, weight: .semibold))
                     Spacer()
-                    Text("LectureFlow").font(.caption).foregroundStyle(palette.secondaryText)
+                    Text("LectureFlow").font(.caption).lineSpacing(2).foregroundStyle(palette.secondaryText)
                 }.padding(16)
                 Divider()
                 if geometry.size.width >= 700 {
@@ -94,7 +94,7 @@ struct SettingsView: View {
                 HStack(spacing: 8) {
                     Text("即时生效，保留当前录音和阅读位置。")
                         .fixedSize(horizontal: false, vertical: true)
-                        .font(.caption).foregroundStyle(palette.secondaryText)
+                        .font(.caption).lineSpacing(2).foregroundStyle(palette.secondaryText)
                     Spacer()
                     Button("恢复默认配色") { colorTheme = LFTheme.ice.rawValue }
                         .disabled(colorTheme == LFTheme.ice.rawValue)
@@ -123,7 +123,7 @@ struct SettingsView: View {
                     if let fraction = workspace.downloadFraction { ProgressView(value: fraction) }
                 }
                 Text("记住上次选择；尚未保存偏好时默认高精度识别。模型下载可暂停继续，更新应用会复用已下载模型。识别质量仍需按实际课堂验证。")
-                    .font(.caption).foregroundStyle(palette.secondaryText)
+                    .font(.caption).lineSpacing(2).foregroundStyle(palette.secondaryText)
             }
     }
 
@@ -135,15 +135,15 @@ struct SettingsView: View {
                 }
                 .disabled(workspace.live.isCapturing)
                 Text("英语课堂默认固定英语。自动模式可能将重口音误判为其他语言。用于新会话和新课后任务，已有会话沿用原配置。")
-                    .font(.caption).foregroundStyle(palette.secondaryText)
+                    .font(.caption).lineSpacing(2).foregroundStyle(palette.secondaryText)
                 Toggle("口音增强（实验）", isOn: $accentReviewEnabled)
                     .disabled(workspace.live.isCapturing)
                 Text("默认关闭，仅固定英语生效。暂停后切换，继续采集时生效；本地复核原音，证据不足保留原字幕。可能增加字幕延迟。仅字幕模式不保存音频。")
-                    .font(.caption).foregroundStyle(palette.secondaryText)
+                    .font(.caption).lineSpacing(2).foregroundStyle(palette.secondaryText)
                 Toggle("保存原文转写", isOn: $saveEnglishTranscript)
                 Toggle("保存中文翻译", isOn: $saveChineseTranslation)
                 Text("主界面用三种记录方式控制是否保存音频与是否显示字幕；以上细分项影响转写保存。切换记录方式或麦克风须先暂停。")
-                    .font(.caption).foregroundStyle(palette.secondaryText)
+                    .font(.caption).lineSpacing(2).foregroundStyle(palette.secondaryText)
             }
     }
 
@@ -156,7 +156,7 @@ struct SettingsView: View {
                 }.disabled(workspace.live.flags.needsMicrophone)
                 Button("刷新设备") { devices = AudioDevices.inputs() }
                 Text("暂停采集后可更换麦克风。只在你开启录音或字幕时采集声音。")
-                    .font(.caption).foregroundStyle(palette.secondaryText)
+                    .font(.caption).lineSpacing(2).foregroundStyle(palette.secondaryText)
             }
     }
 
@@ -171,7 +171,7 @@ struct SettingsView: View {
                 Text(workspace.backend.paths.library.path).textSelection(.enabled).font(.caption)
                 Button("在 Finder 中打开") { NSWorkspace.shared.open(workspace.backend.paths.library) }
                 Text("本机单一资料库。备份前请暂停处理并完全退出，再复制整个资料库文件夹。测试可用环境变量注入隔离路径。")
-                    .font(.caption).foregroundStyle(palette.secondaryText)
+                    .font(.caption).lineSpacing(2).foregroundStyle(palette.secondaryText)
                 Button("复制诊断信息") {
                     let text = [
                         "LectureFlow diagnostic",

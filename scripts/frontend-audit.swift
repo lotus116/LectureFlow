@@ -292,6 +292,12 @@ struct PreviewAnchor: NSViewRepresentable {
             guard let atEnd = readingScroll(main.contentView!), let document = atEnd.documentView else {
                 throw BackendError.unavailable("Missing reading area after returning to latest")
             }
+            let estimatedGap = document.bounds.height - atEnd.contentView.bounds.maxY
+            print("CLASSROOM pre-render estimated gap=\(estimatedGap), y=\(atEnd.contentView.bounds.minY), document=\(document.bounds.height), viewport=\(atEnd.contentView.bounds.height)")
+            // Under a locked desktop, LazyVStack may retain an estimated document
+            // height until a display pass. Observe the rendered frame before
+            // measuring; never click twice or adjust the actual scroll position.
+            try await snapshot("42b-return-latest")
             let gap = document.bounds.height - atEnd.contentView.bounds.maxY
             guard gap >= -1, gap <= LFChrome.space8 + 1, atEnd.contentView.bounds.minY > after else {
                 throw BackendError.unavailable("Return to latest did not reach the last paragraph")
@@ -457,6 +463,21 @@ struct PreviewAnchor: NSViewRepresentable {
 
 
 @MainActor extension PreviewSuite {
+    func checkAudioEmptyCenter(_ label: String) throws {
+        func rect(_ id: String) throws -> NSRect {
+            guard let view = PreviewAnchors.views[id, default: []].compactMap(\.view).last(where: {
+                $0.window == main && !$0.isHiddenOrHasHiddenAncestor && !$0.visibleRect.isEmpty
+            }) else { throw BackendError.unavailable("Missing empty-state region: \(id)") }
+            return view.convert(view.bounds, to: main.contentView)
+        }
+        let region = try rect("audio-empty-region"), content = try rect("audio-empty-content")
+        let dx = abs(region.midX - content.midX), dy = abs(region.midY - content.midY)
+        print("EMPTY CENTER \(label): window=\(main.frame.size), region=\(region), content=\(content), delta=\(dx),\(dy)")
+        guard dx <= 1, dy <= 1, content.height <= region.height + 1, content.width <= region.width + 1 else {
+            throw BackendError.unavailable("Active audio empty state is not centered inside the remaining list region")
+        }
+    }
+
     func anchorVisible(_ id: String) -> Bool {
         PreviewAnchors.views[id, default: []].compactMap(\.view).contains {
             $0.window == main && !$0.isHiddenOrHasHiddenAncestor && !$0.visibleRect.isEmpty
@@ -541,6 +562,115 @@ struct PreviewAnchor: NSViewRepresentable {
             print("PASS: independent primary tabs/source switches; same lecture; long status and diff component windows")
             fflush(stdout)
             await workspace.prepareForExit(); NSApp.terminate(nil)
+        } catch { print("FAIL: \(error)"); fflush(stdout); await workspace.prepareForExit(); exit(1) }
+    }
+}
+
+
+@MainActor extension PreviewSuite {
+    func checkEmptyCenter(_ label: String, window: NSWindow? = nil) throws {
+        let target = window ?? main
+        func rect(_ id: String) throws -> NSRect {
+            guard let view = PreviewAnchors.views[id, default: []].compactMap(\.view).last(where: {
+                $0.window == target && !$0.isHiddenOrHasHiddenAncestor && !$0.visibleRect.isEmpty
+            }) else { throw BackendError.unavailable("Missing centered empty region: \(label)/\(id)") }
+            return view.convert(view.bounds, to: target.contentView)
+        }
+        let region = try rect("empty-region"), content = try rect("empty-content")
+        let dx = abs(region.midX - content.midX), dy = abs(region.midY - content.midY)
+        let overflow = content.height > region.height + 1
+        print("EMPTY PAGE \(label): window=\(target.frame.size), region=\(region), content=\(content), delta=\(dx),\(dy), scrollOverflow=\(overflow)")
+        guard dx <= 1, content.width <= region.width + 1, region.height > 0,
+              overflow || dy <= 1 else { throw BackendError.unavailable("Empty region is not centered: \(label)") }
+    }
+
+    func runEmptyAudit() async {
+        do {
+            await settle(2); await workspace.refresh()
+            let emptyCourseName = "合成空态 · 居中验证 " + UUID().uuidString.prefix(4)
+            if !workspace.overview.courses.contains(where: { $0.name == emptyCourseName }) {
+                await workspace.createCourse(emptyCourseName)
+            }
+            // The regular refresh timer may supersede the mutation's refresh.
+            for _ in 0..<10 {
+                if workspace.overview.courses.contains(where: { $0.name == emptyCourseName }) { break }
+                await settle(0.5); await workspace.refresh()
+            }
+            guard let emptyCourse = workspace.overview.courses.first(where: { $0.name == emptyCourseName }) else {
+                throw BackendError.unavailable("Empty course fixture missing: \(workspace.error ?? workspace.refreshError ?? "no error")")
+            }
+            workspace.selectCourse(emptyCourse.id); workspace.selectLecture(nil); await settle()
+            func mainPair(_ name: String) async throws {
+                for (suffix, size) in [("small", NSSize(width: 740, height: 520)), ("wide", NSSize(width: 1080, height: 700))] {
+                    main.setContentSize(size); try await snapshot("80-\(name)-\(suffix)")
+                    try checkEmptyCenter("\(name)-\(suffix)")
+                }
+            }
+            func sheetPair(_ name: String, sheet: NSWindow, small: NSSize, wide: NSSize) async throws {
+                for (suffix, size) in [("small", small), ("wide", wide)] {
+                    sheet.setContentSize(size); try await snapshot("81-\(name)-\(suffix)", window: sheet)
+                    try checkEmptyCenter("\(name)-\(suffix)", window: sheet)
+                }
+            }
+            try await mainPair("course")
+            guard let lectureID = await workspace.createLecture(emptyCourse.id, title: "空讲次 · 合成验证") else {
+                throw BackendError.unavailable("Empty lecture fixture missing")
+            }
+            workspace.selectLecture(lectureID); await settle(1)
+            clickAnchor("content-tab-audio"); await settle(); try await mainPair("audio-idle")
+            guard clickAnchor("content-tab-transcript") else { throw BackendError.unavailable("Transcript tab missing") }
+            await settle()
+            guard clickAnchor("transcript-source-live") else { throw BackendError.unavailable("Live source missing") }
+            await settle(); try await mainPair("live")
+            clickAnchor("transcript-source-offline"); await settle(); try await mainPair("offline")
+            for (entry, name, small, wide) in [
+                ("materials-open", "materials", NSSize(width: 620, height: 440), NSSize(width: 880, height: 620)),
+                ("queue-open", "queue", NSSize(width: 480, height: 400), NSSize(width: 680, height: 440)),
+                ("trash-open", "trash", NSSize(width: 480, height: 400), NSSize(width: 680, height: 440)),
+                ("review-marks-open", "marks", NSSize(width: 620, height: 400), NSSize(width: 760, height: 540))
+            ] {
+                guard clickAnchor(entry) else { throw BackendError.unavailable("Missing entry \(entry)") }
+                await settle()
+                guard let sheet = main.sheets.first else { throw BackendError.unavailable("Missing sheet \(entry)") }
+                try await sheetPair(name, sheet: sheet, small: small, wide: wide)
+                if name == "materials" {
+                    clickAnchor("materials-section", window: sheet, xFraction: 0.8); await settle()
+                    try await sheetPair("terms", sheet: sheet, small: small, wide: wide)
+                }
+                auditKey(53, characters: "\u{1b}", window: sheet); await settle()
+                guard main.sheets.isEmpty else { throw BackendError.unavailable("Sheet did not dismiss: \(entry)") }
+            }
+            clickAnchor("transcript-source-live"); await settle()
+            let observer = NotificationCenter.default.addObserver(forName: NSMenu.didBeginTrackingNotification,
+                object: nil, queue: .main) { note in
+                guard let menu = note.object as? NSMenu,
+                      let index = menu.items.firstIndex(where: { $0.title == "课后优先复核…" }) else { return }
+                let timer = Timer(timeInterval: 0.15, repeats: false) { _ in menu.performActionForItem(at: index); menu.cancelTracking() }
+                RunLoop.main.add(timer, forMode: .eventTracking)
+            }
+            clickAnchor("caption-actions"); await settle()
+            NotificationCenter.default.removeObserver(observer)
+            guard let priority = main.sheets.first else { throw BackendError.unavailable("Empty priority sheet missing") }
+            try await sheetPair("priority", sheet: priority, small: NSSize(width: 410, height: 320), wide: NSSize(width: 820, height: 460))
+            auditKey(53, characters: "\u{1b}", window: priority); await settle()
+            guard let fixtureCourse = workspace.overview.courses.first(where: { $0.name == "合成课程 · 课堂阅读" }),
+                  let fixture = fixtureCourse.lectures.first else { throw BackendError.unavailable("Search fixture missing") }
+            workspace.selectCourse(fixtureCourse.id); workspace.selectLecture(fixture.id); await settle(1)
+            await workspace.live.loadHistory(lecture: fixture, backend: workspace.backend)
+            guard clickAnchor("content-tab-transcript") else { throw BackendError.unavailable("Transcript tab missing") }
+            await settle()
+            guard clickAnchor("transcript-source-live") else { throw BackendError.unavailable("Live source missing") }; await settle()
+            for (source, field, name) in [("transcript-source-live", "caption-search", "live-search"), ("transcript-source-offline", "offline-search", "offline-search")] {
+                clickAnchor(source); await settle(1)
+                guard clickAnchor(field), let editor = main.firstResponder as? NSTextView else {
+                    throw BackendError.unavailable("Search editor missing: \(field)")
+                }
+                editor.selectAll(nil)
+                editor.insertText("unmatched-centered-empty-test", replacementRange: NSRange(location: NSNotFound, length: 0))
+                await settle(); try await mainPair(name)
+            }
+            print("PASS: centered course/audio/live/offline/search/materials/terms/queue/trash/marks/priority empty regions; actual entries, small and wide")
+            fflush(stdout); await workspace.prepareForExit(); NSApp.terminate(nil)
         } catch { print("FAIL: \(error)"); fflush(stdout); await workspace.prepareForExit(); exit(1) }
     }
 }

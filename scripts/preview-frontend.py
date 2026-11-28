@@ -36,6 +36,9 @@ def main() -> None:
         "--baseline", action="store_true", help="Use tracked HEAD UI sources for comparison"
     )
     parser.add_argument("--python", type=Path, default=ROOT / ".venv/bin/python")
+    parser.add_argument(
+        "--app-icon", type=Path, help="Existing official local .icns for preview branding"
+    )
     args = parser.parse_args()
     interpreter = args.python.absolute()
     assert interpreter.is_file(), "Supply an existing local interpreter with --python"
@@ -222,6 +225,10 @@ extension LiveController {
         "PreviewRoot": str(root),
         "PreviewSourceRoot": str(ROOT),
     }
+    if args.app_icon:
+        assert args.app_icon.is_file() and args.app_icon.suffix == ".icns"
+        shutil.copy2(args.app_icon, resources / "AppIcon.icns")
+        info["CFBundleIconFile"] = "AppIcon.icns"
     with (app / "Contents/Info.plist").open("wb") as stream:
         plistlib.dump(info, stream)
     subprocess.run(["codesign", "--force", "--sign", "-", str(app)], check=True)

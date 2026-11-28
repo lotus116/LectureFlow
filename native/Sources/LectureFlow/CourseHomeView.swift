@@ -15,7 +15,7 @@ struct CourseHomeView<Status: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             ViewThatFits(in: .horizontal) {
-                HStack(alignment: .center, spacing: 16) {
+                HStack(alignment: .firstTextBaseline, spacing: 16) {
                     courseTitle
                     Spacer(minLength: 12)
                     startButton
@@ -26,19 +26,14 @@ struct CourseHomeView<Status: View>: View {
             status().padding(.horizontal, 16).padding(.bottom, 8)
             Divider()
             ViewThatFits(in: .horizontal) {
-                HStack(spacing: 16) { recordingMode; Spacer(minLength: 8); courseActions }
+                HStack(alignment: .firstTextBaseline, spacing: 16) { recordingMode; Spacer(minLength: 8); courseActions }
                 VStack(alignment: .leading, spacing: 8) { recordingMode; courseActions }
             }
             .padding(.horizontal, 16).padding(.vertical, 12)
             Divider()
             if course.lectures.isEmpty {
-                VStack(alignment: .leading, spacing: 12) {
-                    Label("还没有 Lecture", systemImage: "waveform")
-                        .font(.system(size: 17, weight: .semibold))
-                    Text("从上方开始新 Lecture，录音与转写会保存在这里。")
-                        .font(.system(size: 14)).foregroundStyle(palette.secondaryText)
-                    Spacer(minLength: 0)
-                }.padding(24).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                EmptyPanel(title: "还没有 Lecture", systemImage: "waveform",
+                           description: "从上方开始新 Lecture，录音与转写会保存在这里。")
             } else {
                 lectureList.padding(.horizontal, 16).padding(.top, 16)
             }
@@ -51,23 +46,32 @@ struct CourseHomeView<Status: View>: View {
 
     private var courseTitle: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(course.name).font(.system(size: 20, weight: .semibold)).lineLimit(2).help(course.name)
+            Text(course.name).font(.system(size: LFChrome.titleSize, weight: .semibold)).lineLimit(2).help(course.name)
             Text(metaLine).font(.caption).foregroundStyle(palette.secondaryText)
         }
     }
 
     private var courseActions: some View {
-        HStack(spacing: 12) {
-            Button("新建空 Lecture", action: onCreateLecture)
-            Button("导入已有录音", action: onImportAudio)
-            Button(action: onOpenMaterials) { Label("课程资料", systemImage: "doc.richtext") }
-                .help(termCount == 0 ? "管理课件与辅助术语" : "\(documentCount) 份资料 · \(termCount) 个术语")
-        }.buttonStyle(.borderless).foregroundStyle(palette.accentInk)
+        ViewThatFits(in: .horizontal) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) { courseActionButtons }
+                .fixedSize(horizontal: true, vertical: false)
+            VStack(alignment: .leading, spacing: 8) { courseActionButtons }
+        }
+        .buttonStyle(.bordered).controlSize(.regular)
+        .font(.system(size: LFChrome.bodySize, weight: .medium))
+        .foregroundStyle(palette.accentInk)
+    }
+
+    @ViewBuilder private var courseActionButtons: some View {
+        Button("新建空 Lecture", action: onCreateLecture)
+        Button("导入已有录音", action: onImportAudio)
+        Button(action: onOpenMaterials) { Label("课程资料", systemImage: "doc.richtext") }
+            .help(termCount == 0 ? "管理课件与辅助术语" : "\(documentCount) 份资料 · \(termCount) 个术语")
     }
 
     private var recordingMode: some View {
         Text(workspace.session.modeTitle)
-            .font(.system(size: LFChrome.captionSize))
+            .font(.system(size: LFChrome.captionSize)).lineSpacing(2)
             .foregroundStyle(palette.secondaryText)
             .fixedSize(horizontal: false, vertical: true)
             .accessibilityLabel("记录方式：\(workspace.session.modeTitle)")
@@ -79,7 +83,7 @@ struct CourseHomeView<Status: View>: View {
         } label: {
             Label {
                 Text("开始新 Lecture")
-                    .font(.system(size: LFChrome.bodySize, weight: .semibold))
+                    .font(.system(size: LFChrome.bodySize, weight: .medium))
             } icon: {
                 Image(systemName: "record.circle")
                     .symbolRenderingMode(.monochrome)

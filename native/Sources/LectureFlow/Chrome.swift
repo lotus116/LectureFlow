@@ -40,6 +40,22 @@ enum LFChrome {
     static func transcriptChinese(_ base: Double) -> CGFloat { CGFloat(base) * (transcriptZH / transcriptEN) }
 }
 
+/// Centers only the caller's available content region, with scrolling when
+/// intrinsic content exceeds it. Toolbars belong outside this container.
+struct LFCenteredContent<Content: View>: View {
+    @ViewBuilder var content: (CGSize) -> Content
+    var body: some View {
+        GeometryReader { geometry in
+            ScrollView {
+                content(geometry.size)
+                    .padding(16).accessibilityIdentifier("empty-content")
+                    .frame(maxWidth: .infinity)
+                    .frame(minHeight: geometry.size.height, alignment: .center)
+            }.accessibilityIdentifier("empty-region")
+        }.frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
 struct EmptyPanel: View {
     @ThemePalette private var palette
     let title: String
@@ -47,70 +63,45 @@ struct EmptyPanel: View {
     let description: String
     var actionTitle: String? = nil
     var action: (() -> Void)? = nil
-    var useAppIcon: Bool = false
+    var useAppIcon = false
 
     var body: some View {
-        GeometryReader { geometry in
-            if geometry.size.height < 210 {
-                ScrollView {
-                    HStack(alignment: .top, spacing: 12) {
-                        Image(systemName: systemImage)
-                            .font(.system(size: 24, weight: .medium))
-                            .foregroundStyle(palette.accentInk)
-                            .frame(width: 36, height: 36)
-                        VStack(alignment: .leading, spacing: 5) {
-                            Text(title).font(.system(size: 15, weight: .semibold))
-                            Text(description).font(.system(size: 12)).foregroundStyle(palette.secondaryText)
-                                .fixedSize(horizontal: false, vertical: true)
-                            if let actionTitle, let action {
-                                Button(actionTitle, action: action).buttonStyle(.borderedProminent)
-                            }
-                        }
+        LFCenteredContent { size in
+            if size.height < 210 {
+                HStack(spacing: 12) {
+                    Image(systemName: systemImage).font(.system(size: 24))
+                        .foregroundStyle(palette.accentInk).frame(width: 36)
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text(title).font(.system(size: 15, weight: .semibold))
+                        Text(description).font(.system(size: 12)).lineSpacing(2)
+                            .foregroundStyle(palette.secondaryText)
+                            .fixedSize(horizontal: false, vertical: true)
+                        actions
                     }
-                    .padding(12).frame(maxWidth: 520, alignment: .leading)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                }
-            } else { fullContent }
+                }.frame(maxWidth: 520)
+            } else {
+                VStack(spacing: 12) {
+                    if useAppIcon {
+                        Image(nsImage: NSApp.applicationIconImage).resizable().frame(width: 56, height: 56)
+                            .clipShape(RoundedRectangle(cornerRadius: LFChrome.radiusM))
+                    } else {
+                        Image(systemName: systemImage).font(.system(size: 28, weight: .medium))
+                            .foregroundStyle(palette.accentInk).frame(width: 52, height: 52)
+                            .background(palette.iconWell, in: RoundedRectangle(cornerRadius: LFChrome.radiusM))
+                    }
+                    Text(title).font(.system(size: 17, weight: .semibold))
+                    Text(description).font(.system(size: LFChrome.bodySize)).lineSpacing(2)
+                        .foregroundStyle(palette.secondaryText).multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                    actions
+                }.frame(maxWidth: 360)
+            }
         }
     }
-
-    private var fullContent: some View {
-        ContentUnavailableView {
-            Group {
-                if useAppIcon {
-                    Image(nsImage: NSApp.applicationIconImage)
-                        .resizable()
-                        .frame(width: 56, height: 56)
-                        .clipShape(RoundedRectangle(cornerRadius: LFChrome.radiusM, style: .continuous))
-                        .shadow(color: palette.accent.opacity(0.25), radius: 12, y: 4)
-                } else {
-                    Image(systemName: systemImage)
-                        .symbolRenderingMode(.hierarchical)
-                        .font(.system(size: 28, weight: .medium))
-                        .foregroundStyle(palette.accentInk)
-                        .frame(width: 52, height: 52)
-                        .background(palette.iconWell, in: RoundedRectangle(cornerRadius: LFChrome.radiusM, style: .continuous))
-                        .overlay(RoundedRectangle(cornerRadius: LFChrome.radiusM).stroke(palette.accent.opacity(0.18)))
-                }
-            }
-            Text(title)
-                .font(.system(size: 17, weight: .semibold))
-                .padding(.top, LFChrome.space8)
-        } description: {
-            Text(description)
-                .font(.system(size: LFChrome.bodySize))
-                .foregroundStyle(palette.secondaryText)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: 320)
-        } actions: {
-            if let actionTitle, let action {
-                Button(actionTitle, action: action)
-                    .buttonStyle(.borderedProminent)
-                    .tint(palette.accent)
-                    .controlSize(.large)
-            }
+    @ViewBuilder private var actions: some View {
+        if let actionTitle, let action {
+            Button(actionTitle, action: action).buttonStyle(.borderedProminent).tint(palette.accent)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 

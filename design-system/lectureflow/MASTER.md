@@ -12,11 +12,19 @@
 ## Lecture Rail composition (2026-11-28)
 
 Latest implementation: [scope and per-screen record](../../docs/design/LECTURE-RAIL-2026-11-28.md).
-Use a 44 pt tool rail plus the existing collapsible course-name column (168/192 pt), flat recorder band,
-and full reading surface with 16 pt inner margins. State notices grow naturally. Primary transport uses
-native prominence; end retains danger ink and text. Settings groups use a sidebar at >=700 pt, native
+Use a 44 pt tool rail plus the existing collapsible course-name column (168/192 pt), original rounded recorder card,
+and full reading surface with 16 pt inner margins. The final user choice restores the complete ba47f7c
+rounded recorder card (normal, compact reading, ended summary), with 16 pt horizontal / 8 pt vertical outer spacing.
+The intermediate flat recorder band at 86f962a is superseded. State notices grow naturally. Settings groups use a sidebar at >=700 pt, native
 segments below. A/B comparison uses two columns at >=700 pt and stacks both texts below.
 Ice/Amber tokens, recording semantics, reading identity and floating backing remain unchanged.
+Final typography pass: page titles 23 pt, sheets 20, section headings 13 semibold, body/action labels 14,
+and auxiliary/rail labels 12. Add 2 pt leading only to selected multi-line helper text outside the recorder.
+Use native prominent/bordered hierarchy for course/review actions, existing palette roles, and native focus/disabled.
+No global opacity or web cursor substitutions; no subtitle type-token changes.
+Final annotated user corrections: use the bundled product brand image in the rail; hide only the two circular
+transport captions while preserving their hit areas/help/accessibility; render attention notices at 12 pt regular
+with a simple warning icon (failure unchanged); center the active unsaved-audio state inside the remaining list region.
 Earlier spacing/card notes below describe the prior baseline where they conflict with this composition.
 
 ## Global Rules
@@ -119,3 +127,10 @@ and controls. Streaming updates never animate scrolling. No new motion was added
 Use the [surface inventory](../../docs/design/UI-SURFACES-2026-11-28.md),
 [theme specification](../../docs/design/THEMES.md), and
 [current implementation and evidence](../../docs/design/OPUS-FRONTEND-2026-11-28.md).
+
+
+### 独立内容区空态
+
+使用 LFCenteredContent 的有界父容器双轴居中；工具栏、标题、错误和非空列表不居中。
+低高度横排图标与说明，文字自然折行，极小高度滚动；不使用物理屏幕中心、固定偏移或无界 ScrollView 高度。
+欢迎、课程无讲次、录音、转写零匹配、资料、任务、废纸篓和复核共用规则。

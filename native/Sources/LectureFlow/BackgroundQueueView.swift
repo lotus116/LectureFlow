@@ -58,7 +58,7 @@ struct BackgroundQueueView: View {
                 Button("完成") { dismiss() }.keyboardShortcut(.cancelAction)
             }.lfSheetHeader()
             Text("暂停保留进度；实时字幕优先时冲突任务会让路。")
-                .font(.system(size: LFChrome.captionSize))
+                .font(.system(size: LFChrome.captionSize)).lineSpacing(2)
                 .foregroundStyle(palette.secondaryText)
             List(workspace.backgroundItems) { item in
                 HStack(spacing: 12) {

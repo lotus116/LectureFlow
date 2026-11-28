@@ -56,6 +56,7 @@ assert args.name.replace("-", "").isalnum()
 assert args.probe in (
     "--suite",
     "--presentation-audit",
+    "--empty-audit",
     "--classroom-flow",
     "--audit-only",
     "--floating-audit",

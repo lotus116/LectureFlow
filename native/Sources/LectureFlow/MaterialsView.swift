@@ -119,7 +119,7 @@ struct MaterialsView: View {
                     .buttonStyle(.borderedProminent)
             }
             Text("本课程共享 · 自动术语，相关时辅助识别与翻译")
-                .font(.system(size: LFChrome.captionSize))
+                .font(.system(size: LFChrome.captionSize)).lineSpacing(2)
                 .foregroundStyle(palette.secondaryText)
             if working { HStack { ProgressView().controlSize(.mini); Text(progress) }.font(.caption) }
             if let report = importReport { importSummary(report) }
@@ -141,12 +141,13 @@ struct MaterialsView: View {
                         }
                     }.listStyle(.sidebar)
                     Text("PDF · PPTX · PPT\n可批量导入或拖入文件")
-                        .font(.caption2).foregroundStyle(.tertiary).padding(10)
+                        .font(.system(size: LFChrome.captionSize)).lineSpacing(2)
+                        .foregroundStyle(palette.transcriptTranslation).padding(10)
                 }.frame(minWidth: 140, idealWidth: 175, maxWidth: 210)
                 VStack(alignment: .leading, spacing: 10) {
                     Picker("查看", selection: $section) {
                         Text("文件与大纲").tag("overview"); Text("查看辅助术语").tag("terms")
-                    }.pickerStyle(.segmented).labelsHidden().frame(maxWidth: 320)
+                    }.pickerStyle(.segmented).labelsHidden().frame(maxWidth: 320).accessibilityIdentifier("materials-section")
                     if section == "terms" { termsView }
                     else { overviewView }
                 }.padding(.leading, 10).frame(minWidth: 350, maxWidth: .infinity, maxHeight: .infinity)
@@ -194,17 +195,13 @@ struct MaterialsView: View {
         } message: { Text(error ?? "") }
     }
 
-    private var overviewView: some View {
+    @ViewBuilder private var overviewView: some View {
+        if scopedDocuments.isEmpty {
+            EmptyPanel(title: "可选：导入课程资料", systemImage: "doc.text.magnifyingglass",
+                       description: "不导入也能录音与转写。导入后自动维护轻量术语。")
+        } else {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 14) {
-                if scopedDocuments.isEmpty {
-                    EmptyPanel(
-                        title: "可选：导入课程资料",
-                        systemImage: "doc.text.magnifyingglass",
-                        description: "不导入也能录音与转写。导入后自动维护轻量术语。"
-                    )
-                    .frame(minHeight: 240)
-                }
                 ForEach(scopedDocuments) { document in
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
@@ -225,6 +222,7 @@ struct MaterialsView: View {
                     Divider().opacity(0.5)
                 }
             }.padding(.vertical, LFChrome.space4)
+        }
         }
     }
 
@@ -249,6 +247,11 @@ struct MaterialsView: View {
                 } label: { Image(systemName: "ellipsis") }.menuStyle(.borderlessButton).frame(width: 22)
                     .disabled(selectedTerms.isEmpty || working)
             }.controlSize(.small)
+            if visibleTerms.isEmpty {
+                EmptyPanel(title: search.isEmpty ? "还没有辅助术语" : "没有匹配的术语",
+                           systemImage: "text.book.closed",
+                           description: search.isEmpty ? "导入课程资料后，会在这里显示辅助术语。" : "试试其他关键词或调整筛选条件。")
+            } else {
             Table(visibleTerms, selection: $selectedTerms) {
                 TableColumn("英文") { term in
                     Text(term.english).help(term.definition).onTapGesture(count: 2) { edit(term) }
@@ -261,6 +264,7 @@ struct MaterialsView: View {
                     Text(term.status).font(.caption).foregroundStyle(term.excluded == 1 ? Color.secondary : Color.teal)
                 }.width(90)
                 TableColumn("出处") { term in Text(source(term)).font(.caption).foregroundStyle(palette.secondaryText).help(source(term)) }.width(min: 70, ideal: 120)
+            }
             }
             Text("英文按相关性辅助拼写；自动译名仅供参考，不约束翻译。课件中英对照及人工校正才参与翻译。双击编辑，停用后不再参与。")
                 .font(.caption2).foregroundStyle(palette.secondaryText)
@@ -321,7 +325,7 @@ struct MaterialsView: View {
     private func importSummary(_ report: MaterialImportReport) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
-                Text(report.summary).font(.caption)
+                Text(report.summary).font(.caption).lineSpacing(2)
                 Spacer()
                 if !report.retryItems.isEmpty {
                     Button("重试未完成项") { Task { await retryImport() } }.disabled(working)

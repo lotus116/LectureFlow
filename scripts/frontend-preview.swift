@@ -28,6 +28,9 @@ import SwiftUI
         UserDefaults.standard.set(false, forKey: "autoFloatingSubtitles")
         UserDefaults.standard.set(false, forKey: "previewDark")
         UserDefaults.standard.set(15.0, forKey: "transcriptTextSize")
+        // Set the existing brand before the first welcome View is constructed.
+        if let logo = Bundle.main.url(forResource: "logo", withExtension: "png"),
+           let image = NSImage(contentsOf: logo) { NSApplication.shared.applicationIconImage = image }
         _workspace = StateObject(wrappedValue: Workspace())
     }
     var body: some Scene {
@@ -45,6 +48,9 @@ import SwiftUI
                     #if THEME_PREVIEW
                     if CommandLine.arguments.contains("--floating-audit") {
                         Task { await PreviewSuite(workspace).runFloatingAudit() }
+                    }
+                    if CommandLine.arguments.contains("--empty-audit") {
+                        Task { await PreviewSuite(workspace).runEmptyAudit() }
                     }
                     if CommandLine.arguments.contains("--presentation-audit") {
                         Task { await PreviewSuite(workspace).runPresentationAudit() }
@@ -347,6 +353,14 @@ lib.close()
             main.appearance = NSAppearance(named: .aqua)
             main.setContentSize(NSSize(width: 1080, height: 700))
             try await snapshot("01-empty-light")
+            #if THEME_PREVIEW
+            try checkEmptyCenter("welcome-wide")
+            main.setContentSize(NSSize(width: 740, height: 520))
+            try await snapshot("01b-empty-small")
+            try checkEmptyCenter("welcome-small")
+            main.setContentSize(NSSize(width: 1080, height: 700))
+            #endif
+
             await workspace.createCourse("合成课程 · 课堂阅读")
             let course = workspace.course!
             try await snapshot("02-course-light")
@@ -371,6 +385,18 @@ lib.close()
             main.setContentSize(NSSize(width: 740, height: 520))
             workspace.notice = "字幕处理中断，正在自动恢复；少量译文可能未完成，可用录音课后转写。"
             try await snapshot("03-recording-small-light")
+            #if THEME_PREVIEW
+            try checkAudioEmptyCenter("small")
+            workspace.notice = "字幕处理中断，正在自动恢复；少量译文可能未完成，可用录音课后转写。以下为合成长提示，检查缩小窗口时警告能完整换行，原始录音持续保留。This synthetic recovery message must remain fully readable."
+            try await snapshot("03c-long-warning-small")
+            try checkAudioEmptyCenter("small-long-warning")
+            main.setContentSize(NSSize(width: 1080, height: 700))
+            try await snapshot("03w-long-warning-wide")
+            try checkAudioEmptyCenter("wide-long-warning")
+            main.setContentSize(NSSize(width: 740, height: 520))
+            workspace.notice = "字幕处理中断，正在自动恢复；少量译文可能未完成，可用录音课后转写。"
+            #endif
+
             #if THEME_PREVIEW
             UserDefaults.standard.set("forest", forKey: LFTheme.preferenceKey)
             try await snapshot("03b-recording-forest-light")
