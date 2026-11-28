@@ -17,9 +17,21 @@ struct SessionControlBar: View {
     }
 
     private var paused: Bool { workspace.session.state == .paused }
-    private var inlineNotice: String? { workspace.notice ?? secondaryDetail }
+    private var visibleNotice: String? {
+        // Suppress only the known pause acknowledgement, when the state already
+        // says paused. Unknown notices and all failures remain visible.
+        let duplicatePause = "已暂停；继续后仍保存在本堂课，使用原来的记录方式。"
+        return paused && workspace.notice == duplicatePause ? nil : workspace.notice
+    }
 
     var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            controlCard
+            sessionStatus
+        }
+    }
+
+    private var controlCard: some View {
         VStack(alignment: .leading, spacing: LFChrome.space10) {
             if readingMode {
                 HStack(spacing: LFChrome.space12) {
@@ -47,29 +59,6 @@ struct SessionControlBar: View {
                 metaRow
             }
 
-            if let notice = inlineNotice {
-                Group {
-                    if noticeTone == .attention {
-                        HStack(alignment: .firstTextBaseline, spacing: 8) {
-                            Image(systemName: noticeTone.symbol).foregroundStyle(palette.warningInk)
-                                .accessibilityHidden(true)
-                            Text(notice).foregroundStyle(palette.transcriptTranslation)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                        .font(.system(size: 12, weight: .regular)).lineSpacing(2)
-                        .padding(.vertical, 4).frame(maxWidth: .infinity, alignment: .leading)
-                    } else {
-                        LFStatusBanner(notice, tone: noticeTone)
-                    }
-                }.accessibilityIdentifier("session-notice")
-            }
-
-            if workspace.session.state == .running && workspace.session.desired.needsASR
-                && !live.flags.needsASR && !workspace.captionsWaiting {
-                Button("重新连接字幕") { workspace.reconnectCaptions() }
-                    .font(.system(size: LFChrome.captionSize))
-            }
-
             HStack(spacing: 10) {
                 if readingMode {
                     Text(workspace.session.modeTitle)
@@ -84,23 +73,18 @@ struct SessionControlBar: View {
                 }
                 .disabled(workspace.lecture == nil || workspace.isExiting)
                 .accessibilityIdentifier("review-marks-open")
-                if let feedback = workspace.reviews.feedback {
-                    Text(feedback).font(.caption).foregroundStyle(palette.secondaryText)
-                }
-                if workspace.reviews.hasUnsavedChanges && !workspace.reviews.saving {
-                    Button("重试保存标记") { workspace.reviews.retryFailed() }
-                }
                 Spacer(minLength: 0)
-            }.controlSize(.small)
+            }.controlSize(.small).accessibilityIdentifier("session-bookmark-tools")
 
         }
         .padding(.horizontal, LFChrome.space16)
         .padding(.vertical, readingMode ? 8 : 12)
+        .accessibilityIdentifier("session-card")
         .background {
-            RoundedRectangle(cornerRadius: active || paused ? 28 : LFChrome.radiusM, style: .continuous)
+            RoundedRectangle(cornerRadius: LFChrome.radiusL, style: .continuous)
                 .fill(active || paused ? palette.recorder : palette.panel)
                 .overlay {
-                    RoundedRectangle(cornerRadius: active || paused ? 28 : LFChrome.radiusM, style: .continuous)
+                    RoundedRectangle(cornerRadius: LFChrome.radiusL, style: .continuous)
                         .strokeBorder(palette.hairline, lineWidth: 1)
                 }
         }
@@ -302,12 +286,10 @@ struct SessionControlBar: View {
     }
 
     private var endedStatusLabel: some View {
-        Label(
-            live.pendingSaves > 0 ? "正在写入资料库…" : "采集已结束 · 内容已保留",
-            systemImage: live.pendingSaves > 0 ? "arrow.down.circle" : "checkmark.circle.fill"
-        )
+        // End of capture is not proof that registration into the library succeeded.
+        Label("采集已结束", systemImage: "stop.circle")
         .font(.system(size: LFChrome.captionSize))
-        .foregroundStyle(live.pendingSaves > 0 ? palette.accentInk : palette.saved)
+        .foregroundStyle(palette.bodyText)
         .lineLimit(1)
         .fixedSize(horizontal: true, vertical: true)
     }
@@ -355,20 +337,59 @@ struct SessionControlBar: View {
         return workspace.session.modeTitle
     }
 
-    private var noticeTone: LFStatusTone {
-        if live.recoveryExhausted { return .failure }
-        if workspace.captionsWaiting { return .information }
-        // Opaque backend text remains unchanged; classify only its visual emphasis.
-        if let notice = inlineNotice, notice.contains("中断") || notice.contains("恢复") { return .attention }
-        return live.pendingSaves > 0 ? .working : .information
+    @ViewBuilder private var sessionStatus: some View {
+        // Variable-length state belongs below the fixed controls, on both the
+        // recording and subtitle pages. No controller/state mutation here.
+        VStack(alignment: .leading, spacing: 6) {
+            if let error = live.error {
+                LFStatusBanner(error, tone: .failure).accessibilityIdentifier("session-error")
+            }
+            if live.pendingSaves > 0 {
+                LFStatusBanner("录音已封存，正在加入本 Lecture。", tone: .working)
+                    .accessibilityIdentifier("session-saving")
+            }
+            if let notice = visibleNotice {
+                statusMessage(notice)
+            }
+            if active && workspace.captionsWaiting {
+                if visibleNotice == nil {
+                    statusMessage("录音已开始，字幕等待模型就绪。")
+                }
+            } else if active && !live.message.isEmpty && live.message != visibleNotice {
+                statusMessage(live.message)
+            }
+            if workspace.session.state == .running && workspace.session.desired.needsASR
+                && !live.flags.needsASR && !workspace.captionsWaiting {
+                Button("重新连接字幕") { workspace.reconnectCaptions() }
+                    .font(.system(size: LFChrome.captionSize))
+            }
+            if let feedback = workspace.reviews.feedback {
+                Text(feedback).font(.caption).foregroundStyle(palette.secondaryText)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            if workspace.reviews.hasUnsavedChanges && !workspace.reviews.saving {
+                Button("重试保存标记") { workspace.reviews.retryFailed() }.controlSize(.small)
+            }
+        }.accessibilityIdentifier("session-status-area")
     }
 
-    private var secondaryDetail: String? {
-        if live.pendingSaves > 0 { return "录音已封存，正在加入本 Lecture。" }
-        if active {
-            return workspace.captionsWaiting ? "录音已开始，字幕等待模型就绪。" : (live.message.isEmpty ? nil : live.message)
+    @ViewBuilder private func statusMessage(_ message: String) -> some View {
+        // Matching affects emphasis only; unknown messages remain fully visible.
+        if live.recoveryExhausted {
+            LFStatusBanner(message, tone: .failure).accessibilityIdentifier("session-notice")
+        } else {
+            let attention = !workspace.captionsWaiting && (message.contains("中断") || message.contains("恢复"))
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Image(systemName: attention ? "exclamationmark.triangle" : "info.circle")
+                    .foregroundStyle(attention ? palette.warningInk : palette.accentInk)
+                    .accessibilityHidden(true)
+                Text(message).foregroundStyle(palette.transcriptTranslation)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .font(.system(size: 12)).lineSpacing(2).padding(.vertical, 2)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityIdentifier("session-notice")
         }
-        return nil
     }
 
     private func clock(_ seconds: Double) -> String {

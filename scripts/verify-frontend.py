@@ -51,12 +51,16 @@ parser.add_argument(
     action="store_true",
     help="Run behavior only while desktop is locked; explicitly log missing screenshots",
 )
+parser.add_argument(
+    "--reduce-motion", action="store_true", help="Force reduce motion in observation copy only"
+)
 args = parser.parse_args()
 assert args.name.replace("-", "").isalnum()
 assert args.probe in (
     "--suite",
     "--presentation-audit",
     "--empty-audit",
+    "--layout-audit",
     "--classroom-flow",
     "--audit-only",
     "--floating-audit",
@@ -69,7 +73,8 @@ request.unlink(missing_ok=True)
 done.unlink(missing_ok=True)
 app = root / "LectureFlow Frontend Preview.app/Contents/MacOS/LectureFlow"
 process = subprocess.Popen(
-    [str(app), args.probe], env={**os.environ, "LF_PREVIEW_CAPTURE_BRIDGE": "1"}
+    [str(app), args.probe] + (["--reduce-motion"] if args.reduce_motion else []),
+    env={**os.environ, "LF_PREVIEW_CAPTURE_BRIDGE": "1"}
 )
 while process.poll() is None:
     if request.exists():

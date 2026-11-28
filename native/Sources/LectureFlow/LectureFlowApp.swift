@@ -233,53 +233,56 @@ struct LibraryView: View {
                 // No List(selection:) — system blue highlight cannot be recolored reliably on macOS.
                 List {
                     ForEach(model.overview.courses) { course in
-                        Section(isExpanded: Binding(
-                            get: { !collapsedCourses.contains(course.id) },
-                            set: { expanded in
-                                if expanded { collapsedCourses.remove(course.id) }
-                                else { collapsedCourses.insert(course.id) }
-                            }
-                        )) {
-                            ForEach(course.lectures) { lecture in
-                                Button {
-                                    model.selectLecture(lecture.id)
-                                } label: {
-                                    Label(lecture.title, systemImage: "waveform")
-                                        .frame(maxWidth: .infinity, alignment: .leading)
-                                        .lineLimit(2).help(lecture.title)
+                        Section {
+                            if !collapsedCourses.contains(course.id) {
+                                ForEach(course.lectures) { lecture in
+                                    Button {
+                                        model.selectLecture(lecture.id)
+                                    } label: {
+                                        HStack(alignment: .top, spacing: 6) {
+                                            Image(systemName: "waveform").padding(.top, 2)
+                                            Text(lecture.title)
+                                                .font(.system(size: LFChrome.bodySize))
+                                                .lineLimit(2, reservesSpace: true).truncationMode(.tail)
+                                                .fixedSize(horizontal: false, vertical: true)
+                                        }
+                                        .frame(maxWidth: .infinity, minHeight: 42, alignment: .leading)
+                                        .padding(.vertical, 3).help(lecture.title)
                                         .contentShape(Rectangle())
+                                    }
+                                    .buttonStyle(.plain)
+                                    .foregroundStyle(model.selectedLecture == lecture.id ? palette.accentInk : palette.ink)
+                                    .accessibilityLabel(lecture.title)
+                                    .accessibilityIdentifier("lecture-\(lecture.id)")
+                                    .listRowBackground(lectureRowBackground(course.id, lectureID: lecture.id))
+                                    .draggable("lectureflow-lecture:" + lecture.id)
+                                    .dropDestination(for: String.self) { items, _ in
+                                        acceptSidebarDrop(items, course: course, lecture: lecture)
+                                    } isTargeted: { targeted in
+                                        updateDropTarget(course.id, targeted: targeted)
+                                    }
+                                    .contextMenu {
+                                        Button("重命名") { recordID = lecture.id; newName = lecture.title; form = "rename-lecture" }
+                                        Menu("移动到课程") {
+                                            ForEach(model.overview.courses.filter { $0.id != course.id }) { target in
+                                                Button(target.name) { Task { await model.perform(["library", "move-lecture", lecture.id, target.id]) } }
+                                            }
+                                        }
+                                        Divider()
+                                        Button("移入废纸篓", role: .destructive) { archiving = ArchiveTarget(kind: "lecture", id: lecture.id, name: lecture.title) }
+                                    }
                                 }
-                                .buttonStyle(.plain)
-                                .foregroundStyle(model.selectedLecture == lecture.id ? palette.accentInk : palette.ink)
-                                .accessibilityIdentifier("lecture-\(lecture.id)")
-                                .listRowBackground(lectureRowBackground(course.id, lectureID: lecture.id))
-                                .draggable("lectureflow-lecture:" + lecture.id)
+                                Button {
+                                    courseID = course.id
+                                    Task { await model.createLecture(course.id) }
+                                } label: { Label("新建 Lecture", systemImage: "plus") }
+                                .buttonStyle(.plain).foregroundStyle(palette.secondaryText)
+                                .listRowBackground(courseDropBackground(course.id))
                                 .dropDestination(for: String.self) { items, _ in
-                                    acceptSidebarDrop(items, course: course, lecture: lecture)
+                                    acceptSidebarDrop(items, course: course, lecture: nil)
                                 } isTargeted: { targeted in
                                     updateDropTarget(course.id, targeted: targeted)
                                 }
-                                .contextMenu {
-                                    Button("重命名") { recordID = lecture.id; newName = lecture.title; form = "rename-lecture" }
-                                    Menu("移动到课程") {
-                                        ForEach(model.overview.courses.filter { $0.id != course.id }) { target in
-                                            Button(target.name) { Task { await model.perform(["library", "move-lecture", lecture.id, target.id]) } }
-                                        }
-                                    }
-                                    Divider()
-                                    Button("移入废纸篓", role: .destructive) { archiving = ArchiveTarget(kind: "lecture", id: lecture.id, name: lecture.title) }
-                                }
-                            }
-                            Button {
-                                courseID = course.id
-                                Task { await model.createLecture(course.id) }
-                            } label: { Label("新建 Lecture", systemImage: "plus") }
-                            .buttonStyle(.plain).foregroundStyle(palette.secondaryText)
-                            .listRowBackground(courseDropBackground(course.id))
-                            .dropDestination(for: String.self) { items, _ in
-                                acceptSidebarDrop(items, course: course, lecture: nil)
-                            } isTargeted: { targeted in
-                                updateDropTarget(course.id, targeted: targeted)
                             }
                         } header: {
                             courseHeader(course)
@@ -287,6 +290,7 @@ struct LibraryView: View {
                     }
                 }
                 .listStyle(.sidebar)
+                .environment(\.defaultMinListHeaderHeight, 48)
                 .scrollContentBackground(.hidden)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
 
@@ -541,7 +545,8 @@ struct LibraryView: View {
                 .frame(height: 38).help("LectureFlow").accessibilityLabel("LectureFlow")
             Button { sidebarVisible.toggle() } label: { railLabel("课程", systemImage: "sidebar.left") }
                 .help(sidebarVisible ? "收起课程列表" : "显示课程列表")
-                .accessibilityLabel("显示或隐藏课程列表")
+                .accessibilityLabel(sidebarVisible ? "收起课程列表" : "显示课程列表")
+                .accessibilityValue(sidebarVisible ? "已展开" : "已收起")
             Button { newName = ""; form = "course" } label: { railLabel("新建", systemImage: "folder.badge.plus") }
                 .help("新建课程").accessibilityLabel("新建课程")
             Spacer()
@@ -566,22 +571,35 @@ struct LibraryView: View {
     }
 
     private func railLabel(_ title: String, systemImage: String) -> some View {
-        VStack(spacing: 3) {
-            Image(systemName: systemImage).font(.system(size: 16))
-            Text(title).font(.system(size: LFChrome.captionSize)).lineLimit(1)
-        }.frame(width: 40, height: 42).contentShape(Rectangle())
+        Image(systemName: systemImage).font(.system(size: 16))
+            .frame(width: 40, height: 42).contentShape(Rectangle())
+            .accessibilityLabel(title)
     }
 
     @ViewBuilder
     private func courseHeader(_ course: Course) -> some View {
         HStack(spacing: LFChrome.space4) {
             Button {
+                if collapsedCourses.contains(course.id) { collapsedCourses.remove(course.id) }
+                else { collapsedCourses.insert(course.id) }
+            } label: {
+                Image(systemName: collapsedCourses.contains(course.id) ? "chevron.right" : "chevron.down")
+                    .font(.system(size: 10, weight: .semibold))
+                    .frame(width: 14, height: 40).contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .help(collapsedCourses.contains(course.id) ? "展开课程" : "折叠课程")
+            .accessibilityLabel((collapsedCourses.contains(course.id) ? "展开课程：" : "折叠课程：") + course.name)
+            .accessibilityIdentifier("course-disclosure-\(course.id)")
+
+            Button {
                 model.selectCourse(course.id)
                 model.selectLecture(nil)
             } label: {
                 HStack(alignment: .top, spacing: 6) {
                     Image(systemName: "folder.fill").padding(.top, 2)
-                    Text(course.name).lineLimit(2).fixedSize(horizontal: false, vertical: true)
+                    Text(course.name).lineLimit(2, reservesSpace: true).truncationMode(.tail)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                     .font(.system(size: LFChrome.sectionSize, weight: .semibold))
                     .labelStyle(.titleAndIcon)
@@ -592,7 +610,8 @@ struct LibraryView: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .help(course.name)
+            .help(course.name).accessibilityLabel(course.name)
+            .frame(minHeight: 40)
             .accessibilityIdentifier("course-\(course.id)")
         }
         .padding(.vertical, LFChrome.space4)
@@ -694,7 +713,8 @@ struct LibraryView: View {
                     .font(.caption).foregroundStyle(palette.secondaryText)
             }
         } else if !model.hasModel("asr-small") || !model.hasModel("translate") {
-            LFStatusBanner(message: "本地模型尚未就绪", tone: .information) {
+            let recordingOnly = model.session.desired.recording && !model.session.desired.needsASR
+            LFStatusBanner(message: recordingOnly ? "录音可用 · 字幕模型未就绪" : "本地模型尚未就绪", tone: .information) {
                 Button("继续下载") {
                     Task { await model.installModels(["asr-small", "translate"].filter { !model.hasModel($0) }) }
                 }

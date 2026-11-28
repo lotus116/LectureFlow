@@ -35,6 +35,12 @@ def main() -> None:
     parser.add_argument(
         "--baseline", action="store_true", help="Use tracked HEAD UI sources for comparison"
     )
+    parser.add_argument(
+        "--source-ref", help="Export product sources at a local commit; keep observation harness"
+    )
+    parser.add_argument(
+        "--no-activate", action="store_true", help="Keep synthetic probes behind the user workspace"
+    )
     parser.add_argument("--python", type=Path, default=ROOT / ".venv/bin/python")
     parser.add_argument(
         "--app-icon", type=Path, help="Existing official local .icns for preview branding"
@@ -50,10 +56,10 @@ def main() -> None:
         shutil.copytree(
             ROOT / "native/Sources" / module, project / "Sources" / module, dirs_exist_ok=True
         )
-        if args.baseline:
+        if args.baseline or args.source_ref:
             for original in (ROOT / "native/Sources" / module).glob("*.swift"):
                 file = project / "Sources" / module / original.name
-                tracked = "HEAD:native/Sources/" + module + "/" + file.name
+                tracked = f"{args.source_ref or 'HEAD'}:native/Sources/{module}/{file.name}"
                 if subprocess.run(
                     ["git", "cat-file", "-e", tracked], cwd=ROOT, stderr=subprocess.DEVNULL
                 ).returncode:
@@ -83,10 +89,40 @@ def main() -> None:
                 view_file.read_text().replace(
                     "@Environment(\\.accessibilityReduceMotion) private var reduceMotion",
                     "private var reduceMotion: Bool { "
+                    'CommandLine.arguments.contains("--reduce-motion") || '
                     'CommandLine.arguments.contains("--floating-audit") || '
                     "NSWorkspace.shared.accessibilityDisplayShouldReduceMotion }",
                 )
             )
+    if not args.baseline:
+        controls = source / "SessionControls.swift"
+        replace_once(
+            controls, '.accessibilityLabel("采集计时")',
+            '.accessibilityLabel("采集计时").background(PreviewAnchor(id: "session-timer"))',
+        )
+        replace_once(
+            controls, '.frame(width: compact ? 56 : 108, height: compact ? 38 : 48)',
+            '.frame(width: compact ? 56 : 108, height: compact ? 38 : 48)'
+            '.background(PreviewAnchor(id: "session-waveform"))',
+        )
+    if not args.baseline:
+        replace_once(
+            source / "LiveViews.swift", 'follow = true; search = ""',
+            'print("PREVIEW latest button action reached"); fflush(stdout); '
+            'follow = true; search = ""',
+        )
+    if args.no_activate:
+        for probe in (source / "FrontendPreview.swift", source / "FrontendAudit.swift"):
+            if probe.exists():
+                content = probe.read_text().replace(
+                    "NSApp.activate(ignoringOtherApps: true)", "/* Background-only probe. */"
+                )
+                content = re.sub(
+                    r"(\w+)\.makeKeyAndOrderFront\(nil\)",
+                    r"\1.orderBack(nil); \1.makeKey()", content,
+                )
+                content = content.replace(".orderFrontRegardless()", ".orderBack(nil)")
+                probe.write_text(content)
     (project / "Package.swift").write_text("""// swift-tools-version: 5.10
 import PackageDescription
 let package = Package(name: "FrontendPreview", platforms: [.macOS(.v14)], targets: [
@@ -122,6 +158,7 @@ let package = Package(name: "FrontendPreview", platforms: [.macOS(.v14)], target
     if not args.baseline:
         text += """
 extension LiveController {
+    func previewPendingSaves(_ value: Int) { pendingSaves = value }
     func previewEvent(_ event: [String: Any], session: String, lecture: String) {
         let previousToken = pipeToken
         let previousSession = sessionID
@@ -208,6 +245,8 @@ extension LiveController {
                     ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True
                 ).strip(),
                 "baseline": args.baseline,
+                "product_source_ref": args.source_ref,
+                "background_probe": args.no_activate,
             },
             indent=2,
         )

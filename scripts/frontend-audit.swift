@@ -34,12 +34,21 @@ struct PreviewAnchor: NSViewRepresentable {
         NSApp.activate(ignoringOtherApps: true)
         target.makeKeyAndOrderFront(nil)
         let point = view.convert(NSPoint(x: view.bounds.minX + view.bounds.width * xFraction, y: view.bounds.midY), to: nil)
+        if id == "caption-latest" {
+            print("LATEST target active=\(NSApp.isActive) key=\(target.isKeyWindow) point=\(point)")
+            if let content = target.contentView, let hit = content.hitTest(content.convert(point, from: nil)) {
+                print("LATEST hit=\(type(of: hit))")
+            }
+            for candidate in candidates where candidate.window == target {
+                print("LATEST candidate rect=\(candidate.convert(candidate.bounds, to: target.contentView)) hidden=\(candidate.isHiddenOrHasHiddenAncestor) visible=\(candidate.visibleRect)")
+            }
+        }
         if id.hasPrefix("session-") { print("CONTROL \(id): bounds=\(view.bounds) point=\(point) window=\(target.windowNumber)"); fflush(stdout) }
         for type: NSEvent.EventType in [.leftMouseDown, .leftMouseUp] {
             let event = NSEvent.mouseEvent(with: type, location: point, modifierFlags: [],
                 timestamp: ProcessInfo.processInfo.systemUptime, windowNumber: target.windowNumber,
                 context: nil, eventNumber: 1, clickCount: 1, pressure: 1)!
-            NSApp.sendEvent(event)
+            target.sendEvent(event)
         }
         return true
     }
@@ -671,6 +680,114 @@ struct PreviewAnchor: NSViewRepresentable {
             }
             print("PASS: centered course/audio/live/offline/search/materials/terms/queue/trash/marks/priority empty regions; actual entries, small and wide")
             fflush(stdout); await workspace.prepareForExit(); NSApp.terminate(nil)
+        } catch { print("FAIL: \(error)"); fflush(stdout); await workspace.prepareForExit(); exit(1) }
+    }
+}
+
+@MainActor extension PreviewSuite {
+    func layoutRect(_ id: String) throws -> NSRect {
+        guard let view = PreviewAnchors.views[id, default: []].compactMap(\.view).last(where: { $0.window == main && !$0.visibleRect.isEmpty }) else {
+            throw BackendError.unavailable("Missing layout anchor: " + id)
+        }
+        let r = view.convert(view.bounds, to: main.contentView)
+        let clipped = view.bounds.intersection(view.visibleRect).height + 0.5 < view.bounds.height
+        print("ROW \(id): rect=\(r), visible=\(view.visibleRect), bounds=\(view.bounds), verticallyClipped=\(clipped)")
+        if root.lastPathComponent.contains("after") && (id.hasPrefix("course-") || id.hasPrefix("lecture-")) && clipped {
+            throw BackendError.unavailable("Sidebar row vertically clipped: " + id)
+        }
+        return r
+    }
+    func runLayoutAudit() async {
+        do {
+            await settle(2)
+            let names = ["线性代数", "机器学习与统计推断专题 Machine Learning and Statistical Inference", "计算机系统与并行架构 Advanced Computer Systems", "面向复杂真实环境的智能系统研究方法与课堂实践"]
+            var ids: [(String, String)] = []
+            for (i, name) in names.enumerated() {
+                await workspace.createCourse(name)
+                for _ in 0..<20 where !workspace.overview.courses.contains(where: { $0.name == name }) {
+                    await settle(0.2); await workspace.refresh()
+                }
+                guard let course = workspace.overview.courses.first(where: { $0.name == name }),
+                      let id = await workspace.createLecture(course.id, title: i == 0 ? "第一讲 · 向量空间" : "第十二讲 · 复杂模型的推导与课堂实例 Long Lecture Title and Evidence") else {
+                    throw BackendError.unavailable("Long-name synthetic fixture missing")
+                }
+                ids.append((course.id, id))
+            }
+            workspace.selectCourse(ids[1].0); workspace.selectLecture(ids[1].1); await settle()
+            for width in [740.0, 820.0, 1080.0] {
+                main.setContentSize(NSSize(width: width, height: 700))
+                try await snapshot("90-courses-\(Int(width))")
+                for (course, lecture) in ids {
+                    _ = try layoutRect("course-" + course)
+                    _ = try layoutRect("lecture-" + lecture)
+                }
+            }
+            main.setContentSize(NSSize(width: 1080, height: 700))
+            if clickAnchor("course-disclosure-" + ids[1].0) {
+                await settle()
+                let childVisible = PreviewAnchors.views["lecture-" + ids[1].1, default: []].compactMap(\.view).contains { $0.window == main && !$0.visibleRect.isEmpty }
+                guard !childVisible else { throw BackendError.unavailable("Collapse did not hide lecture rows") }
+                try await snapshot("91-course-disclosure")
+                guard clickAnchor("course-disclosure-" + ids[1].0) else { throw BackendError.unavailable("Expand control missing") }
+                await settle(); _ = try layoutRect("lecture-" + ids[1].1)
+                guard workspace.selectedLecture == ids[1].1 else { throw BackendError.unavailable("Disclosure changed lecture selection") }
+                print("PASS: collapse/expand through accessible native button, selection unchanged")
+            } else {
+                print("BASELINE: disclosure not instrumented; original Section binding retained in source")
+                try await snapshot("91-course-disclosure")
+            }
+            workspace.configureSession(CapturePreset.recording.flags)
+            main.setContentSize(NSSize(width: 740, height: 572)); await settle()
+            guard clickAnchor("session-primary") else { throw BackendError.unavailable("Start button missing") }
+            for _ in 0..<30 where !workspace.live.isCapturing { await settle(0.2) }
+            guard workspace.live.isCapturing else { throw BackendError.unavailable("Synthetic recording did not start") }
+            func positions(_ state: String) throws -> [CGFloat] {
+                let p = try layoutRect("session-primary"), e = try layoutRect("session-end"), b = try layoutRect("review-marks-open")
+                print("CONTROL POSITIONS \(state): primary=\(p.midY), end=\(e.midY), marks=\(b.midY)")
+                let timer = try layoutRect("session-timer"), wave = try layoutRect("session-waveform")
+                var result = [p.midY,e.midY,b.midY,timer.midY,wave.midY]
+                if root.lastPathComponent.contains("after") {
+                    let card = try layoutRect("session-card")
+                    result += [card.minY,card.height]
+                }
+                return result
+            }
+            try await snapshot("92-recording-normal"); let normal = try positions("running")
+            workspace.notice = "字幕处理中断，正在自动恢复；少量译文可能未完成，可用录音课后转写。以下为合成长提示，用于验证控件位置不因状态文字折行而改变。Synthetic recovery information remains readable while recording stays independent."
+            try await snapshot("93-recording-warning"); let warning = try positions("warning")
+            clickAnchor("session-primary"); await settle()
+            guard workspace.session.state == .paused else { throw BackendError.unavailable("Pause failed") }
+            try await snapshot("94-recording-paused"); let paused = try positions("paused")
+            workspace.notice = "合成暂停期间的独立通知：这不是常规暂停确认，必须继续显示。"
+            try await snapshot("94b-paused-independent-notice")
+            _ = try layoutRect("session-notice")
+            _ = try positions("paused-independent-notice")
+            clickAnchor("session-primary"); await settle()
+            guard workspace.live.isCapturing else { throw BackendError.unavailable("Resume failed") }
+            try await snapshot("95-recording-resumed"); let resumed = try positions("resumed")
+            print("STABILITY normal=\(normal) warning=\(warning) paused=\(paused) resumed=\(resumed)")
+            if root.lastPathComponent.contains("after") {
+                for p in [warning,paused,resumed] { guard zip(normal,p).allSatisfy({ abs($0-$1)<=1 }) else { throw BackendError.unavailable("Recorder controls moved") } }
+            }
+            clickAnchor("session-end")
+            for _ in 0..<40 where workspace.live.pendingSaves > 0 { await settle(0.2) }
+            await workspace.refresh(); await settle()
+            try await snapshot("96-recording-ended")
+            guard workspace.session.state == .ended, workspace.lecture?.segments.count == 1 else { throw BackendError.unavailable("Sealed recording missing") }
+            workspace.live.previewPendingSaves(1)
+            try await snapshot("98-recording-saving")
+            workspace.live.previewPendingSaves(0)
+            workspace.live.error = "合成保存失败：原音仍保留，请使用恢复录音检查。"
+            try await snapshot("97-recording-error")
+            guard let errorSheet = main.sheets.first, workspace.error != nil else { throw BackendError.unavailable("Real error presentation missing") }
+            try await snapshot("97b-recording-error-sheet", window: errorSheet)
+            let alertText = elements(errorSheet.contentView!).compactMap { ($0 as? NSTextField)?.stringValue }
+            print("NATIVE ERROR TEXT: \(alertText); workspaceError=\(workspace.error ?? "nil")")
+            print("PASS: error propagated through unchanged handler into visible native alert")
+            _ = press("知道了", in: errorSheet)
+            workspace.error = nil; workspace.live.error = nil; await settle()
+            print("PASS: long-name courses at 740/820/1080; synthetic start/pause/resume/seal; recorder coordinates logged")
+            fflush(stdout); await workspace.prepareForExit(); exit(0)
         } catch { print("FAIL: \(error)"); fflush(stdout); await workspace.prepareForExit(); exit(1) }
     }
 }

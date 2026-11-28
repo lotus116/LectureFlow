@@ -18,7 +18,7 @@ struct LibrarySplitLayout<Rail: View, Sidebar: View, Detail: View>: View {
     var body: some View {
         GeometryReader { geo in
             let compact = geo.size.width < 820
-            let sidebarWidth = compact ? 168.0 : 192.0
+            let sidebarWidth = compact ? 200.0 : 220.0
             HStack(spacing: 0) {
                 rail.frame(width: 44).background(palette.sidebar)
                 Rectangle().fill(palette.hairline).frame(width: 1)

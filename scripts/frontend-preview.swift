@@ -16,7 +16,7 @@ import SwiftUI
         setenv("PYTHONPATH", sourceRoot + "/src", 1)
         setenv("PYTHONDONTWRITEBYTECODE", "1", 1)
         let library: String
-        if CommandLine.arguments.contains("--suite") {
+        if CommandLine.arguments.contains("--suite") || CommandLine.arguments.contains("--layout-audit") {
             UserDefaults.standard.set("ice", forKey: "colorTheme")
             library = root + "/runtime/Library-" + UUID().uuidString
             UserDefaults.standard.set(library, forKey: "previewLibraryPath")
@@ -48,6 +48,9 @@ import SwiftUI
                     #if THEME_PREVIEW
                     if CommandLine.arguments.contains("--floating-audit") {
                         Task { await PreviewSuite(workspace).runFloatingAudit() }
+                    }
+                    if CommandLine.arguments.contains("--layout-audit") {
+                        Task { await PreviewSuite(workspace).runLayoutAudit() }
                     }
                     if CommandLine.arguments.contains("--empty-audit") {
                         Task { await PreviewSuite(workspace).runEmptyAudit() }
@@ -511,7 +514,9 @@ lib.close()
             await settle()
             showSettings()
             await settle()
-            let settings = NSApp.windows.first { $0.title == "合成预览设置" }!
+            guard let settings = NSApp.windows.first(where: { $0.title == "合成预览设置" }) else {
+                throw BackendError.unavailable("Synthetic settings window was not ordered")
+            }
             try await snapshot("11-settings", window: settings)
             settings.close()
             #if THEME_PREVIEW
