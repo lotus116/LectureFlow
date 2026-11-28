@@ -48,7 +48,7 @@ public final class RecordingWriter {
         try data.write(to: directory.appendingPathComponent("capture.json"), options: .atomic)
     }
 
-    public func append(_ buffer: AVAudioPCMBuffer, start: Double = 0) throws {
+    public func append(_ buffer: AVAudioPCMBuffer, start: Double = 0, bilingualRecovery: Bool = false) throws {
         guard !sealed, start.isFinite, start >= 0, buffer.format.sampleRate == 16000,
               buffer.format.channelCount == 1, let input = buffer.floatChannelData else {
             throw CocoaError(.fileWriteInapplicableStringEncoding)
@@ -77,12 +77,15 @@ public final class RecordingWriter {
             let captureStart = start + Double(offset) / 16000
             let duration = Double(count) / 16000
             if let last = captureRanges.last,
+               (last["bilingual_recovery"] == 1) == bilingualRecovery,
                abs(captureStart - (last["capture_start"]! + last["duration"]!)) < 0.02 {
                 captureRanges[captureRanges.count - 1]["duration"]! += duration
             } else {
-                captureRanges.append(["capture_start": captureStart,
+                var range = ["capture_start": captureStart,
                                       "source_start": Double(totalFrames) / 16000,
-                                      "duration": duration])
+                                      "duration": duration]
+                if bilingualRecovery { range["bilingual_recovery"] = 1 }
+                captureRanges.append(range)
             }
             offset += count; fileFrames += count; totalFrames += Int64(count)
             if fileFrames == chunkFrames {

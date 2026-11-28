@@ -28,6 +28,16 @@ struct PriorityReview: View {
     @State private var busy = false
     @State private var error: String?
 
+    @FocusState private var focusedControl: String?
+
+    private var focusOrder: [String] {
+        guard let detail else { return items.map { "priority-item-" + $0.id } + ["priority-done"] }
+        var controls = ["priority-play", "priority-back"]
+        if detail.state == "ready" { controls += ["priority-accept", "priority-ignore"] }
+        if ["accepted", "ignored"].contains(detail.state) { controls.append("priority-undo") }
+        return controls + ["priority-done"]
+    }
+
     var body: some View {
         GeometryReader { geometry in
         let compact = geometry.size.height < 400
@@ -36,6 +46,7 @@ struct PriorityReview: View {
                 Text("优先复核").font(.system(size: LFChrome.sheetTitleSize, weight: .semibold))
                 Spacer()
                 Button("完成") { dismiss() }.keyboardShortcut(.cancelAction)
+                    .reviewFocus("priority-done", $focusedControl)
             }.padding(compact ? 12 : 16)
             Divider()
             if compact && detail != nil {
@@ -97,7 +108,7 @@ struct PriorityReview: View {
                                     Text(label(item.state)).font(.caption)
                                 }.frame(maxWidth: .infinity, alignment: .leading).padding(20)
                             }.buttonStyle(.borderless)
-                            .accessibilityIdentifier("priority-item-\(item.id)")
+                            .reviewFocus("priority-item-\(item.id)", $focusedControl)
                             Divider()
                         }
                     }
@@ -115,7 +126,14 @@ struct PriorityReview: View {
         .frame(minWidth: 410, idealWidth: 820, minHeight: 320, idealHeight: 460)
         .background(palette.canvas).foregroundStyle(palette.bodyText)
         .tint(palette.accent)
-        .task { await refresh() }
+        .task { await refresh(); focusedControl = focusOrder.first }
+        .onKeyPress(keys: [.tab], phases: .down) { event in
+            guard !busy, event.modifiers.subtracting(.shift).isEmpty else { return .ignored }
+            let order = focusOrder
+            let index = focusedControl.flatMap(order.firstIndex) ?? -1
+            focusedControl = order[(index + (event.modifiers.contains(.shift) ? -1 : 1) + order.count) % order.count]
+            return .handled
+        }
         .onDisappear { playback.stop() }
     }
 
@@ -132,12 +150,12 @@ struct PriorityReview: View {
             HStack(alignment: .firstTextBaseline) {
                 Button(playback.reviewID == selected.id ? "停止回听" : "回听这段原音") {
                     playback.playReview(detail.audio, markID: selected.id)
-                }.buttonStyle(.bordered).accessibilityIdentifier("priority-play")
+                }.buttonStyle(.bordered).reviewFocus("priority-play", $focusedControl)
                 Spacer()
                 Button("返回片段") {
                     playback.stop(); self.detail = nil
-                    Task { await refresh() }
-                }.buttonStyle(.borderless).accessibilityIdentifier("priority-back")
+                    Task { await refresh(); focusedControl = "priority-item-" + selected.id }
+                }.buttonStyle(.borderless).reviewFocus("priority-back", $focusedControl)
             }
             if let message = playback.error {
                 LFStatusBanner(message, tone: .failure)
@@ -145,16 +163,16 @@ struct PriorityReview: View {
             HStack(alignment: .firstTextBaseline, spacing: 10) {
                 if detail.state == "ready" {
                     Button("接受为复核版本") { Task { await act(selected, "accept") } }
-                        .buttonStyle(.borderedProminent).accessibilityIdentifier("priority-accept")
+                        .buttonStyle(.borderedProminent).reviewFocus("priority-accept", $focusedControl)
                     Button("忽略") { Task { await act(selected, "ignore") } }
-                        .buttonStyle(.bordered).accessibilityIdentifier("priority-ignore")
+                        .buttonStyle(.bordered).reviewFocus("priority-ignore", $focusedControl)
                 } else if detail.state == "same" {
                     Label("候选与原稿相同", systemImage: "equal.circle")
                         .foregroundStyle(palette.secondaryText)
                 } else {
                     Button(detail.state == "accepted" ? "撤销接受" : "撤销忽略") {
                         Task { await act(selected, "undo") }
-                    }.accessibilityIdentifier("priority-undo")
+                    }.reviewFocus("priority-undo", $focusedControl)
                 }
             }
         }
@@ -190,6 +208,14 @@ struct PriorityReview: View {
                 item.session, "--caption", item.id, "--generation", String(detail?.generation ?? 0)])
             detail = try JSONDecoder().decode(PriorityCandidate.self, from: data)
             selected = item
+            let next = action == "prepare" ? "priority-play" : (action == "undo" ? "priority-accept" : "priority-undo")
+            Task { @MainActor in await Task.yield(); focusedControl = next }
         } catch { self.error = error.localizedDescription }
+    }
+}
+
+private extension View {
+    func reviewFocus(_ id: String, _ focus: FocusState<String?>.Binding) -> some View {
+        focusable(true, interactions: .edit).focused(focus, equals: id).accessibilityIdentifier(id)
     }
 }

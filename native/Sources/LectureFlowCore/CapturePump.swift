@@ -146,7 +146,7 @@ public final class CapturePump {
             vDSP_rmsqv(output.floatChannelData![0], 1, &rms, vDSP_Length(output.frameLength))
             onLevel?(min(1, rms * 8)); lastLevel = start
         }
-        if flags.recording { try writer?.append(output, start: start) }
+        if flags.recording { try writer?.append(output, start: start, bilingualRecovery: flags.english && flags.translate) }
         if flags.needsASR {
             let bytes = Data(bytes: output.floatChannelData![0], count: Int(output.frameLength) * 4)
             onPCM?(bytes, start, flags)

@@ -25,6 +25,7 @@ final class Workspace: ObservableObject {
                 Task { [weak self] in
                     guard let self, self.selectedLecture == id, let lecture = self.lecture else { return }
                     await self.live.loadHistory(lecture: lecture, backend: self.backend)
+                    if self.recovered { await self.recoverChinese(lecture) }
                 }
             }
         }
@@ -44,6 +45,8 @@ final class Workspace: ObservableObject {
     @Published private(set) var refreshError: String?
     @Published var requestedTab: String?
     @Published var reviewPresented = false
+    @Published var priorityPresented = false
+    @Published var subtitleSettingsPresented = false
     @Published var busy = false
     @Published private(set) var isExiting = false
 
@@ -79,6 +82,8 @@ final class Workspace: ObservableObject {
     private var subscriptions: Set<AnyCancellable> = []
     private var contentKey = ""
     private var recovered = false
+    private var checkingChinese = Set<String>()
+    private var privacyGeneration = 0
     private var preparedModels = false
     private var resultFence = ResultFence()
     private var refreshToken = UUID()
@@ -236,6 +241,7 @@ final class Workspace: ObservableObject {
     }
     func configureSession(_ flags: CaptureFlags) {
         guard session.configure(flags) else { notice = "请先暂停；至少选择一种记录方式。"; return }
+        privacyGeneration += 1
         if let data = try? JSONEncoder().encode(flags) { UserDefaults.standard.set(data, forKey: "capturePreferences") }
         notice = nil
     }
@@ -303,6 +309,51 @@ final class Workspace: ObservableObject {
         try JSONDecoder().decode(Overview.self, from: await backend.call(["library", "status"]))
     }
 
+    private func permitsChineseRecovery(_ id: String) -> Bool {
+        let defaults = UserDefaults.standard
+        if let data = defaults.data(forKey: "capturePreferences"),
+           (try? JSONDecoder().decode(CaptureFlags.self, from: data)) != .all { return false }
+        if selectedLecture == id { return session.desired == .all }
+        guard let data = defaults.data(forKey: "classroomSession." + id) else { return true }
+        return (try? JSONDecoder().decode(ClassroomSession.self, from: data))?.desired == .all
+    }
+
+    private func recoverChinese(_ lecture: Lecture) async {
+        guard !isExiting, !live.flags.needsMicrophone, !checkingChinese.contains(lecture.id) else { return }
+        guard permitsChineseRecovery(lecture.id) else {
+            if selectedLecture == lecture.id && live.captions.contains(where: {
+                $0.status == "temporary" && !$0.english.isEmpty && $0.chinese.isEmpty
+            }) { notice = "当前保存设置不允许补译中断的临时字幕。" }
+            return
+        }
+        checkingChinese.insert(lecture.id)
+        defer { checkingChinese.remove(lecture.id) }
+        let generation = privacyGeneration
+        do {
+            let prepared = try await backend.call(["live", "prepare-missing-chinese", lecture.id])
+            struct Preview: Decodable { struct Item: Decodable {}; let items: [Item]; let unavailable: Int }
+            let preview = try JSONDecoder().decode(Preview.self, from: prepared)
+            guard !isExiting, !live.flags.needsMicrophone, generation == privacyGeneration,
+                  permitsChineseRecovery(lecture.id) else { return }
+            if !preview.items.isEmpty {
+                struct Applied: Decodable { let applied: Int }
+                let applied = try JSONDecoder().decode(Applied.self, from: await backend.call(
+                    ["live", "apply-missing-chinese", lecture.id], input: prepared))
+                if selectedLecture == lecture.id && applied.applied > 0 {
+                    await live.loadHistory(lecture: lecture, backend: backend)
+                    notice = "已为中断的临时字幕补上中文，共 " + String(applied.applied) + " 段。"
+                }
+            }
+            if selectedLecture == lecture.id && preview.unavailable > 0 {
+                notice = "部分临时字幕缺少可核对的双语保存范围或完整原音，未自动补译。"
+            }
+        } catch {
+            if selectedLecture == lecture.id && !isExiting {
+                notice = "此次未能补译中断的字幕；重开此讲次可重试。"
+            }
+        }
+    }
+
     func refresh() async {
         guard !isExiting else { return }
         let request = UUID(); refreshToken = request
@@ -316,6 +367,8 @@ final class Workspace: ObservableObject {
                 for lecture in overview.courses.flatMap(\.lectures) {
                     _ = try await backend.call(["library", "recover-recordings", lecture.id])
                 }
+                let classrooms = overview.courses.flatMap(\.lectures)
+                Task { for lecture in classrooms { await recoverChinese(lecture) } }
                 let recoveredState = try await loadOverview()
                 guard refreshToken == request else { return }
                 overview = recoveredState

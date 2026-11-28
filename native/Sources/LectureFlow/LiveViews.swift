@@ -22,7 +22,6 @@ struct LiveTranscriptView: View {
     let lecture: Lecture
     let backend: Backend
     @AppStorage("transcriptTextSize") private var textSize = 15.0
-    @State private var showPriorityReview = false
     @State private var search = ""
     @State private var language = "both"
     @State private var follow = true
@@ -122,12 +121,6 @@ struct LiveTranscriptView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .sheet(isPresented: $showPriorityReview, onDismiss: { workspace.playback.stop() }) {
-                PriorityReview(lecture: lecture, backend: backend, playback: workspace.playback)
-            }
-            .onChange(of: showPriorityReview) { _, presented in
-                if !presented { workspace.playback.stop() }
-            }
             .onChange(of: updateKey) { _, _ in
                 if follow && search.isEmpty { proxy.scrollTo("latest-caption", anchor: .bottom) }
             }
@@ -154,7 +147,7 @@ struct LiveTranscriptView: View {
         HStack(spacing: 8) {
             ReviewCurrentButton(workspace: workspace, live: live).labelStyle(.iconOnly)
             Menu {
-                Button("课后优先复核…") { showPriorityReview = true }
+                Button("课后优先复核…") { workspace.priorityPresented = true }
                     .disabled(live.isCapturing)
                 Button("复制") {
                     let text = visible.map { caption in

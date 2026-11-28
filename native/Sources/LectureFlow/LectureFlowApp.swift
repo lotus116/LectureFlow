@@ -22,6 +22,15 @@ struct LectureFlowApp: App {
                     workspace.toggleSubtitles()
                 }
                 .keyboardShortcut("l", modifiers: [.command, .option])
+                Button("字幕显示设置…") {
+                    workspace.subtitles.show(workspace: workspace)
+                    workspace.subtitles.focusSettings()
+                    workspace.subtitleSettingsPresented = true
+                }.keyboardShortcut("l", modifiers: [.command, .option, .shift])
+                Button("课后优先复核…") {
+                    workspace.showMainWindow()
+                    workspace.priorityPresented = true
+                }.disabled(workspace.lecture == nil).keyboardShortcut("u", modifiers: [.command, .option])
                 Button("仅显示悬浮字幕") { workspace.openSubtitles(hideMain: true) }
                 Button("开始／暂停") { workspace.primarySessionAction() }
                     .keyboardShortcut("r", modifiers: [.command, .shift])
@@ -407,6 +416,11 @@ struct LibraryView: View {
         }
         .onChange(of: importing) { _, open in
             if !open { importingForCourse = nil }
+        }
+        .sheet(isPresented: $model.priorityPresented, onDismiss: { model.playback.stop() }) {
+            if let lecture = model.lecture {
+                PriorityReview(lecture: lecture, backend: model.backend, playback: model.playback)
+            }
         }
         .sheet(isPresented: $model.reviewPresented, onDismiss: { playback.stop() }) {
             ReviewMarksView(workspace: model, store: model.reviews, playback: model.playback)

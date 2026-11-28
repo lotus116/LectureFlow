@@ -4,6 +4,21 @@ import XCTest
 @testable import LectureFlowCore
 
 final class CaptureTests: XCTestCase {
+    func testBilingualRecoveryPermissionFollowsWrittenFramesOnly() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let writer = try RecordingWriter(audioRoot: root)
+        try writer.append(pcm(frames: 4000), start: 0)
+        try writer.append(pcm(frames: 4000), start: 0.25, bilingualRecovery: true)
+        try writer.append(pcm(frames: 4000), start: 0.5, bilingualRecovery: true)
+        try writer.append(pcm(frames: 4000), start: 0.75)
+        let url = try XCTUnwrap(writer.finish()).appendingPathComponent("capture.json")
+        let descriptor = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any])
+        let ranges = try XCTUnwrap(descriptor["capture_ranges"] as? [[String: Double]])
+        XCTAssertEqual(ranges.map { $0["bilingual_recovery"] }, [nil, 1, nil])
+        XCTAssertEqual(ranges.compactMap { $0["duration"] }, [0.25, 0.5, 0.25])
+    }
+
     func testAllEightIndependentModes() {
         for bits in 0..<8 {
             let flags = CaptureFlags(recording: bits & 1 != 0, english: bits & 2 != 0,

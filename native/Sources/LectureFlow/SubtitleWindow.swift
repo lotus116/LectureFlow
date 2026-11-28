@@ -59,6 +59,16 @@ final class SubtitleWindow {
         window.orderFrontRegardless()
     }
 
+    private weak var settingsOrigin: NSWindow?
+    func focusSettings() {
+        if NSApp.keyWindow !== panel { settingsOrigin = NSApp.keyWindow }
+        panel?.makeKeyAndOrderFront(nil)
+    }
+    func leaveSettings() {
+        settingsOrigin?.makeKeyAndOrderFront(nil)
+        settingsOrigin = nil
+    }
+
     func hide() {
         panel?.orderOut(nil)
     }
@@ -80,7 +90,7 @@ private struct FloatingSubtitlesRoot: View {
     @AppStorage("subtitleOpacity") private var opacity = 0.86
     @AppStorage("subtitleLanguage") private var language = "zh"
     @AppStorage("autoFloatingSubtitles") private var automatic = true
-    @State private var settings = false
+    @FocusState private var displayFocus: String?
     @State private var readingRows: [LiveCaption] = []
     @State private var follow = true
     @State private var hoveredCaptionID: String?
@@ -155,12 +165,12 @@ private struct FloatingSubtitlesRoot: View {
                 }
                 .layoutPriority(1)
             }
-            Button { settings.toggle() } label: {
+            Button { workspace.subtitles.focusSettings(); workspace.subtitleSettingsPresented.toggle() } label: {
                 Image(systemName: "slider.horizontal.3")
             }
             .help("字号与显示")
             .accessibilityLabel("字号与显示")
-            .popover(isPresented: $settings) {
+            .popover(isPresented: $workspace.subtitleSettingsPresented) {
                 VStack(alignment: .leading, spacing: 12) {
                     Picker("显示", selection: $language) {
                         Text("仅中文").tag("zh")
@@ -169,9 +179,11 @@ private struct FloatingSubtitlesRoot: View {
                     Toggle("开始实时字幕时自动显示", isOn: $automatic)
                     Text("字号 \(Int(fontSize))")
                     Slider(value: $fontSize, in: 16...56)
+                        .focusable(true, interactions: .edit).focused($displayFocus, equals: "font")
                         .accessibilityLabel("字幕字号")
                     Text("背景透明度")
                     Slider(value: $opacity, in: 0.2...1)
+                        .focusable(true, interactions: .edit).focused($displayFocus, equals: "opacity")
                         .accessibilityLabel("背景透明度")
                     Text("拉高窗口可多看几句；默认约 1 句。")
                         .font(.caption)
@@ -179,6 +191,8 @@ private struct FloatingSubtitlesRoot: View {
                 }
                 .padding(16)
                 .frame(width: 280)
+                .onAppear { Task { @MainActor in await Task.yield(); displayFocus = "font" } }
+                .onDisappear { workspace.subtitles.leaveSettings() }
             }
             .layoutPriority(1)
 

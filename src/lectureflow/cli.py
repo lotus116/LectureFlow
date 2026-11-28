@@ -101,6 +101,8 @@ def parser() -> argparse.ArgumentParser:
     create.add_argument("lecture_id")
     create.add_argument("--id", dest="capture_id")
     create.add_argument("--language", choices=["auto", "English"], default="English")
+    for name in ("prepare-missing-chinese", "apply-missing-chinese"):
+        live_actions.add_parser(name).add_argument("lecture_id")
     history = live_actions.add_parser("history")
     history.add_argument("lecture_id")
     live_export = live_actions.add_parser("export")
@@ -320,6 +322,12 @@ def main() -> int:
                         result = live_store.create(
                             library, args.lecture_id, args.capture_id, language=args.language,
                         )
+                    elif args.live_action == "prepare-missing-chinese":
+                        from .first_translation import prepare
+                        result = prepare(library, args.lecture_id, args.model_root)
+                    elif args.live_action == "apply-missing-chinese":
+                        from .first_translation import apply
+                        result = apply(library, args.lecture_id, json.load(sys.stdin))
                     elif args.live_action == "retry-accent":
                         from lectureflow import filelock as fcntl
 
