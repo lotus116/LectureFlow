@@ -203,3 +203,46 @@ extension View {
         padding(.top, 12).overlay(alignment: .top) { Divider() }
     }
 }
+
+
+extension View {
+    func namedNativeList(_ name: String) -> some View {
+        accessibilityLabel(Text(name))
+            .background(NativeListName(name: name).allowsHitTesting(false).accessibilityHidden(true))
+    }
+}
+
+// SwiftUI exposes the label in the window tree. Keyboard focus can instead
+// expose the underlying AppKit table, particularly in a sheet.
+private struct NativeListName: NSViewRepresentable {
+    let name: String
+
+    func makeNSView(context: Context) -> Marker { Marker() }
+    func updateNSView(_ view: Marker, context: Context) {
+        view.name = name
+        view.needsLayout = true
+    }
+
+    final class Marker: NSView {
+        var name = ""
+
+        override func layout() {
+            super.layout()
+            DispatchQueue.main.async { [weak self] in self?.labelTable() }
+        }
+
+        private func labelTable() {
+            guard let root = window?.contentView, !bounds.isEmpty else { return }
+            let center = convert(NSPoint(x: bounds.midX, y: bounds.midY), to: nil)
+            func visit(_ view: NSView) {
+                guard !view.isHidden, view.bounds.contains(view.convert(center, from: nil)) else { return }
+                if let table = (view as? NSScrollView)?.documentView as? NSTableView {
+                    table.setAccessibilityLabel(name)
+                    return
+                }
+                view.subviews.forEach(visit)
+            }
+            visit(root)
+        }
+    }
+}

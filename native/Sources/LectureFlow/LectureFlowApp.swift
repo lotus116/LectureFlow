@@ -289,7 +289,7 @@ struct LibraryView: View {
                         }
                     }
                 }
-                .accessibilityLabel("课程与 Lecture 列表")
+                .namedNativeList("课程与 Lecture 列表")
                 .listStyle(.sidebar)
                 .environment(\.defaultMinListHeaderHeight, 48)
                 .scrollContentBackground(.hidden)
@@ -1028,7 +1028,7 @@ struct LibraryView: View {
                         }
                     }
                 }
-                .accessibilityLabel("录音片段")
+                .namedNativeList("录音片段")
                 .listStyle(.plain)
                 .scrollContentBackground(.hidden)
             }

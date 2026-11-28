@@ -73,7 +73,7 @@ struct BackgroundQueueView: View {
                     }.disabled(working)
                 }.padding(.vertical, 5)
             }
-            .accessibilityLabel("后台任务列表")
+            .namedNativeList("后台任务列表")
             .overlay {
                 if workspace.backgroundItems.isEmpty {
                     EmptyPanel(title: "没有待处理任务", systemImage: "checkmark.circle", description: "后台转写和词库补全会出现在这里。")

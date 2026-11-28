@@ -296,7 +296,9 @@ struct ReviewMarksView: View {
                         }
                         .accessibilityLabel("\(reviewClock(mark.capture_time))，\(mark.reviewed == 1 ? "已复习" : "待复习")")
                         .tag(mark.id)
-                    }.frame(minWidth: 155, idealWidth: 180, maxWidth: 220)
+                    }
+                    .namedNativeList("复习书签列表")
+                    .frame(minWidth: 155, idealWidth: 180, maxWidth: 220)
                     detailView.frame(minWidth: 300, maxWidth: .infinity, maxHeight: .infinity)
                 }
             }

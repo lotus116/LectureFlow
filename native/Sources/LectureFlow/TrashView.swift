@@ -47,7 +47,7 @@ struct TrashView: View {
                     Button("恢复") { Task { await restore(item) } }.disabled(working)
                 }.padding(.vertical, 4)
             }
-            .accessibilityLabel("废纸篓项目")
+            .namedNativeList("废纸篓项目")
             .overlay {
                 if items.isEmpty {
                     EmptyPanel(
