@@ -245,3 +245,61 @@ def test_truncated_pcm_wav_rolls_back_entire_import(setup_library, remaining_byt
     assert library.segments(lecture) == []
     assert list((library.lecture_path(lecture) / "Audio").iterdir()) == []
     assert broken.read_bytes() == damaged
+
+
+def test_new_lecture_import_is_atomic_and_reports_original_name(setup_library):
+    library, lecture, tmp = setup_library
+    course = library.row("lectures", lecture)["course_id"]
+    good = recording(tmp / "normal.wav")
+    broken = recording(tmp / "interrupted.wav")
+    broken.write_bytes(broken.read_bytes()[:44])
+    folder = library.lecture_path(lecture).parent
+    before = set(folder.iterdir())
+    with pytest.raises(ValueError, match="interrupted.wav"):
+        library.import_new_lecture(course, [good, broken])
+    assert set(folder.iterdir()) == before
+    assert library.db.execute("SELECT count(*) FROM lectures").fetchone()[0] == 1
+    created = library.import_new_lecture(course, [good])
+    assert library.segments(created["id"])[0]["sha256"] == sha256(good)
+
+
+def test_automatic_title_reserves_archived_and_custom_lecture_names(tmp_path):
+    from lectureflow import files
+
+    with Library(tmp_path / "library") as library:
+        course = library.create_course("Synthetic")["id"]
+        first = library.create_lecture(course)
+        assert first["title"] == "Lecture 01"
+        assert library.create_lecture(course)["title"] == "Lecture 02"
+        files.archive(library, "lecture", first["id"], confirmed=True)
+        library.create_lecture(course, "Lecture 04")
+        assert library.create_lecture(course)["title"] == "Lecture 05"
+        files.restore(library, "lecture", first["id"])
+        assert library.row("lectures", first["id"])["title"] == "Lecture 01"
+
+
+def test_new_lecture_io_failure_leaves_no_partial_registration(setup_library, monkeypatch):
+    from lectureflow import library as library_module
+
+    library, initial, tmp = setup_library
+    folder = library.lecture_path(initial).parent
+    course = library.row("lectures", initial)["course_id"]
+    before = set(folder.iterdir())
+    replace = library_module.os.replace
+    count = 0
+
+    def interrupted(source, target):
+        nonlocal count
+        count += 1
+        if count == 2:
+            raise OSError("synthetic interruption")
+        return replace(source, target)
+
+    monkeypatch.setattr(library_module.os, "replace", interrupted)
+    sources = [recording(tmp / f"{i}.wav") for i in range(2)]
+    with pytest.raises(OSError, match="synthetic interruption"):
+        library.import_new_lecture(course, sources)
+    assert set(folder.iterdir()) == before
+    assert library.db.execute("SELECT count(*) FROM lectures").fetchone()[0] == 1
+    assert library.db.execute("SELECT count(*) FROM segments").fetchone()[0] == 0
+    assert all(source.is_file() for source in sources)

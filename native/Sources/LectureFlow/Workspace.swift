@@ -372,11 +372,6 @@ final class Workspace: ObservableObject {
         selectedLecture = id
     }
 
-    func nextLectureTitle(for courseID: String) -> String {
-        let count = overview.courses.first { $0.id == courseID }?.lectures.count ?? 0
-        return String(format: "Lecture %02d", count + 1)
-    }
-
     var course: Course? {
         overview.courses.first { $0.id == selectedCourse }
     }
@@ -458,12 +453,12 @@ final class Workspace: ObservableObject {
     }
 
     func createLecture(_ course: String, title: String? = nil, select: Bool = true) async -> String? {
-        let name = (title?.trimmingCharacters(in: .whitespacesAndNewlines)).flatMap { $0.isEmpty ? nil : $0 }
-            ?? nextLectureTitle(for: course)
+        var arguments = ["library", "create-lecture", course]
+        if let name = title?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty {
+            arguments.append(name)
+        }
         do {
-            let created = try JSONDecoder().decode(Created.self, from: await backend.call([
-                "library", "create-lecture", course, name
-            ]))
+            let created = try JSONDecoder().decode(Created.self, from: await backend.call(arguments))
             selectedCourse = course
             if select && !live.flags.needsMicrophone {
                 selectedLecture = created.id
@@ -505,27 +500,29 @@ final class Workspace: ObservableObject {
         primarySessionAction()
     }
 
-    func importAudio(_ urls: [URL], intoLecture lectureID: String? = nil) async {
-        let targetID = lectureID ?? selectedLecture
-        guard let targetID else { return }
+    func importAudio(_ urls: [URL], intoLecture lectureID: String? = nil, creatingIn courseID: String? = nil) async {
+        guard !urls.isEmpty, let target = courseID ?? lectureID ?? selectedLecture else { return }
         let accessed = urls.filter { $0.startAccessingSecurityScopedResource() }
         defer { accessed.forEach { $0.stopAccessingSecurityScopedResource() } }
-        // File picker order is not promised. Start with a natural filename order;
-        // the user can drag the managed segments into the intended sequence.
         let ordered = urls.sorted {
             $0.lastPathComponent.localizedStandardCompare($1.lastPathComponent) == .orderedAscending
         }
-        await perform(["library", "import", targetID] + ordered.map(\.path))
-        if selectedLecture == targetID { requestedTab = "audio" }
-    }
-
-    /// Creates a Lecture only after the user confirms file selection (cancel leaves no empty record).
-    func importAudioCreatingLecture(courseID: String, urls: [URL]) async {
-        guard !urls.isEmpty else { return }
-        guard let id = await createLecture(courseID) else { return }
-        await importAudio(urls, intoLecture: id)
-        selectedLecture = id
-        requestedTab = "audio"
+        if let courseID {
+            busy = true
+            defer { busy = false }
+            do {
+                let arguments = ["library", "import-new", courseID] + ordered.map(\.path)
+                let created = try JSONDecoder().decode(Created.self, from: await backend.call(arguments))
+                await refresh()
+                if selectedCourse == courseID, selectedLecture == nil, !live.flags.needsMicrophone {
+                    selectLecture(created.id)
+                    requestedTab = "audio"
+                }
+            } catch { self.error = error.localizedDescription }
+        } else {
+            await perform(["library", "import", target] + ordered.map(\.path))
+            if selectedLecture == target { requestedTab = "audio" }
+        }
     }
 
     func enqueue() async {

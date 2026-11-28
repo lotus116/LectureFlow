@@ -52,7 +52,10 @@ def parser() -> argparse.ArgumentParser:
     course.add_argument("name")
     lecture = actions.add_parser("create-lecture")
     lecture.add_argument("course_id")
-    lecture.add_argument("title")
+    lecture.add_argument("title", nargs="?")
+    new_import = actions.add_parser("import-new")
+    new_import.add_argument("course_id")
+    new_import.add_argument("files", nargs="+", type=Path)
     imported = actions.add_parser("import")
     imported.add_argument("lecture_id")
     imported.add_argument("files", nargs="+", type=Path)
@@ -212,6 +215,8 @@ def main() -> int:
                     result = library.create_course(args.name)
                 elif args.action == "create-lecture":
                     result = library.create_lecture(args.course_id, args.title)
+                elif args.action == "import-new":
+                    result = library.import_new_lecture(args.course_id, args.files)
                 elif args.action == "import":
                     result = library.import_audio(args.lecture_id, args.files)
                 elif args.action == "reorder":

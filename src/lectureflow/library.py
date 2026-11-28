@@ -9,6 +9,7 @@ import os
 import re
 import shutil
 import sqlite3
+import tempfile
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -190,22 +191,35 @@ class Library:
             raise
         return self.row("courses", key)
 
-    def create_lecture(self, course_id: str, title: str) -> dict:
-        course = self.row("courses", course_id)
-        key = identity()
-        folder = folder_name(title, key)
-        path = self.managed_path(self.root / course["folder"] / folder)
-        path.mkdir()
+    def create_lecture(self, course_id: str, title: str | None = None) -> dict:
+        created_path = None
         try:
-            for child in ("Audio", "Documents", "Transcripts", "Summaries"):
-                (path / child).mkdir()
             with self.transaction():
+                course = self.row("courses", course_id)
+                if title is None:
+                    # Archived lectures can be restored with their original names.
+                    titles = self.db.execute(
+                        "SELECT title FROM lectures WHERE course_id=?", (course_id,),
+                    ).fetchall()
+                    used = {row[0] for row in titles}
+                    number = len(titles) + 1
+                    while f"Lecture {number:02d}" in used:
+                        number += 1
+                    title = f"Lecture {number:02d}"
+                key = identity()
+                folder = folder_name(title, key)
+                path = self.managed_path(self.root / course["folder"] / folder)
+                path.mkdir()
+                created_path = path
+                for child in ("Audio", "Documents", "Transcripts", "Summaries"):
+                    (path / child).mkdir()
                 self.db.execute(
                     "INSERT INTO lectures VALUES(?,?,?,?,0,?)",
                     (key, course_id, title.strip(), folder, now()),
                 )
         except BaseException:
-            shutil.rmtree(path)
+            if created_path is not None:
+                shutil.rmtree(created_path)
             raise
         return self.row("lectures", key)
 
@@ -217,15 +231,14 @@ class Library:
             "SELECT * FROM segments WHERE lecture_id=? ORDER BY position, id", (lecture_id,),
         ) if not hidden(self, "segment", r["id"])]
 
-    def import_audio(self, lecture_id: str, sources: list[Path]) -> list[dict]:
+    @contextlib.contextmanager
+    def _stage_audio(self, sources: list[Path]):
         if not sources:
             raise ValueError("请选择至少一个录音文件")
-        destination = self.managed_path(self.lecture_path(lecture_id) / "Audio")
-        staging = destination / f".pending-{identity()}"
-        staging.mkdir()
-        prepared = []
-        installed: list[Path] = []
-        try:
+        # Copies and duration checks may take minutes. Keep them outside the database write lock.
+        with tempfile.TemporaryDirectory(prefix=".pending-audio-", dir=self.root) as directory:
+            staging = Path(directory)
+            prepared = []
             for source in sources:
                 source = source.resolve()
                 if (not source.is_file()
@@ -243,9 +256,15 @@ class Library:
                     raise ValueError(f"复制时源文件发生变化：{source.name}")
                 prepared.append({
                     "id": key, "filename": filename, "original_name": source.name,
-                    "sha256": digest, "duration": probe_duration(copy),
+                    "sha256": digest, "duration": probe_duration(copy, display_name=source.name),
                 })
+            yield staging, prepared
+
+    def _install_audio(self, lecture_id: str, staging: Path, prepared: list[dict]) -> list[dict]:
+        installed: list[Path] = []
+        try:
             with self.transaction():
+                destination = self.managed_path(self.lecture_path(lecture_id) / "Audio")
                 offset = self.db.execute(
                     "SELECT COALESCE(MAX(position),-1)+1 FROM segments WHERE lecture_id=?",
                     (lecture_id,),
@@ -264,9 +283,27 @@ class Library:
             for path in installed:
                 path.unlink(missing_ok=True)
             raise
-        finally:
-            shutil.rmtree(staging)
         return [self.row("segments", item["id"]) for item in prepared]
+
+    def import_audio(self, lecture_id: str, sources: list[Path]) -> list[dict]:
+        self.row("lectures", lecture_id)
+        with self._stage_audio(sources) as (staging, prepared):
+            return self._install_audio(lecture_id, staging, prepared)
+
+    def import_new_lecture(self, course_id: str, sources: list[Path]) -> dict:
+        self.row("courses", course_id)
+        with self._stage_audio(sources) as (staging, prepared):
+            created_path = None
+            try:
+                with self.transaction():
+                    lecture = self.create_lecture(course_id)
+                    created_path = self.lecture_path(lecture["id"])
+                    self._install_audio(lecture["id"], staging, prepared)
+            except BaseException:
+                if created_path is not None:
+                    shutil.rmtree(created_path)
+                raise
+        return lecture
 
     def reorder(self, lecture_id: str, ids: list[str]) -> None:
         with self.transaction():

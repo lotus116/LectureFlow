@@ -339,7 +339,7 @@ struct LibraryView: View {
                 .dropDestination(for: URL.self) { urls, _ in
                     let audio = urls.filter { ["m4a", "mp3", "wav", "flac"].contains($0.pathExtension.lowercased()) }
                     guard !audio.isEmpty, !model.busy else { return false }
-                    Task { await model.importAudio(audio) }; return true
+                    Task { await model.importAudio(audio, intoLecture: lecture.id) }; return true
                 }
             } else if let course = model.course {
                 VStack(alignment: .leading, spacing: 0) {
@@ -396,7 +396,7 @@ struct LibraryView: View {
             case .success(let urls):
                 Task {
                     if let courseForImport {
-                        await model.importAudioCreatingLecture(courseID: courseForImport, urls: urls)
+                        await model.importAudio(urls, creatingIn: courseForImport)
                     } else {
                         await model.importAudio(urls)
                     }

@@ -7,7 +7,8 @@ import wave
 from pathlib import Path
 
 
-def probe_duration(source: Path) -> float:
+def probe_duration(source: Path, *, display_name: str | None = None) -> float:
+    name = display_name or source.name
     if source.suffix.lower() == ".wav":
         try:
             with wave.open(str(source), "rb") as stream:
@@ -16,7 +17,7 @@ def probe_duration(source: Path) -> float:
                     # A copied WAV can retain its original header after an interrupted transfer.
                     stream.setpos(stream.getnframes() - 1)
                     if len(stream.readframes(1)) != stream.getnchannels() * stream.getsampwidth():
-                        raise ValueError(f"录音数据不完整：{source.name}")
+                        raise ValueError(f"录音数据不完整：{name}")
                     return duration
         except (wave.Error, EOFError):
             pass
@@ -29,7 +30,7 @@ def probe_duration(source: Path) -> float:
     )
     match = re.search(r"Duration:\s*(\d+):(\d+):([\d.]+)", result.stderr)
     if result.returncode or not match:
-        raise ValueError(f"无法读取音频或时长：{source.name}")
+        raise ValueError(f"无法读取音频或时长：{name}")
     hours, minutes, seconds = map(float, match.groups())
     duration = hours * 3600 + minutes * 60 + seconds
     if not math.isfinite(duration) or duration <= 0:
