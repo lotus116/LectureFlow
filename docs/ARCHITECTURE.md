@@ -1,6 +1,6 @@
 # 当前架构与实现边界
 
-产品目标见 [PRODUCT](PRODUCT.md)，缺口和验证见 [STATUS](STATUS.md)。Mac 是主线，Windows 移植独立维护。0.6.5 同时提供 macOS 和 Windows 桌面入口。Mac 使用 SwiftUI、AVAudioEngine 与 MLX；Windows 使用 Tk、PortAudio、sherpa-onnx 识别和本机 GGUF 翻译服务。两端复用 SQLite、CaptionEngine、书签和转写检查点。平台实测边界见 [Windows 记录](research/WINDOWS-TRIAL.md)。
+产品目标见 [PRODUCT](PRODUCT.md)，缺口和验证见 [STATUS](STATUS.md)。Mac 是主线，Windows 移植独立维护。两个平台的正式版本及验证结果以 [STATUS](STATUS.md) 为准。Mac 使用 SwiftUI、AVAudioEngine 与 MLX；Windows 使用 Tk、PortAudio、sherpa-onnx 识别和本机 GGUF 翻译服务。两端复用 SQLite、CaptionEngine、书签和转写检查点。平台实测边界见 [Windows 记录](research/WINDOWS-TRIAL.md)。
 
 ## 数据与身份
 
@@ -33,14 +33,14 @@ SwiftUI 通过本地 Python 子进程 JSON 命令和 stdin/stdout JSON 行交换
 - 原生待写字幕音频上限八包；Python 输入队列为 240 包，音频通常每包 0.25 秒，控制消息也占容量。持续超载仍可丢字幕音频，不能因此声称原音已丢或永不丢字幕。
 - ASR 片段最长约 12 秒；最近三段保留可回改窗口。稳定初译和前两段上下文回改按目标合并且保留最初等待时间，移出窗口／正常停止前完成再锁定。
 - 课件二次识别是另一个可选单槽任务，仍可能被更新替代；口音复核使用独立有界 FIFO，原音／静音条件评分只作实验接受证据；最多三段稳定音频加当前段，锁定前补做。候选审计写本地库，录音中断待办可通过命令行从已封存原音重试，过期仅留审计，不改锁定字幕。具体当前参数见 [实时设计](design/REALTIME.md)。
-- 模型使用 OS 锁，实时优先让后台在区间提交点让路；只有录音时不启动模型。当前 Python 推理串行，不能假定一次模型调用可随时抢占。
-- 离线任务有持久化检查点；实时回改待办仍在内存。正常退出等待保存与字幕进程结束，不等于强杀后可恢复所有待办。
+- 模型使用 OS 锁，实时优先让后台在区间提交点让路；只有录音时不启动模型。Mac 0.6.6 的原生实时入口启用独立翻译进程，英文识别可继续处理后续音频；离线模型调用仍在区间边界让路。
+- 离线任务有持久化检查点；实时回改待办仍在内存。正常退出等待保存与字幕进程结束。Mac 0.6.6 的[缺失首译恢复](../src/lectureflow/first_translation.py)只处理有完整受管原音、已存英文且符合采集时和当前保存设置的区间。
 
 ## 运行路径与模型
 
 [RuntimePaths](../native/Sources/LectureFlow/RuntimePaths.swift)区分两种环境：开发版使用项目环境与项目 data/models；独立包使用内置 Python、用户应用支持目录的 Models/Library。环境注入与已保存 libraryPath 可覆盖默认库位置；兼容检测可能沿用已有开发资料库，不能声称每次安装都会迁移到默认目录。备份迁移是经用户批准的具体操作。
 
-模型候选由 models.py 固定提交，依赖由 uv.lock 固定；已有任务保留模型快照。ASR 默认固定英语，中文翻译使用本地 HyMT，无自动云回退。独立包可搬移、默认不内置模型；开发包依赖源码目录。详见 [开发／打包](DEVELOPMENT.md)。
+模型候选由 models.py 固定提交，依赖由 uv.lock 固定；已有任务保留模型快照。ASR 默认固定英语，中文翻译使用本地 HyMT，无自动云回退。Mac 正式包默认另行准备模型；Windows 0.6.5 ZIP 包含默认识别和翻译模型。Mac 开发包依赖源码目录。详见 [开发／打包](DEVELOPMENT.md)。
 
 ## 按主题深入
 

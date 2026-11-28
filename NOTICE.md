@@ -23,7 +23,7 @@ operating-system resources, trademarks, or other people's work.
   FFmpeg is a separate GPL program; its exact binary and corresponding-source
   obligations must be checked separately from the BSD-licensed imageio wrapper.
 - The Cirno/Touhou/fumo-themed `docs/assets/logo.png`, `hero.png`,
-  `hero-notebook.png`, and `lecture-review-story.jpg` are **not offered under this
+  `hero-notebook.png`, and the [former promotional illustration](https://github.com/lotus116/LectureFlow/blob/v0.6.6/docs/assets/lecture-review-story.jpg) are **not offered under this
   GPL grant**. Underlying character, plush-design, and reference-photo rights are
   not established by AI-assisted generation or by this repository's license.
 - The promotional video previously linked in README and its music are **not offered under

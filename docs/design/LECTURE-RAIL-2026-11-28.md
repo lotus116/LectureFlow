@@ -7,7 +7,7 @@
 2026-11-28 用户授权由 Opus 5.5 定整套设计，Codex 实现并验收。基线为
 `ba47f7cec919a420cec1a4e16d2ad0020d4f30a8`，独立分支 `codex/opus-led-interface-redesign`。
 本轮未请求外部模型，采用收到的原稿 `reports/private/opus-redesign/OPUS-REDESIGN.md`。
-这是本地开发候选，VERSION 仍为 0.6.5，未推送、发布或覆盖安装。
+本记录对应当时的 0.6.5 本地候选。后续改动已纳入 [Mac 0.6.6](../RELEASE-0.6.6.md)。
 
 只改 macOS View、样式与隔离验证脚本。Course → Lecture、录音与推理独立、英文先出与中文回填、
 原音、书签、复核接受／忽略／撤销、保存和退出语义不变。Windows Tk 和 Android 验证端未改。

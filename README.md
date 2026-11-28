@@ -5,7 +5,8 @@
 <p align="center"><strong>为英语课堂准备的 macOS 与 Windows 本地助手</strong><br>上课看双语字幕，听不懂时留个书签，下课回到那句话听原音。录音、识别和翻译都在自己的电脑上完成。</p>
 
 <p align="center">
-  <a href="https://github.com/lotus116/LectureFlow/releases/latest"><strong>下载 LectureFlow</strong></a>
+  <a href="https://github.com/lotus116/LectureFlow/releases/latest"><strong>下载 Mac 版</strong></a>
+  &nbsp; · &nbsp; <a href="https://github.com/lotus116/LectureFlow/releases/tag/v0.6.5"><strong>下载 Windows 版</strong></a>
   &nbsp; · &nbsp; <a href="docs/USER_GUIDE.md"><strong>使用指南</strong></a>
   &nbsp; · &nbsp; <a href="docs/RELEASE-0.6.5.md">Windows 0.6.5 更新说明</a>
   &nbsp; · &nbsp; <a href="docs/RELEASE-0.6.6.md">Mac 0.6.6 更新说明</a>

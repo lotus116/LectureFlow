@@ -86,6 +86,8 @@ VERSION、pyproject.toml、uv.lock 与 Python 包版本保持一致。更新版�
 
 ## 并排本地界面版（2026-11-28）
 
+以下步骤生成使用独立资料库的本地测试应用。用户下载的 Mac 0.6.6 采用正式图标与常规应用标识；发布提交、校验值和正式包验证见[当前状态](STATUS.md)。
+
 用户批准保留原Logo画面、仅将Dock图标外角改为透明圆角，并安装独立新版查看。
 原 `docs/assets/logo.png` 不改；`make-app-icon.swift` 在打包时对各尺寸的缩放图只添加连续圆角alpha，
 保留RGB、图案及配色；不借用设计候选，不假定系统替旧ICNS裁角。
