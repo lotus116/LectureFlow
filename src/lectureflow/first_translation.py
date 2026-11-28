@@ -2,7 +2,7 @@
 from pathlib import Path
 
 from . import filelock
-from .files import hidden
+from .files import hidden, metadata_edit
 from .live_store import save
 from .priority_review import _segments, _span
 from .recordings import verify_source
@@ -66,6 +66,7 @@ def prepare(lib, lecture, model_root, translate=None):
     return result
 
 
+@metadata_edit
 def apply(lib, lecture, preview):
     eligible, _ = _eligible(lib, lecture)
     applied = 0
