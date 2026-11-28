@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import argparse
+import ast
 import json
 import os
 import plistlib
+import pprint
 import shutil
 import struct
 import subprocess
@@ -21,6 +23,38 @@ VERSION = (PROJECT / "VERSION").read_text().strip()
 
 def run(arguments, **kwargs):
     subprocess.run([str(a) for a in arguments], check=True, cwd=PROJECT, **kwargs)
+
+
+def relocate_runtime(runtime: Path) -> None:
+    """Remove builder install paths from the copied runtime, never its source app."""
+    for library in (runtime / "lib").glob("libpython*.dylib"):
+        if not library.is_symlink():
+            run(["install_name_tool", "-id", f"@rpath/{library.name}", library])
+    for config in (runtime / "lib").glob("python*/_sysconfigdata_*.py"):
+        tree = ast.parse(config.read_text())
+        assignment = next(node for node in tree.body if isinstance(node, ast.Assign)
+                          and any(isinstance(t, ast.Name) and t.id == "build_time_vars"
+                                  for t in node.targets))
+        values = ast.literal_eval(assignment.value)
+        old_prefix = values.get("prefix", "")
+        build_roots = {values.get(key, "") for key in ("abs_builddir", "abs_srcdir")}
+        for key, value in values.items():
+            if not isinstance(value, str):
+                continue
+            if old_prefix.startswith("/"):
+                value = value.replace(old_prefix, "@LECTUREFLOW_RUNTIME@")
+            for path in sorted(build_roots, key=len, reverse=True):
+                if path.startswith("/"):
+                    value = value.replace(path, "/usr/local/src/python")
+            if "/Users/" in value or "/private/var/folders/" in value:
+                raise RuntimeError(f"Unresolved private sysconfig path in {key}")
+            values[key] = value
+        config.write_text(
+            "# Relocatable configuration for the bundled interpreter.\nimport sys as _sys\n"
+            + "build_time_vars = " + pprint.pformat(values, sort_dicts=True) + "\n"
+            + "build_time_vars = {k: (v.replace('@LECTUREFLOW_RUNTIME@', _sys.base_prefix) "
+            "if isinstance(v, str) else v) for k, v in build_time_vars.items()}\n"
+        )
 
 
 def package(with_models: bool, archive: bool, test_build: bool = False,
@@ -131,6 +165,7 @@ def package(with_models: bool, archive: bool, test_build: bool = False,
         shutil.rmtree(site / "bin", ignore_errors=True)
         for record in site.rglob("direct_url.json"):
             record.unlink()
+        relocate_runtime(runtime)
         # No editable install or symlink may point back to a developer's machine.
         for link in runtime.rglob("*"):
             if link.is_symlink() and not link.resolve().is_relative_to(runtime.resolve()):
