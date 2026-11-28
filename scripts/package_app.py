@@ -70,7 +70,7 @@ def package(with_models: bool, archive: bool, test_build: bool = False,
     distribution = PROJECT / "dist"
     if test_build:
         distribution = distribution / label
-    distribution.mkdir(exist_ok=True)
+    distribution.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix=".package-", dir=distribution) as temporary:
         app = Path(temporary) / "LectureFlow.app"
         env = {

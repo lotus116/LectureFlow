@@ -231,3 +231,17 @@ def test_manual_unit_edit_survives_and_can_restore(setup_library):
     restored = library.edit_unit(task["version_id"], 0, restore=True)
     assert restored["english"] == "original 1"
     assert "edited" not in restored["metadata"]
+
+
+@pytest.mark.parametrize("remaining_bytes", [0, 7, 31999])
+def test_truncated_pcm_wav_rolls_back_entire_import(setup_library, remaining_bytes):
+    library, lecture, tmp = setup_library
+    good = recording(tmp / "complete.wav")
+    broken = recording(tmp / "incomplete.wav")
+    damaged = broken.read_bytes()[:44 + remaining_bytes]
+    broken.write_bytes(damaged)
+    with pytest.raises(ValueError, match="不完整"):
+        library.import_audio(lecture, [good, broken])
+    assert library.segments(lecture) == []
+    assert list((library.lecture_path(lecture) / "Audio").iterdir()) == []
+    assert broken.read_bytes() == damaged

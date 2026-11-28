@@ -978,7 +978,7 @@ struct LibraryView: View {
                                     Task {
                                         await model.perform([
                                             "library", "enqueue", lecture.id, "--asr", model.model,
-                                            "--segment", segment.id
+                                            "--language", SourceLanguagePreference.load(), "--segment", segment.id
                                         ] + (model.translate ? [] : ["--no-translation"]))
                                     }
                                 }

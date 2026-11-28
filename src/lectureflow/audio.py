@@ -13,6 +13,10 @@ def probe_duration(source: Path) -> float:
             with wave.open(str(source), "rb") as stream:
                 duration = stream.getnframes() / stream.getframerate()
                 if duration > 0:
+                    # A copied WAV can retain its original header after an interrupted transfer.
+                    stream.setpos(stream.getnframes() - 1)
+                    if len(stream.readframes(1)) != stream.getnchannels() * stream.getsampwidth():
+                        raise ValueError(f"录音数据不完整：{source.name}")
                     return duration
         except (wave.Error, EOFError):
             pass

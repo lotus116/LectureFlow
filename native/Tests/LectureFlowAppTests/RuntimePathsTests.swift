@@ -18,7 +18,7 @@ final class RuntimePathsTests: XCTestCase {
             try fm.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
             try Data().write(to: url)
         }
-        let info: [String: Any] = ["CFBundleIdentifier": "local.lectureflow.isolation-unit",
+        let info: [String: Any] = ["CFBundleIdentifier": "local.lectureflow.interface-test",
                                   "CFBundleExecutable": "LectureFlow", "CFBundlePackageType": "APPL",
                                   "LectureFlowIsolatedStorage": true]
         try PropertyListSerialization.data(fromPropertyList: info, format: .xml, options: 0)
@@ -36,6 +36,19 @@ final class RuntimePathsTests: XCTestCase {
         }
         if ProcessInfo.processInfo.environment["LECTUREFLOW_LIBRARY_ROOT"] == nil {
             XCTAssertEqual(paths.library, paths.storage.appendingPathComponent("Library"))
+        }
+        let secondApp = root.appendingPathComponent("dist/Independent.app")
+        try fm.copyItem(at: app, to: secondApp)
+        var secondInfo = info
+        secondInfo["CFBundleIdentifier"] = "local.lectureflow.independent-qa"
+        try PropertyListSerialization.data(fromPropertyList: secondInfo, format: .xml, options: 0)
+            .write(to: secondApp.appendingPathComponent("Contents/Info.plist"))
+        let second = RuntimePaths(bundle: try XCTUnwrap(Bundle(url: secondApp)))
+        if ProcessInfo.processInfo.environment["LECTUREFLOW_STORAGE_ROOT"] == nil,
+           ProcessInfo.processInfo.environment["LECTUREFLOW_LIBRARY_ROOT"] == nil {
+            XCTAssertNotEqual(second.storage, paths.storage)
+            XCTAssertNotEqual(second.library, paths.library)
+            XCTAssertNotEqual(second.models, paths.models)
         }
         XCTAssertNil(paths.previousModels)
         XCTAssertNil(defaults.object(forKey: "libraryPath"), "Must not adopt the synthetic old library")

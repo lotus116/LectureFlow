@@ -19,7 +19,12 @@ struct RuntimePaths: Sendable {
                                                    in: .userDomainMask)[0]
             // Parallel local UI builds must neither share nor discover an existing library.
             let isolated = bundle.object(forInfoDictionaryKey: "LectureFlowIsolatedStorage") as? Bool == true
-            let storageName = isolated ? "LectureFlow Interface" : "LectureFlow"
+            let storageName: String
+            if isolated, let id = bundle.bundleIdentifier, id != "local.lectureflow.interface-test" {
+                storageName = id
+            } else {
+                storageName = isolated ? "LectureFlow Interface" : "LectureFlow"
+            }
             storage = URL(fileURLWithPath: env["LECTUREFLOW_STORAGE_ROOT"]
                           ?? support.appendingPathComponent(storageName).path)
             python = packaged
