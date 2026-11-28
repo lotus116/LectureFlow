@@ -116,6 +116,7 @@ struct MaterialsView: View {
                 } label: { Image(systemName: "ellipsis") }.menuStyle(.borderlessButton).frame(width: 28)
                     .accessibilityLabel("资料操作").help("资料操作")
                 Button("导入课件", systemImage: "plus") { importing = true }.disabled(working)
+                    .buttonStyle(.borderedProminent)
             }
             Text("本课程共享 · 自动术语，相关时辅助识别与翻译")
                 .font(.system(size: LFChrome.captionSize))
@@ -149,7 +150,7 @@ struct MaterialsView: View {
                     if section == "terms" { termsView }
                     else { overviewView }
                 }.padding(.leading, 10).frame(minWidth: 350, maxWidth: .infinity, maxHeight: .infinity)
-            }.background(.background, in: RoundedRectangle(cornerRadius: 8))
+            }.background(palette.panel)
             if let job { jobView(job) }
         }
         .tint(palette.accent)

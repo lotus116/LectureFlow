@@ -266,6 +266,9 @@ lib.close()
         clickAnchor("priority-item-preview-0", window: window)
         await settle(0.6)
         try await snapshot("17-priority-compare", window: window)
+        window.setContentSize(NSSize(width: 820, height: 460))
+        try await snapshot("17w-priority-wide", window: window)
+        window.setContentSize(NSSize(width: 550, height: 440))
         clickAnchor("priority-play", window: window)
         await settle(0.12)
         guard workspace.playback.reviewID == "preview-0" else {
@@ -295,6 +298,21 @@ lib.close()
         try await checkState("ready")
         window.setContentSize(NSSize(width: 410, height: 320))
         try await snapshot("19-priority-small-light", window: window)
+        if let difference = PreviewAnchors.views["priority-differences", default: []].compactMap(\.view).last(where: { $0.window == window }) {
+            func findScroll(_ view: NSView) -> NSScrollView? {
+                (view as? NSScrollView) ?? view.subviews.lazy.compactMap { findScroll($0) }.first
+            }
+            guard let scroll = findScroll(window.contentView!) else { throw BackendError.unavailable("Missing compact comparison scroll") }
+            let before = scroll.contentView.bounds.origin.y
+            let event = CGEvent(scrollWheelEvent2Source: nil, units: .pixel, wheelCount: 1, wheel1: -500, wheel2: 0, wheel3: 0)!
+            scroll.scrollWheel(with: NSEvent(cgEvent: event)!)
+            await settle()
+            let after = scroll.contentView.bounds.origin.y
+            guard !difference.visibleRect.isEmpty, after >= before else { throw BackendError.unavailable("Compact comparison differences unreachable") }
+            print("PASS: compact A/B scroll event offset=\(before)->\(after); differences visible=\(!difference.visibleRect.isEmpty)")
+            try await snapshot("19b-priority-small-differences", window: window)
+        }
+
         print("PASS: priority review playback, accept, ignore and undo retained in SQLite")
         window.close()
     }

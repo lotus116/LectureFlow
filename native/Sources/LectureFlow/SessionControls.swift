@@ -20,31 +20,37 @@ struct SessionControlBar: View {
     private var inlineNotice: String? { workspace.notice ?? secondaryDetail }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: LFChrome.space10) {
-            if readingMode {
-                HStack(spacing: LFChrome.space12) {
-                    statusCluster
-                    TimelineView(.periodic(from: .now, by: 0.5)) { _ in
-                        Text(clock(workspace.session.duration(at: ProcessInfo.processInfo.systemUptime)))
-                            .font(.system(size: LFChrome.bodySize, weight: .medium).monospacedDigit())
-                    }
-                    Spacer(minLength: 8)
-                    if workspace.session.state == .ended {
-                        Button(workspace.session.desired.recording ? "继续录制" : "继续字幕") {
-                            workspace.primarySessionAction()
+        VStack(alignment: .leading, spacing: 4) {
+            if workspace.session.state == .ended {
+                endedSummary
+            } else {
+                HStack(spacing: 12) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        statusCluster
+                        TimelineView(.periodic(from: .now, by: 0.5)) { _ in
+                            Text(clock(workspace.session.duration(at: ProcessInfo.processInfo.systemUptime)))
+                                .font(.system(size: 20, weight: .semibold).monospacedDigit())
+                                .accessibilityLabel("采集计时")
                         }
-                        .disabled(workspace.busy || workspace.lecture == nil)
-                    } else {
-                        transportPrimary
                     }
+                    RecordingWaveformStrip(level: live.level, active: live.isCapturing || active, paused: paused)
+                        .frame(width: compact ? 48 : 96, height: 28).accessibilityHidden(true)
+                    Spacer(minLength: 8)
+                    transportPrimary
                     if workspace.session.hasSession { transportStop }
                 }
-            } else if workspace.session.state == .ended {
-                endedSummary
-                metaRow
-            } else {
-                recordingIsland
-                metaRow
+            }
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 8) {
+                    Text(audioHint).font(.caption).foregroundStyle(palette.secondaryText)
+                    Spacer(minLength: 8)
+                    reviewTools
+                    metaTools
+                }
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(audioHint).font(.caption).foregroundStyle(palette.secondaryText)
+                    HStack { reviewTools; Spacer(minLength: 8); metaTools }
+                }
             }
 
             if let notice = inlineNotice {
@@ -58,12 +64,14 @@ struct SessionControlBar: View {
                     .font(.system(size: LFChrome.captionSize))
             }
 
-            HStack(spacing: 10) {
-                if readingMode {
-                    Text(workspace.session.modeTitle)
-                        .font(.caption).foregroundStyle(palette.secondaryText)
-                        .lineLimit(2).fixedSize(horizontal: false, vertical: true)
-                }
+        }
+        .padding(.horizontal, 16).padding(.vertical, 6)
+        .background(active || paused ? palette.recorder : palette.panel)
+        .overlay(alignment: .bottom) { Rectangle().fill(palette.hairline).frame(height: 1) }
+    }
+
+    private var reviewTools: some View {
+        HStack(spacing: 10) {
                 if !workspace.session.desired.needsASR && !hasLiveCaptionControls {
                     ReviewCurrentButton(workspace: workspace, live: live)
                 }
@@ -78,90 +86,21 @@ struct SessionControlBar: View {
                 if workspace.reviews.hasUnsavedChanges && !workspace.reviews.saving {
                     Button("重试保存标记") { workspace.reviews.retryFailed() }
                 }
-                Spacer(minLength: 0)
             }.controlSize(.small)
-
-        }
-        .padding(.horizontal, LFChrome.space16)
-        .padding(.vertical, readingMode ? 8 : 12)
-        .background {
-            RoundedRectangle(cornerRadius: active || paused ? 28 : LFChrome.radiusM, style: .continuous)
-                .fill(active || paused ? palette.recorder : palette.panel)
-                .overlay {
-                    RoundedRectangle(cornerRadius: active || paused ? 28 : LFChrome.radiusM, style: .continuous)
-                        .strokeBorder(palette.hairline, lineWidth: 1)
-                }
-        }
     }
-
-    /// Compact live meter + large timer, followed by dedicated pause and finish controls.
-    private var recordingIsland: some View {
-        HStack(alignment: .center, spacing: 12) {
-            RecordingWaveformStrip(
-                level: live.level,
-                active: live.isCapturing || active,
-                paused: paused
-            )
-            .frame(width: compact ? 56 : 108, height: compact ? 38 : 48)
-            .layoutPriority(0)
-
-            TimelineView(.periodic(from: .now, by: 0.5)) { _ in
-                Text(clock(workspace.session.duration(at: ProcessInfo.processInfo.systemUptime)))
-                    .font(.system(size: compact ? 26 : 34, weight: .semibold).monospacedDigit())
-                    .foregroundStyle(palette.bodyText)
-                    .fixedSize(horizontal: true, vertical: true)
-                    .accessibilityLabel("采集计时")
-            }
-            .layoutPriority(2)
-
-            Spacer(minLength: 4)
-            HStack(spacing: compact ? 8 : 12) {
-                transportPrimary
-                if workspace.session.hasSession {
-                    transportStop
-                }
-            }
-            .fixedSize(horizontal: true, vertical: false)
-            .layoutPriority(3)
-        }
-        .padding(.vertical, 4)
-    }
-
-    private var transportSize: CGFloat { readingMode ? 30 : (compact ? 40 : 48) }
 
     private var transportPrimary: some View {
         Button {
             workspace.primarySessionAction()
         } label: {
-            // Avoid SF Symbol record.circle.fill + extra circle (looks like a huge double ring).
-            VStack(spacing: 4) {
-                ZStack {
-                    Circle()
-                        .fill(Color.primary.opacity(0.07))
-                        .frame(width: transportSize, height: transportSize)
-                    switch workspace.session.state {
-                    case .idle, .ended:
-                        Circle()
-                            .fill(palette.recordSignal)
-                            .frame(width: readingMode ? 11 : 16, height: readingMode ? 11 : 16)
-                    case .running, .preparing:
-                        Image(systemName: "pause.fill")
-                            .font(.system(size: readingMode ? 12 : 17, weight: .semibold))
-                            .foregroundStyle(palette.bodyText)
-                    case .paused:
-                        Image(systemName: "play.fill")
-                            .font(.system(size: readingMode ? 12 : 17, weight: .semibold))
-                            .foregroundStyle(palette.bodyText)
-                            .offset(x: 1)
-                    }
-                }
-                .frame(width: transportSize, height: transportSize)
-                Text(workspace.session.primaryTitle)
-                    .font(.system(size: 11, weight: .medium))
-            }
-            .contentShape(Rectangle())
+            Label(workspace.session.primaryTitle, systemImage: active ? "pause.fill" : (paused ? "play.fill" : "record.circle"))
+                .font(.system(size: 13, weight: .semibold))
+                .padding(.horizontal, 4).padding(.vertical, 6)
+                .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.borderedProminent)
+        .tint(palette.accent)
+
         .disabled(!active && !paused && (workspace.busy || workspace.lecture == nil))
         .help(workspace.session.primaryTitle)
         .accessibilityLabel(workspace.session.primaryTitle)
@@ -172,51 +111,17 @@ struct SessionControlBar: View {
         Button {
             workspace.endSession()
         } label: {
-            VStack(spacing: 4) {
-                ZStack {
-                    Circle()
-                        .strokeBorder(palette.dangerInk.opacity(0.75), lineWidth: 2.5)
-                        .frame(width: transportSize, height: transportSize)
-                    RoundedRectangle(cornerRadius: 3, style: .continuous)
-                        .fill(palette.recordSignal)
-                        .frame(width: readingMode ? 11 : 17, height: readingMode ? 11 : 17)
-                }
-                .frame(width: transportSize, height: transportSize)
-                Text("结束 Lecture")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(palette.dangerInk)
-            }
-            .contentShape(Rectangle())
+            Label("结束 Lecture", systemImage: "stop.fill")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(palette.dangerInk)
+                .padding(.horizontal, 4).padding(.vertical, 6)
+                .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.bordered)
+
         .help("结束 Lecture；不会删除已有内容")
         .accessibilityLabel("结束 Lecture")
         .accessibilityIdentifier("session-end")
-    }
-
-    /// Status + notice flex; tools stay usable. Stacks when the row is too tight.
-    private var metaRow: some View {
-        ViewThatFits(in: .horizontal) {
-            HStack(alignment: .center, spacing: LFChrome.space8) {
-                if workspace.session.state != .ended {
-                    statusCluster.fixedSize(horizontal: true, vertical: true)
-                }
-                flexibleDetail
-                metaTools.layoutPriority(2)
-            }
-            .frame(minWidth: 300)
-
-            VStack(alignment: .leading, spacing: 6) {
-                HStack(alignment: .center, spacing: LFChrome.space8) {
-                    if workspace.session.state != .ended {
-                    statusCluster.fixedSize(horizontal: true, vertical: true)
-                }
-                    flexibleDetail
-                }
-                metaTools
-                    .frame(maxWidth: .infinity, alignment: .trailing)
-            }
-        }
     }
 
     private var statusCluster: some View {

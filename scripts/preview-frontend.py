@@ -132,6 +132,13 @@ extension LiveController {
 }
 """
     live.write_text(text)
+    if not args.baseline:
+        playback = source / "AudioPlayback.swift"
+        playback.write_text(
+            playback.read_text()
+            + "\nextension AudioPlayback {\n"
+            + "    var previewReviewPlaying: Bool { player?.timeControlStatus == .playing }\n}\n"
+        )
     replace_once(
         source / "Workspace.swift",
         "    func installModels(_ aliases: [String]) async {",

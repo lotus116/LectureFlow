@@ -218,29 +218,17 @@ struct LibraryView: View {
 
     @ViewBuilder
     private func libraryBody(compact: Bool) -> some View {
-        LibrarySplitLayout(sidebarVisible: $sidebarVisible) {
+        LibrarySplitLayout(sidebarVisible: $sidebarVisible, rail: { navigationRail }) {
             // VStack chrome (not List safeAreaInset) — inset often fails to reserve space on macOS.
             VStack(spacing: 0) {
-                HStack(spacing: LFChrome.space12) {
-                    Image(nsImage: NSApp.applicationIconImage)
-                        .resizable()
-                        .frame(width: 30, height: 30)
-                        .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
-                        .shadow(color: palette.accent.opacity(0.2), radius: 6, y: 2)
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text("LectureFlow")
-                            .font(.system(size: 13, weight: .semibold))
-                        Text("本地课堂")
-                            .font(.system(size: 10, weight: .medium))
-                            .foregroundStyle(palette.accentInk)
-                    }
-                    Spacer(minLength: 0)
+                HStack {
+                    Text("课程").font(.system(size: 13, weight: .semibold))
+                    Spacer()
+                    Text("\(model.overview.courses.count)").font(.caption.monospacedDigit())
+                        .foregroundStyle(palette.secondaryText)
                 }
-                .padding(.horizontal, LFChrome.space12)
-                .padding(.vertical, 10)
-                .overlay(alignment: .bottom) {
-                    Rectangle().fill(palette.hairline).frame(height: 1)
-                }
+                .padding(.horizontal, 12).padding(.vertical, 14)
+                Divider()
 
                 // No List(selection:) — system blue highlight cannot be recolored reliably on macOS.
                 List {
@@ -258,6 +246,7 @@ struct LibraryView: View {
                                 } label: {
                                     Label(lecture.title, systemImage: "waveform")
                                         .frame(maxWidth: .infinity, alignment: .leading)
+                                        .lineLimit(2).help(lecture.title)
                                         .contentShape(Rectangle())
                                 }
                                 .buttonStyle(.plain)
@@ -301,46 +290,12 @@ struct LibraryView: View {
                 .scrollContentBackground(.hidden)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-                HStack(spacing: LFChrome.space8) {
-                    Button { newName = ""; form = "course" } label: {
-                        ViewThatFits(in: .horizontal) {
-                            Label("新建课程", systemImage: "folder.badge.plus")
-                                .labelStyle(.titleAndIcon)
-                                .lineLimit(1)
-                                .fixedSize(horizontal: true, vertical: true)
-                            Image(systemName: "folder.badge.plus")
-                        }
-                    }
-                    .help("新建课程")
-                    .accessibilityLabel("新建课程")
-                    Spacer(minLength: 8)
-                    Button { showTrash = true } label: { Image(systemName: "trash") }
-                        .help("废纸篓")
-                        .accessibilityLabel("废纸篓")
-                    Button { openSettings() } label: { Image(systemName: "gearshape") }
-                        .help("设置")
-                        .accessibilityLabel("设置")
-                        .accessibilityIdentifier("settings-open")
-                }
-                .buttonStyle(.borderless)
-                .foregroundStyle(palette.accentInk)
-                .controlSize(.small)
-                .padding(.horizontal, LFChrome.space12)
-                .padding(.vertical, 10)
-                .frame(maxWidth: .infinity)
-                .background(palette.sidebar)
-                .overlay(alignment: .top) {
-                    Rectangle().fill(palette.hairline).frame(height: 1)
-                }
             }
             .background(palette.sidebar)
         } detail: {
             if let lecture = model.lecture {
-                ZStack(alignment: .top) {
-                    palette.iceMist()
-                        .frame(height: 120)
-                        .allowsHitTesting(false)
-                    VStack(alignment: .leading, spacing: compact ? LFChrome.space8 : LFChrome.space12) {
+                VStack(alignment: .leading, spacing: 0) {
+                    VStack(alignment: .leading, spacing: 0) {
                         if readingCaptions {
                             HStack(spacing: LFChrome.space12) {
                                 Text(lecture.title)
@@ -349,15 +304,16 @@ struct LibraryView: View {
                                 Text("实时字幕").font(.caption).foregroundStyle(palette.secondaryText)
                                 Spacer(minLength: 8)
                                 captionLayoutButton
-                            }
+                            }.padding(.horizontal, 16).padding(.vertical, 10)
                         } else {
                             header(lecture, compact: compact)
                         }
-                        modelDownloadBanner
+                        Divider()
+                        modelDownloadBanner.padding(.horizontal, 16).padding(.vertical, 4)
                         LiveControlView(workspace: model, live: model.live, lecture: lecture,
                                         showingAudio: tab == "audio", readingMode: readingCaptions || (compact && tab == "transcript"),
                                         hasLiveCaptionControls: tab == "transcript" && transcriptSource == "live")
-                        if !readingCaptions { contentChrome }
+                        if !readingCaptions { contentChrome.padding(.horizontal, 16).padding(.top, 4) }
                         if !readingCaptions, let task = model.activeTask,
                            (tab == "transcript" && transcriptSource == "offline") || task.state != "completed" {
                             taskView(task)
@@ -366,11 +322,11 @@ struct LibraryView: View {
                             if tab == "audio" { audioList(lecture) }
                             else { unifiedTranscript(lecture) }
                         }
-                        .padding(compact ? LFChrome.space8 : LFChrome.space12)
+                        .padding(.horizontal, 16).padding(.top, 8)
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                        .background(palette.softPanel())
+                        .background(palette.panel)
                     }
-                    .lfContentPadding()
+
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 .background(palette.canvas)
@@ -394,20 +350,21 @@ struct LibraryView: View {
                 }
                 .background(palette.canvas)
             } else {
-                ZStack {
-                    palette.iceMist().allowsHitTesting(false)
-                    VStack(spacing: LFChrome.space24) {
+                VStack(alignment: .leading, spacing: 0) {
+                    HStack { Text("LectureFlow").font(.system(size: 20, weight: .semibold)); Spacer() }
+                        .padding(16)
+                    Divider()
+                    VStack(alignment: .leading, spacing: 20) {
                         Image(nsImage: NSApp.applicationIconImage)
                             .resizable()
-                            .frame(width: 80, height: 80)
+                            .frame(width: 48, height: 48)
                             .clipShape(RoundedRectangle(cornerRadius: LFChrome.radiusL, style: .continuous))
-                            .shadow(color: palette.accent.opacity(0.28), radius: 16, y: 6)
                         Text("把每一堂课，留在本地")
                             .font(.system(size: LFChrome.titleSize, weight: .semibold))
                         Text("新建课程后即可开始 Lecture，或导入已有录音。课件资料可选。")
                             .font(.system(size: LFChrome.bodySize))
                             .foregroundStyle(palette.secondaryText)
-                            .multilineTextAlignment(.center)
+                            .multilineTextAlignment(.leading)
                             .frame(maxWidth: 360)
                         HStack(spacing: LFChrome.space12) {
                             Button("新建课程") { newName = ""; form = "course" }
@@ -419,9 +376,10 @@ struct LibraryView: View {
                         }
                         modelDownloadBanner.frame(maxWidth: 480)
                     }
-                    .lfContentPadding()
+                    .padding(32)
+                    Spacer(minLength: 0)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 .background(palette.canvas)
             }
         }
@@ -493,12 +451,13 @@ struct LibraryView: View {
         .sheet(item: $materialsCourse) { course in
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
-                    Text("\(course.name) · 课程资料").font(.headline)
+                    Text("\(course.name) · 课程资料").font(.system(size: 20, weight: .semibold))
                     Spacer()
-                    Button("完成") { materialsCourse = nil }
-                }
+                    Button("完成") { materialsCourse = nil }.keyboardShortcut(.cancelAction)
+                }.lfSheetHeader()
                 MaterialsView(workspace: model, courseID: course.id)
-            }.padding(18).frame(width: 920, height: 660)
+            }.padding(16).frame(minWidth: 620, idealWidth: 880, minHeight: 440, idealHeight: 620)
+                .background(palette.canvas).foregroundStyle(palette.bodyText).tint(palette.accent)
         }
         .confirmationDialog("将“\(archiving?.name ?? "")”移入废纸篓？可在应用中恢复。", isPresented: Binding(get: { archiving != nil }, set: { if !$0 { archiving = nil } })) {
             Button("移入废纸篓", role: .destructive) {
@@ -573,6 +532,35 @@ struct LibraryView: View {
         .tint(palette.accent)
     }
 
+    private var navigationRail: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "waveform").font(.system(size: 21, weight: .semibold))
+                .foregroundStyle(palette.accentInk).frame(height: 38).help("LectureFlow")
+            Button { sidebarVisible.toggle() } label: { railLabel("课程", systemImage: "sidebar.left") }
+                .help(sidebarVisible ? "收起课程列表" : "显示课程列表")
+                .accessibilityLabel("显示或隐藏课程列表")
+            Button { newName = ""; form = "course" } label: { railLabel("新建", systemImage: "folder.badge.plus") }
+                .help("新建课程").accessibilityLabel("新建课程")
+            Spacer()
+            Button { showQueue = true } label: { railLabel("任务", systemImage: "list.bullet.rectangle") }
+                .help("后台任务").accessibilityLabel("后台任务").accessibilityIdentifier("queue-open")
+            Button { showTrash = true } label: { railLabel("废纸篓", systemImage: "trash") }
+                .help("废纸篓").accessibilityLabel("废纸篓").accessibilityIdentifier("trash-open")
+            Button { openSettings() } label: { railLabel("设置", systemImage: "gearshape") }
+                .help("设置").accessibilityLabel("设置").accessibilityIdentifier("settings-open")
+        }
+        .buttonStyle(.borderless).controlSize(.regular)
+        .font(.system(size: 16)).foregroundStyle(palette.accentInk)
+        .padding(.vertical, 12).frame(maxWidth: .infinity)
+    }
+
+    private func railLabel(_ title: String, systemImage: String) -> some View {
+        VStack(spacing: 3) {
+            Image(systemName: systemImage).font(.system(size: 16))
+            Text(title).font(.system(size: 10)).lineLimit(1)
+        }.frame(width: 40, height: 42).contentShape(Rectangle())
+    }
+
     @ViewBuilder
     private func courseHeader(_ course: Course) -> some View {
         HStack(spacing: LFChrome.space4) {
@@ -580,12 +568,15 @@ struct LibraryView: View {
                 model.selectCourse(course.id)
                 model.selectLecture(nil)
             } label: {
-                Label(course.name, systemImage: "folder.fill")
+                HStack(alignment: .top, spacing: 6) {
+                    Image(systemName: "folder.fill").padding(.top, 2)
+                    Text(course.name).lineLimit(2).fixedSize(horizontal: false, vertical: true)
+                }
                     .font(.system(size: LFChrome.sectionSize, weight: .semibold))
                     .labelStyle(.titleAndIcon)
                     .symbolRenderingMode(.hierarchical)
                     .foregroundStyle(palette.ink)
-                    .lineLimit(1)
+                    .lineLimit(2)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .contentShape(Rectangle())
             }
@@ -710,21 +701,17 @@ struct LibraryView: View {
                         .lineLimit(1)
                 }
                 Text(lecture.title)
-                    .font(.system(size: compact ? 20 : LFChrome.titleSize, weight: .semibold))
+                    .font(.system(size: 18, weight: .semibold))
                     .lineLimit(1)
                     .truncationMode(.middle)
                     .help(lecture.title)
-                if !compact || tab == "audio" {
-                    Text("\(lecture.segments.count) 段录音 · 共 \(duration(lecture.segments.reduce(0) { $0 + $1.duration }))")
-                        .font(.system(size: LFChrome.captionSize))
-                        .foregroundStyle(palette.secondaryText)
-                        .monospacedDigit()
-                }
+
             }
             .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
             headerActions(lecture)
                 .layoutPriority(1)
         }
+        .padding(.horizontal, 16).padding(.vertical, 10)
     }
 
     private func headerActions(_ lecture: Lecture) -> some View {
@@ -735,6 +722,7 @@ struct LibraryView: View {
                 } label: {
                     headerActionLabel("课程资料", systemImage: "doc.richtext")
                 }
+                .accessibilityIdentifier("materials-open")
                 .buttonStyle(.borderless)
                 .foregroundStyle(palette.accentInk)
                 .controlSize(.small)

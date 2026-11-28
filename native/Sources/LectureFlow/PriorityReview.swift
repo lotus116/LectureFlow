@@ -29,23 +29,40 @@ struct PriorityReview: View {
     @State private var error: String?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        GeometryReader { geometry in
+        let compact = geometry.size.height < 400
+        VStack(alignment: .leading, spacing: 0) {
             HStack {
                 Text("优先复核").font(.system(size: LFChrome.sheetTitleSize, weight: .semibold))
                 Spacer()
                 Button("完成") { dismiss() }.keyboardShortcut(.cancelAction)
+            }.padding(compact ? 12 : 16)
+            Divider()
+            if compact {
+                Label("上下滚动查看完整原稿、候选与差异", systemImage: "arrow.up.arrow.down")
+                    .font(.caption).foregroundStyle(palette.secondaryText)
+                    .padding(.horizontal, 12).padding(.vertical, 4)
             }
             if let error { LFStatusBanner(error, tone: .failure).textSelection(.enabled) }
             if busy { ProgressView("正在读取本机资料…").controlSize(.small) }
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
                     if let detail {
-                        Text("实时原稿").font(.headline)
-                        Text(detail.original).font(.system(size: LFChrome.bodySize))
-                            .lineSpacing(3).fixedSize(horizontal: false, vertical: true)
-                        Text(detail.state == "accepted" ? "已接受的复核版本" : "候选英文").font(.headline)
-                        Text(detail.candidate).font(.system(size: LFChrome.bodySize))
-                            .lineSpacing(3).fixedSize(horizontal: false, vertical: true)
+                        if geometry.size.width >= 700 {
+                            HStack(alignment: .top, spacing: 24) {
+                                comparisonColumn("实时原稿", text: detail.original)
+                                    .frame(width: (geometry.size.width - 88) / 2)
+                                comparisonColumn(detail.state == "accepted" ? "已接受的复核版本" : "候选英文", text: detail.candidate)
+                                    .frame(width: (geometry.size.width - 88) / 2)
+                                    .padding(.leading, 24)
+                                    .overlay(alignment: .leading) { Rectangle().fill(palette.hairline).frame(width: 1) }
+                            }
+                        } else {
+                            VStack(alignment: .leading, spacing: compact ? 12 : 24) {
+                                comparisonColumn("实时原稿", text: detail.original)
+                                comparisonColumn(detail.state == "accepted" ? "已接受的复核版本" : "候选英文", text: detail.candidate)
+                            }
+                        }
                         if !detail.changes.isEmpty {
                             ViewThatFits(in: .horizontal) {
                                 HStack(spacing: 8) {
@@ -59,6 +76,7 @@ struct PriorityReview: View {
                                     }
                                 }
                             }.accessibilityElement(children: .contain).accessibilityLabel("英文改动")
+                            .accessibilityIdentifier("priority-differences")
                         }
 
                     } else if items.isEmpty && !busy && error == nil {
@@ -73,25 +91,35 @@ struct PriorityReview: View {
                                         .foregroundStyle(palette.secondaryText)
                                     Text(item.original).lineLimit(2)
                                     Text(label(item.state)).font(.caption)
-                                }.frame(maxWidth: .infinity, alignment: .leading)
+                                }.frame(maxWidth: .infinity, alignment: .leading).padding(20)
                             }.buttonStyle(.borderless)
                             .accessibilityIdentifier("priority-item-\(item.id)")
                             Divider()
                         }
                     }
-                }.frame(maxWidth: .infinity, alignment: .leading).textSelection(.enabled)
-            }.disabled(busy)
+                }.frame(maxWidth: .infinity, alignment: .leading).padding(compact ? 12 : 20).textSelection(.enabled)
+            }.scrollIndicators(.visible).disabled(busy)
             if let detail, let selected {
                 Divider()
                 reviewActions(detail, selected: selected)
+                    .padding(compact ? 10 : 16).frame(maxWidth: .infinity, alignment: .leading).background(palette.panel)
                     .disabled(busy)
             }
         }
-        .padding(20).frame(minWidth: 410, idealWidth: 550, minHeight: 320, idealHeight: 460)
+        }
+        .frame(minWidth: 410, idealWidth: 820, minHeight: 320, idealHeight: 460)
         .background(palette.canvas).foregroundStyle(palette.bodyText)
         .tint(palette.accent)
         .task { await refresh() }
         .onDisappear { playback.stop() }
+    }
+
+    private func comparisonColumn(_ title: String, text: String) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title).font(.system(size: 13, weight: .semibold)).foregroundStyle(palette.secondaryText)
+            Text(text).font(.system(size: 15)).lineSpacing(5)
+                .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
+        }.frame(maxWidth: .infinity, alignment: .leading)
     }
 
     @ViewBuilder private func reviewActions(_ detail: PriorityCandidate, selected: PriorityItems.Item) -> some View {

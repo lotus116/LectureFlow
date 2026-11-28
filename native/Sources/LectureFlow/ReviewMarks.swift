@@ -269,7 +269,7 @@ struct ReviewMarksView: View {
                 Toggle("已移除", isOn: $store.showingRemoved).toggleStyle(.checkbox)
                 Button("刷新") { Task { await store.refresh(); store.loadDetail() } }
                 Button("完成") { dismiss() }.keyboardShortcut(.cancelAction)
-            }
+            }.lfSheetHeader()
             Text(workspace.lecture?.title ?? "Lecture").foregroundStyle(palette.secondaryText)
             if let error = store.error {
                 HStack {
@@ -301,7 +301,7 @@ struct ReviewMarksView: View {
                 }
             }
         }
-        .padding(20).frame(minWidth: 620, idealWidth: 760, minHeight: 400, idealHeight: 540)
+        .padding(16).frame(minWidth: 620, idealWidth: 760, minHeight: 400, idealHeight: 540)
         .background(palette.canvas).foregroundStyle(palette.bodyText).tint(palette.accent)
         .task { await store.refresh(); store.loadDetail() }
         .onDisappear { playback.stop() }

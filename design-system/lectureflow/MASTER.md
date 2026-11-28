@@ -9,6 +9,16 @@
 
 ---
 
+## Lecture Rail composition (2026-11-28)
+
+Latest implementation: [scope and per-screen record](../../docs/design/LECTURE-RAIL-2026-11-28.md).
+Use a 44 pt tool rail plus the existing collapsible course-name column (168/192 pt), flat recorder band,
+and full reading surface with 16 pt inner margins. State notices grow naturally. Primary transport uses
+native prominence; end retains danger ink and text. Settings groups use a sidebar at >=700 pt, native
+segments below. A/B comparison uses two columns at >=700 pt and stacks both texts below.
+Ice/Amber tokens, recording semantics, reading identity and floating backing remain unchanged.
+Earlier spacing/card notes below describe the prior baseline where they conflict with this composition.
+
 ## Global Rules
 
 ### Color (Cirno ice-blue)

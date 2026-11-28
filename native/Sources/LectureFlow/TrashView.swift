@@ -31,10 +31,8 @@ struct TrashView: View {
             HStack {
                 Label("废纸篓", systemImage: "trash").font(.system(size: LFChrome.sheetTitleSize, weight: .semibold))
                 Spacer()
-                Button("清空废纸篓", role: .destructive) { Task { await prepareEmpty() } }
-                    .disabled(items.isEmpty || working || workspace.live.flags.needsMicrophone)
                 Button("完成") { dismiss() }.keyboardShortcut(.cancelAction)
-            }
+            }.lfSheetHeader()
             Text("恢复会放回所属课程。清空仅影响这里的受管副本，原始导入文件始终保留。")
                 .font(.callout).foregroundStyle(palette.secondaryText)
             List(items) { item in
@@ -57,8 +55,13 @@ struct TrashView: View {
                     )
                 }
             }
-            if working { ProgressView().controlSize(.small) }
-        }.padding(22).frame(width: 680, height: 440).task { await reload() }
+            HStack {
+                if working { ProgressView().controlSize(.small) }
+                Spacer()
+                Button("清空废纸篓", role: .destructive) { Task { await prepareEmpty() } }
+                    .disabled(items.isEmpty || working || workspace.live.flags.needsMicrophone)
+            }.lfSheetFooter()
+        }.padding(16).frame(minWidth: 480, idealWidth: 680, minHeight: 400, idealHeight: 440).task { await reload() }
             .background(palette.canvas).foregroundStyle(palette.bodyText).tint(palette.accent)
             .alert("永久清空废纸篓？", isPresented: Binding(get: { preview != nil }, set: { if !$0 { preview = nil } })) {
                 Button("取消", role: .cancel) { preview = nil }

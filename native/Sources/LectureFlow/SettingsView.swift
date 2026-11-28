@@ -29,9 +29,61 @@ struct SettingsView: View {
     @AppStorage("accentReviewEnabled") private var accentReviewEnabled = false
     @AppStorage("saveChineseTranslation") private var saveChineseTranslation = true
 
+    @State private var group = "外观"
+    private let groups = ["外观", "识别与翻译", "音频", "存储"]
+
     var body: some View {
+        GeometryReader { geometry in
+            VStack(spacing: 0) {
+                HStack {
+                    Text("设置").font(.system(size: 20, weight: .semibold))
+                    Spacer()
+                    Text("LectureFlow").font(.caption).foregroundStyle(palette.secondaryText)
+                }.padding(16)
+                Divider()
+                if geometry.size.width >= 700 {
+                    HStack(spacing: 0) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            ForEach(groups, id: \.self) { item in
+                                Button { group = item } label: {
+                                    Text(item).frame(maxWidth: .infinity, alignment: .leading)
+                                        .padding(.horizontal, 12).padding(.vertical, 10)
+                                        .background(group == item ? palette.selection : .clear, in: RoundedRectangle(cornerRadius: 6))
+                                }.buttonStyle(.plain).accessibilityAddTraits(group == item ? [.isSelected] : [])
+                                .accessibilityIdentifier("settings-group-\(item)")
+                            }
+                            Spacer()
+                        }.padding(8).frame(width: 164).background(palette.sidebar)
+                        Divider()
+                        settingsForm
+                    }
+                } else {
+                    Picker("设置分组", selection: $group) {
+                        ForEach(groups, id: \.self) { Text($0).tag($0) }
+                    }.pickerStyle(.segmented).labelsHidden().padding(12)
+                    settingsForm
+                }
+            }
+        }
+        .frame(minWidth: 540, idealWidth: 780, minHeight: 520, idealHeight: 620)
+        .background(palette.canvas).foregroundStyle(palette.bodyText).tint(palette.accent)
+            .task { devices = AudioDevices.inputs(); await workspace.refreshModels() }
+            .onChange(of: workspace.live.inputDevice) { _, value in UserDefaults.standard.set(Int(value), forKey: "inputDevice") }
+    }
+    private var settingsForm: some View {
         Form {
-            Section("配色") {
+            switch group {
+            case "识别与翻译": modelFields; captionFields
+            case "音频": audioFields
+            case "存储": storageFields
+            default: appearanceFields; floatingFields
+            }
+            if !message.isEmpty { Text(message).font(.callout).foregroundStyle(palette.saved) }
+        }.formStyle(.grouped).scrollContentBackground(.hidden).padding(8)
+    }
+
+    private var appearanceFields: some View {
+        Section("配色") {
                 Picker("工作区配色", selection: Binding(
                     get: { LFTheme(preference: colorTheme).rawValue }, set: { colorTheme = $0 }
                 )) {
@@ -49,7 +101,10 @@ struct SettingsView: View {
                         .accessibilityIdentifier("settings-theme-reset")
                 }
             }
-            Section("本地模型") {
+    }
+
+    private var modelFields: some View {
+        Section("本地模型") {
                 ForEach(workspace.installedModels) { model in
                     HStack {
                         Text(model.name)
@@ -70,7 +125,10 @@ struct SettingsView: View {
                 Text("记住上次选择；尚未保存偏好时默认高精度识别。模型下载可暂停继续，更新应用会复用已下载模型。识别质量仍需按实际课堂验证。")
                     .font(.caption).foregroundStyle(palette.secondaryText)
             }
-            Section("记录方式细节") {
+    }
+
+    private var captionFields: some View {
+        Section("记录方式细节") {
                 Picker("新任务讲话语言", selection: $sourceLanguage) {
                     Text("英语课堂（推荐）").tag("English")
                     Text("自动检测所有语言（实验）").tag("auto")
@@ -87,7 +145,10 @@ struct SettingsView: View {
                 Text("主界面用三种记录方式控制是否保存音频与是否显示字幕；以上细分项影响转写保存。切换记录方式或麦克风须先暂停。")
                     .font(.caption).foregroundStyle(palette.secondaryText)
             }
-            Section("音频输入") {
+    }
+
+    private var audioFields: some View {
+        Section("音频输入") {
                 Picker("麦克风", selection: Binding(get: { workspace.live.inputDevice },
                                                     set: { workspace.live.inputDevice = $0 })) {
                     Text("跟随系统默认").tag(UInt32(0))
@@ -97,10 +158,16 @@ struct SettingsView: View {
                 Text("暂停采集后可更换麦克风。只在你开启录音或字幕时采集声音。")
                     .font(.caption).foregroundStyle(palette.secondaryText)
             }
-            Section("悬浮字幕") {
+    }
+
+    private var floatingFields: some View {
+        Section("悬浮字幕") {
                 Toggle("开始实时字幕时自动显示", isOn: $autoFloatingSubtitles)
             }
-            Section("存储与关于") {
+    }
+
+    private var storageFields: some View {
+        Section("存储与关于") {
                 Text(workspace.backend.paths.library.path).textSelection(.enabled).font(.caption)
                 Button("在 Finder 中打开") { NSWorkspace.shared.open(workspace.backend.paths.library) }
                 Text("本机单一资料库。备份前请暂停处理并完全退出，再复制整个资料库文件夹。测试可用环境变量注入隔离路径。")
@@ -118,12 +185,6 @@ struct SettingsView: View {
                     message = "诊断信息已复制（不含音频、转写、路径细节与密钥）。"
                 }
             }
-            if !message.isEmpty { Text(message).font(.callout).foregroundStyle(palette.saved) }
-        }.formStyle(.grouped).scrollContentBackground(.hidden)
-            .padding(10).frame(minWidth: 540, idealWidth: 610, minHeight: 520, idealHeight: 620)
-            .background(palette.canvas).foregroundStyle(palette.bodyText)
-            .tint(palette.accent)
-            .task { devices = AudioDevices.inputs(); await workspace.refreshModels() }
-            .onChange(of: workspace.live.inputDevice) { _, value in UserDefaults.standard.set(Int(value), forKey: "inputDevice") }
     }
+
 }

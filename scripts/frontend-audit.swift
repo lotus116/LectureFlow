@@ -175,6 +175,13 @@ struct PreviewAnchor: NSViewRepresentable {
         }
         await settle()
         try await snapshot(UserDefaults.standard.bool(forKey: "previewDark") ? "67-priority-dark-compare" : "32-priority-user-compare", window: sheet)
+        guard clickAnchor("priority-play", window: sheet) else {
+            throw BackendError.unavailable("Missing priority playback entry")
+        }
+        for _ in 0..<25 where !workspace.playback.previewReviewPlaying { await settle(0.02) }
+        guard workspace.playback.reviewID == "preview-0", workspace.playback.previewReviewPlaying,
+              workspace.playback.error == nil else { throw BackendError.unavailable("Review did not start playing before Escape") }
+        print("AUDIT priority playback active before Escape=true")
         auditKey(53, characters: "\u{1b}", window: sheet)
         await settle()
         print("AUDIT priority Escape dismissed=\(main.sheets.isEmpty) playbackStopped=\(workspace.playback.reviewID == nil)")
@@ -282,9 +289,20 @@ struct PreviewAnchor: NSViewRepresentable {
             try await snapshot("42-recording-chinese-in-place")
             clickAnchor("caption-latest")
             await settle()
+            guard let atEnd = readingScroll(main.contentView!), let document = atEnd.documentView else {
+                throw BackendError.unavailable("Missing reading area after returning to latest")
+            }
+            let gap = document.bounds.height - atEnd.contentView.bounds.maxY
+            guard gap >= -1, gap <= LFChrome.space8 + 1, atEnd.contentView.bounds.minY > after else {
+                throw BackendError.unavailable("Return to latest did not reach the last paragraph")
+            }
+            print("CLASSROOM return latest gap=\(gap); reading advanced=true")
             clickAnchor("session-primary")
             await settle()
-            guard workspace.session.state == .paused else { throw BackendError.unavailable("暂停按钮失败") }
+            guard workspace.session.state == .paused, workspace.lecture?.segments.isEmpty == true else {
+                throw BackendError.unavailable("Pause must not end or register a saved recording")
+            }
+            print("CLASSROOM paused: saved segments=0; end is a separate action")
             try await snapshot("44-recording-user-paused")
             clickAnchor("session-primary")
             await settle()
@@ -477,6 +495,28 @@ struct PreviewAnchor: NSViewRepresentable {
             await settle()
             try await checkPriorityEntry()
             UserDefaults.standard.set(false, forKey: "previewDark")
+            for (entry, name) in [("queue-open", "70-queue"), ("trash-open", "71-trash"), ("materials-open", "72-materials")] {
+                guard clickAnchor(entry) else { throw BackendError.unavailable("Missing entry \(entry)") }
+                await settle()
+                guard let sheet = main.sheets.first else { throw BackendError.unavailable("No sheet for \(entry)") }
+                try await snapshot(name, window: sheet)
+                auditKey(53, characters: "\u{1b}", window: sheet)
+                await settle()
+                guard main.sheets.isEmpty else { throw BackendError.unavailable("Escape failed for \(entry)") }
+            }
+            clickAnchor("settings-open"); await settle()
+            guard let settings = NSApp.windows.first(where: {
+                $0 != main && $0.isVisible && ($0.title.contains("设置") || $0.identifier?.rawValue.contains("Settings") == true)
+            }) else { throw BackendError.unavailable("Settings entry missing") }
+            settings.setContentSize(NSSize(width: 780, height: 620)); await settle()
+            for (index, group) in ["外观", "识别与翻译", "音频", "存储"].enumerated() {
+                guard clickAnchor("settings-group-\(group)", window: settings) else {
+                    throw BackendError.unavailable("Settings group missing: \(group)")
+                }
+                await settle(); try await snapshot("73-settings-group-\(index)", window: settings)
+            }
+            settings.close(); main.makeKeyAndOrderFront(nil)
+            print("PASS: rail queue/trash/materials entry + Escape; four settings groups through real gear entry")
             let sample = NSWindow(contentRect: NSRect(x: 180, y: 180, width: 360, height: 390),
                 styleMask: [.titled, .closable], backing: .buffered, defer: false)
             sample.isReleasedWhenClosed = false; sample.title = "合成状态与差异样例"

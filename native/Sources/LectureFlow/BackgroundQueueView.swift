@@ -55,10 +55,8 @@ struct BackgroundQueueView: View {
             HStack {
                 Text("后台任务").font(.system(size: LFChrome.sheetTitleSize, weight: .semibold))
                 Spacer()
-                Button("全部暂停") { Task { await pauseAll() } }
-                    .disabled(working || !workspace.backgroundItems.contains { $0.active })
-                Button("完成") { dismiss() }
-            }
+                Button("完成") { dismiss() }.keyboardShortcut(.cancelAction)
+            }.lfSheetHeader()
             Text("暂停保留进度；实时字幕优先时冲突任务会让路。")
                 .font(.system(size: LFChrome.captionSize))
                 .foregroundStyle(palette.secondaryText)
@@ -79,8 +77,13 @@ struct BackgroundQueueView: View {
                     EmptyPanel(title: "没有待处理任务", systemImage: "checkmark.circle", description: "后台转写和词库补全会出现在这里。")
                 }
             }
-            if working { ProgressView().controlSize(.small) }
-        }.padding(22).frame(width: 680, height: 440)
+            HStack {
+                if working { ProgressView().controlSize(.small) }
+                Spacer()
+                Button("全部暂停") { Task { await pauseAll() } }
+                    .disabled(working || !workspace.backgroundItems.contains { $0.active })
+            }.lfSheetFooter()
+        }.padding(16).frame(minWidth: 480, idealWidth: 680, minHeight: 400, idealHeight: 440)
             .background(palette.canvas).foregroundStyle(palette.bodyText).tint(palette.accent)
             .alert("操作未完成", isPresented: Binding(get: { error != nil }, set: { if !$0 { error = nil } })) {
                 Button("知道了") { error = nil }

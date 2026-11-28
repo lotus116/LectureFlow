@@ -51,6 +51,7 @@ struct LiveTranscriptView: View {
                             .frame(maxWidth: .infinity, alignment: .trailing)
                     }
                 }
+                Divider()
                 if live.flags.translate && live.pendingChinese > 0 {
                     Text("中文处理队列 · \(live.pendingChinese) 段")
                         .font(.caption).foregroundStyle(palette.secondaryText)
@@ -73,7 +74,7 @@ struct LiveTranscriptView: View {
                                actionTitle: "清除搜索", action: { search = "" })
                 } else {
                     ScrollView {
-                        LazyVStack(alignment: .leading, spacing: LFChrome.space16) {
+                        LazyVStack(alignment: .leading, spacing: 24) {
                             ForEach(visible) { caption in
                                 VStack(alignment: .leading, spacing: 6) {
                                     HStack {
@@ -94,6 +95,7 @@ struct LiveTranscriptView: View {
                                         Text(caption.chinese)
                                             .font(.system(size: zhSize))
                                             .foregroundStyle(palette.transcriptTranslation)
+                                            .padding(.leading, 16)
                                             .lineSpacing(max(3, zhSize * 0.28))
                                     }
                                 }
@@ -137,7 +139,7 @@ struct LiveTranscriptView: View {
             Picker("显示", selection: $language) {
                 Text("双语").tag("both"); Text("中文").tag("zh"); Text("原文").tag("en")
             }
-            .frame(width: 115)
+            .labelsHidden().frame(width: 86)
             .layoutPriority(1)
             TextField("搜索字幕", text: $search)
                 .accessibilityIdentifier("caption-search")
@@ -150,7 +152,7 @@ struct LiveTranscriptView: View {
 
     private func transcriptActions(proxy: ScrollViewProxy) -> some View {
         HStack(spacing: 8) {
-            ReviewCurrentButton(workspace: workspace, live: live)
+            ReviewCurrentButton(workspace: workspace, live: live).labelStyle(.iconOnly)
             Menu {
                 Button("课后优先复核…") { showPriorityReview = true }
                     .disabled(live.isCapturing)
@@ -182,15 +184,18 @@ struct LiveTranscriptView: View {
             .help("实时字幕操作")
             .accessibilityLabel("实时字幕操作")
             .accessibilityIdentifier("caption-actions")
-            Button("返回最新") {
+            Button {
                 follow = true; search = ""
                 DispatchQueue.main.async {
                     withAnimation(reduceMotion ? nil : LFChrome.motion) {
                         proxy.scrollTo("latest-caption", anchor: .bottom)
                     }
                 }
+            } label: {
+                Label("返回最新", systemImage: "arrow.down.to.line").labelStyle(.iconOnly)
+                    .frame(width: 26, height: 24)
             }
-            .buttonStyle(.bordered)
+            .buttonStyle(.borderless)
             .help(follow ? "正在跟随最新字幕" : "已停止跟随，点击返回最新字幕")
             .accessibilityValue(follow ? "正在跟随" : "已停止跟随")
             .accessibilityIdentifier("caption-latest")

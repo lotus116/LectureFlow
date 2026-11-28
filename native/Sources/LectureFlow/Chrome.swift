@@ -202,3 +202,13 @@ private struct LFPanelPaddingModifier: ViewModifier {
             .background(palette.softPanel())
     }
 }
+
+/// Shared native sheet rhythm: a quiet header, flexible content, and a separated action edge.
+extension View {
+    func lfSheetHeader() -> some View {
+        padding(.bottom, 12).overlay(alignment: .bottom) { Divider() }
+    }
+    func lfSheetFooter() -> some View {
+        padding(.top, 12).overlay(alignment: .top) { Divider() }
+    }
+}

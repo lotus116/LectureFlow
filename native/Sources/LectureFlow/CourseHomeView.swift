@@ -13,73 +13,56 @@ struct CourseHomeView<Status: View>: View {
     @State private var termCount = 0
 
     var body: some View {
-        ZStack(alignment: .topLeading) {
-            palette.iceMist()
-                .frame(height: 120)
-                .allowsHitTesting(false)
-
-            VStack(alignment: .leading, spacing: 0) {
-                HStack(alignment: .firstTextBaseline, spacing: LFChrome.space16) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(course.name)
-                            .font(.system(size: LFChrome.titleSize, weight: .semibold))
-                            .lineLimit(2)
-                            .help(course.name)
-                        Text(metaLine)
-                            .font(.system(size: LFChrome.captionSize))
-                            .foregroundStyle(palette.secondaryText)
-                    }
-                    Spacer(minLength: LFChrome.space8)
-                    Button {
-                        onOpenMaterials()
-                    } label: {
-                        Label("课程资料 · \(documentCount) 份", systemImage: "doc.richtext")
-                    }
-                    .buttonStyle(.borderless)
-                    .foregroundStyle(palette.accentInk)
-                    .help(termCount == 0 ? "管理课件与辅助术语" : "\(documentCount) 份资料 · \(termCount) 个术语")
-                    .accessibilityLabel("课程资料，\(documentCount) 份")
+        VStack(alignment: .leading, spacing: 0) {
+            ViewThatFits(in: .horizontal) {
+                HStack(alignment: .center, spacing: 16) {
+                    courseTitle
+                    Spacer(minLength: 12)
+                    startButton
                 }
-
-                status().padding(.top, LFChrome.space12)
-
-                ViewThatFits(in: .horizontal) {
-                    HStack(spacing: LFChrome.space12) {
-                        startButton
-                        recordingMode
-                    }
-                    VStack(alignment: .leading, spacing: LFChrome.space8) {
-                        startButton
-                        recordingMode
-                    }
-                }
-                .padding(.top, LFChrome.space16)
-
-                HStack(spacing: LFChrome.space16) {
-                    Button("新建空 Lecture", action: onCreateLecture)
-                    Button("导入已有录音", action: onImportAudio)
-                }
-                .buttonStyle(.borderless)
-                .foregroundStyle(palette.accentInk)
-                .padding(.top, LFChrome.space12)
-                .padding(.bottom, LFChrome.space20)
-
-                if course.lectures.isEmpty {
-                    EmptyPanel(
-                        title: "还没有 Lecture",
-                        systemImage: "waveform",
-                        description: "录音与转写会保存在这里，课件可以随时添加。"
-                    )
-                } else {
-                    lectureList
-                }
+                VStack(alignment: .leading, spacing: 12) { courseTitle; startButton }
             }
-            .lfContentPadding()
+            .padding(16)
+            status().padding(.horizontal, 16).padding(.bottom, 8)
+            Divider()
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 16) { recordingMode; Spacer(minLength: 8); courseActions }
+                VStack(alignment: .leading, spacing: 8) { recordingMode; courseActions }
+            }
+            .padding(.horizontal, 16).padding(.vertical, 12)
+            Divider()
+            if course.lectures.isEmpty {
+                VStack(alignment: .leading, spacing: 12) {
+                    Label("还没有 Lecture", systemImage: "waveform")
+                        .font(.system(size: 17, weight: .semibold))
+                    Text("从上方开始新 Lecture，录音与转写会保存在这里。")
+                        .font(.system(size: 14)).foregroundStyle(palette.secondaryText)
+                    Spacer(minLength: 0)
+                }.padding(24).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            } else {
+                lectureList.padding(.horizontal, 16).padding(.top, 16)
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .background(palette.canvas).foregroundStyle(palette.bodyText)
         .task(id: course.id) { await loadCounts() }
         .onChange(of: workspace.overview.courses.map(\.id)) { _, _ in Task { await loadCounts() } }
+    }
+
+    private var courseTitle: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(course.name).font(.system(size: 20, weight: .semibold)).lineLimit(2).help(course.name)
+            Text(metaLine).font(.caption).foregroundStyle(palette.secondaryText)
+        }
+    }
+
+    private var courseActions: some View {
+        HStack(spacing: 12) {
+            Button("新建空 Lecture", action: onCreateLecture)
+            Button("导入已有录音", action: onImportAudio)
+            Button(action: onOpenMaterials) { Label("课程资料", systemImage: "doc.richtext") }
+                .help(termCount == 0 ? "管理课件与辅助术语" : "\(documentCount) 份资料 · \(termCount) 个术语")
+        }.buttonStyle(.borderless).foregroundStyle(palette.accentInk)
     }
 
     private var recordingMode: some View {
