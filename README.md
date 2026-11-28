@@ -8,6 +8,7 @@
   <a href="https://github.com/lotus116/LectureFlow/releases/latest"><strong>下载 LectureFlow</strong></a>
   &nbsp; · &nbsp; <a href="docs/USER_GUIDE.md"><strong>使用指南</strong></a>
   &nbsp; · &nbsp; <a href="docs/RELEASE-0.6.5.md">0.6.5 更新说明</a>
+  &nbsp; · &nbsp; <a href="docs/RELEASE-0.6.6.md">Mac 主线 0.6.6 进度</a>
   &nbsp; · &nbsp; <a href="https://github.com/lotus116/LectureFlow/issues">反馈问题</a>
 </p>
 

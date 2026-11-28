@@ -34,8 +34,8 @@ LectureFlow 自有代码采用 **GPL-3.0-only**，全文见根目录 [LICENSE](.
 
 ## 视频 BGM 与视觉素材
 
-README 视频的音轨来源为休憩うさぎ（[@QK_rabbit_2 原帖](https://x.com/QK_rabbit_2/status/1968963279730233345)），
-帖文标题为「おてんば恋娘 ～笛のテストに向けて～」。来源署名已保留在视频下方。
+历史 README 视频的音轨来源为休憩うさぎ（[@QK_rabbit_2 原帖](https://x.com/QK_rabbit_2/status/1968963279730233345)），
+帖文标题为「おてんば恋娘 ～笛のテストに向けて～」。现行 README 已移除视频入口。
 **署名不是授权**；目前保留“再用许可待核实”的状态，不把这段音乐作为 GPL 素材
 授权他人复用。音乐及琪露诺／东方／fumo 相关图像的权利边界见
 [NOTICE](../../NOTICE.md)，来源核查与未完成事项见[素材审计](AUDIT-2026-11-07.md)。
@@ -69,3 +69,9 @@ README 视频的音轨来源为休憩うさぎ（[@QK_rabbit_2 原帖](https://x
 
 保留的标准文本：[GPL v2](GPL-2.0.txt)、[LGPL v3](LGPL-3.0.txt)、
 [Apache 2.0](Apache-2.0.txt)。GPL v3 见根目录 LICENSE。
+
+## 0.6.6 Mac 候选
+
+Mac 候选使用项目绘制的发布图标，安装包随附独立构建的 FFmpeg 7.1.5、其对应源码及构建脚本。Windows 原有二进制、模型及历史素材的核查单独保留。
+
+包内识别运行时实际加载 regex 2026.9.29。它声明继承的代码适用 CNRI Python 1.6 条款，新增部分使用 Apache-2.0。上游对继承代码的具体分发依据仍待澄清，项目尚未确认正式安装包的分发条件。[上游许可](https://github.com/mrabarnett/mrab-regex/blob/hg/LICENSE.txt) · [上游问题](https://github.com/mrabarnett/mrab-regex/issues/622)

@@ -26,7 +26,7 @@ operating-system resources, trademarks, or other people's work.
   `hero-notebook.png`, and `lecture-review-story.jpg` are **not offered under this
   GPL grant**. Underlying character, plush-design, and reference-photo rights are
   not established by AI-assisted generation or by this repository's license.
-- The promotional video linked in README and its music are **not offered under
+- The promotional video previously linked in README and its music are **not offered under
   this GPL grant**. Attribution is not a license or proof of permission.
 - Screenshots in `docs/assets/ui-redesign/`, including historical copies, may
   contain third-party UI/system artwork. No license to those underlying rights

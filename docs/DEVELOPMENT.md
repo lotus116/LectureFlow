@@ -59,7 +59,7 @@ zsh scripts/package-app --zip
 
 输出 dist/LectureFlow.app 与版本 ZIP，包含可搬移 Python 和后端。默认不内置模型；首次准备模型可联网下载并复用应用支持目录缓存。`--with-models` 仅在明确要求离线分发时使用。logo、USER_GUIDE、licenses 路径为打包依赖，文档整理不能随意移动。
 
-VERSION、pyproject.toml、uv.lock 与 Python 包版本保持一致。更新版本号不自动发布；用户明确要求正式交付后，集中验证再触发 Release macOS and Windows。工作流读取 `docs/RELEASE-版本号.md`，因此发布说明原路径保留；不要因整理文档触发发布或覆盖公开附件。
+VERSION、pyproject.toml、uv.lock 与 Python 包版本保持一致。更新版本号不自动发布；用户明确要求正式交付后，先确认目标平台。现有 Release macOS and Windows 工作流会同时构建并发布两端，仅适用于双平台正式发布。Mac 单独发布须逐项核对 Mac 实际产物。工作流读取 `docs/RELEASE-版本号.md`，因此发布说明原路径保留；不要因整理文档触发发布或覆盖公开附件。
 
 发布前先按[许可检查清单](licenses/RELEASE-CHECKLIST.md)核对对应源码、第三方声明与素材授权。`python3 scripts/check-licenses.py --release` 遇到未解决事项会阻止正式发行；普通结构检查通过不等于许可清理完成。两端打包生成 `Licenses/dependencies.json`，Windows 专用 pystray hook 外置源码仍需实际替换加载验收。
 
@@ -107,7 +107,7 @@ PYTHONPATH=src /path/to/existing/.venv/bin/python scripts/package_app.py \
   --runtime-source /path/to/existing/LectureFlow.app --model-source /path/to/local/models
 ```
 
-runtime-source只读复用签名有效、0.6.5轮子同版本且满足当前依赖声明的运行组件；
+runtime-source只读复用签名有效、应用与后台轮子均与当前项目同版本且满足当前依赖声明的运行组件；
 工具重新构建并强制安装当前源码wheel，记录依赖版本，去除本地安装来源和无用的开发路径入口脚本。
 界面版with-models打包三种既有catalog模型，以满足默认高精度选择；公共模型源只读复制，清单改为包内相对路径。
 包内后台在全新临时库执行模型状态与SQLite初始化检查，最终进行深度严格签名检查。

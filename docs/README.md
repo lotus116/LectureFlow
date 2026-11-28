@@ -6,6 +6,7 @@ LectureFlow 是面向英语课堂的本地 macOS / Windows 录音、英文转写
 
 | 你要了解什么 | 阅读入口 |
 |---|---|
+| Mac 主线 0.6.6 的更新和发布条件 | [Mac 版本说明](RELEASE-0.6.6.md) |
 | 0.6.5 双平台发行及差异 | [版本说明](RELEASE-0.6.5.md) · [Windows 实机记录](research/WINDOWS-TRIAL.md) |
 | 安装并开始使用 | [使用指南](USER_GUIDE.md) |
 | Android 离线验证包与整堂课试用 | [Android 试用说明](research/ANDROID-TRIAL-2026-11-17.md) |
