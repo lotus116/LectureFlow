@@ -10,26 +10,29 @@ struct RuntimePaths: Sendable {
     let previousModels: URL?
     var logs: URL { storage.appendingPathComponent("Logs") }
 
-    init() {
+    init(bundle: Bundle = .main) {
         let env = ProcessInfo.processInfo.environment
-        let resources = Bundle.main.resourceURL ?? Bundle.main.bundleURL
+        let resources = bundle.resourceURL ?? bundle.bundleURL
         let packaged = resources.appendingPathComponent("runtime/bin/python3.12")
         if FileManager.default.isExecutableFile(atPath: packaged.path) {
             let support = FileManager.default.urls(for: .applicationSupportDirectory,
                                                    in: .userDomainMask)[0]
+            // Parallel local UI builds must neither share nor discover an existing library.
+            let isolated = bundle.object(forInfoDictionaryKey: "LectureFlowIsolatedStorage") as? Bool == true
+            let storageName = isolated ? "LectureFlow Interface" : "LectureFlow"
             storage = URL(fileURLWithPath: env["LECTUREFLOW_STORAGE_ROOT"]
-                          ?? support.appendingPathComponent("LectureFlow").path)
+                          ?? support.appendingPathComponent(storageName).path)
             python = packaged
             let bundled = resources.appendingPathComponent("Models")
             bundledModels = FileManager.default.fileExists(atPath: bundled.path) ? bundled : nil
             models = storage.appendingPathComponent("Models")
-            let checkout = Bundle.main.bundleURL.deletingLastPathComponent().deletingLastPathComponent()
-            previousModels = FileManager.default.fileExists(atPath: checkout.appendingPathComponent("src/lectureflow/models.py").path)
+            let checkout = bundle.bundleURL.deletingLastPathComponent().deletingLastPathComponent()
+            previousModels = !isolated && FileManager.default.fileExists(atPath: checkout.appendingPathComponent("src/lectureflow/models.py").path)
                 ? checkout.appendingPathComponent("models") : nil
             let previous = checkout.appendingPathComponent("data/library")
             let existing = FileManager.default.fileExists(atPath: checkout.appendingPathComponent("src/lectureflow/library.py").path)
                 && FileManager.default.fileExists(atPath: previous.appendingPathComponent("Library.sqlite3").path)
-            if env["LECTUREFLOW_LIBRARY_ROOT"] == nil,
+            if !isolated, env["LECTUREFLOW_LIBRARY_ROOT"] == nil,
                UserDefaults.standard.string(forKey: "libraryPath") == nil, existing {
                 UserDefaults.standard.set(previous.path, forKey: "libraryPath")
             }
@@ -38,7 +41,7 @@ struct RuntimePaths: Sendable {
                           ?? storage.appendingPathComponent("Library").path)
         } else {
             let project = URL(fileURLWithPath: env["LECTUREFLOW_PROJECT_ROOT"]
-                              ?? Bundle.main.object(forInfoDictionaryKey: "LectureFlowProjectRoot") as? String
+                              ?? bundle.object(forInfoDictionaryKey: "LectureFlowProjectRoot") as? String
                               ?? FileManager.default.currentDirectoryPath)
             storage = project.appendingPathComponent("data")
             python = project.appendingPathComponent(".venv/bin/python")

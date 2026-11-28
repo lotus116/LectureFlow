@@ -8,7 +8,7 @@ export LECTUREFLOW_APP_OUTPUT="${LECTUREFLOW_APP_OUTPUT:-dist/dev/LectureFlow.ap
 swift build -c "$lectureflow_configuration" --disable-sandbox --package-path native --scratch-path .build/native --cache-path .cache/spm
 mkdir -p "$LECTUREFLOW_APP_OUTPUT/Contents/MacOS"
 cp ".build/native/$lectureflow_configuration/LectureFlow" "$LECTUREFLOW_APP_OUTPUT/Contents/MacOS/LectureFlow"
-.venv/bin/python - <<'PY'
+"${LECTUREFLOW_BUILD_PYTHON:-.venv/bin/python}" - <<'PY'
 import os
 import plistlib
 from pathlib import Path

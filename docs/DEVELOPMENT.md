@@ -82,3 +82,33 @@ VERSION、pyproject.toml、uv.lock 与 Python 包版本保持一致。更新版�
 `zsh scripts/package-app --zip --test-build` 在独立的 `dist/accent-test-提交/` 目录生成包，不覆盖原应用或0.6.3包。使用独立bundle ID，包内build-info.json记录来源提交及非正式发行标识；仍不含模型和私人资料。不创建Release或tag。
 
 复习标记测试使用 `zsh scripts/package-app --zip --test-build --test-kind review`，输出至 `dist/review-test-提交/`，应用名称和bundle ID独立于口音测试及正式包。首次试用前结束并退出旧应用，避免多个应用同时打开同一资料库。
+
+
+## 并排本地界面版（2026-11-28）
+
+用户批准保留原Logo画面、仅将Dock图标外角改为透明圆角，并安装独立新版查看。
+原 `docs/assets/logo.png` 不改；`make-app-icon.swift` 在打包时对各尺寸的缩放图只添加连续圆角alpha，
+保留RGB、图案及配色；不借用设计候选，不假定系统替旧ICNS裁角。
+
+`package_app.py --test-build --test-kind interface` 生成 **LectureFlow 新版.app**，独立bundle ID
+`local.lectureflow.interface-test`，并写入 `LectureFlowIsolatedStorage=true`。
+该标志令原生RuntimePaths默认使用应用支持目录的 **LectureFlow Interface** 子目录，
+不自动发现/接入原开发库或模型缓存；旧应用仍使用LectureFlow目录，既有用户默认不变。
+新版偏好由独立bundle隔离；显式环境/用户资料库选择仍遵守原约定，不自动迁移资料。
+
+这是正常发布配置编译的产品代码，**不是合成预览**；不会替换麦克风、ASR或翻译。
+本地候选 `official_release=false`，不构成发布/上传授权；安装与打开由主会话处理。
+
+可在隔离checkout直接调用已存在的依赖解释器运行打包工具（不复制开发虚拟环境）：
+
+```sh
+PYTHONPATH=src /path/to/existing/.venv/bin/python scripts/package_app.py \
+  --test-build --test-kind interface --with-models \
+  --runtime-source /path/to/existing/LectureFlow.app --model-source /path/to/local/models
+```
+
+runtime-source只读复用签名有效、0.6.5轮子同版本且满足当前依赖声明的运行组件；
+工具重新构建并强制安装当前源码wheel，记录依赖版本，去除本地安装来源和无用的开发路径入口脚本。
+界面版with-models打包三种既有catalog模型，以满足默认高精度选择；公共模型源只读复制，清单改为包内相对路径。
+包内后台在全新临时库执行模型状态与SQLite初始化检查，最终进行深度严格签名检查。
+不启动正式GUI、不录制用户音频、不接入现有资料，真实麦克风/课堂转写另行实测。
