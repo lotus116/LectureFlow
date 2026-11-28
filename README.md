@@ -7,8 +7,8 @@
 <p align="center">
   <a href="https://github.com/lotus116/LectureFlow/releases/latest"><strong>下载 LectureFlow</strong></a>
   &nbsp; · &nbsp; <a href="docs/USER_GUIDE.md"><strong>使用指南</strong></a>
-  &nbsp; · &nbsp; <a href="docs/RELEASE-0.6.5.md">0.6.5 更新说明</a>
-  &nbsp; · &nbsp; <a href="docs/RELEASE-0.6.6.md">Mac 主线 0.6.6 进度</a>
+  &nbsp; · &nbsp; <a href="docs/RELEASE-0.6.5.md">Windows 0.6.5 更新说明</a>
+  &nbsp; · &nbsp; <a href="docs/RELEASE-0.6.6.md">Mac 0.6.6 更新说明</a>
   &nbsp; · &nbsp; <a href="https://github.com/lotus116/LectureFlow/issues">反馈问题</a>
 </p>
 
@@ -42,12 +42,12 @@
 
 ## 安装
 
-| 平台 | 0.6.5 安装方式 |
+| 平台 | 正式版安装方式 |
 |---|---|
 | Apple Silicon · macOS 26+ | 解压 ZIP，将 `LectureFlow.app` 拖入“应用程序”。首次使用字幕需联网准备约 1.86 GB 默认模型。应用使用本地签名，尚待 Apple 公证。 |
 | Windows 11 x64 | 将 ZIP 完整解压到新目录，运行其中的 `LectureFlow.exe`。默认识别和翻译模型随包提供。 |
 
-更新前请结束采集，等保存完成后退出旧版。[下载两端正式版](https://github.com/lotus116/LectureFlow/releases/tag/v0.6.5) · [安装说明](docs/USER_GUIDE.md#安装)
+更新前请结束采集，等保存完成后退出旧版。[Mac 0.6.6 下载](https://github.com/lotus116/LectureFlow/releases/tag/v0.6.6) · [Windows 0.6.5 下载](https://github.com/lotus116/LectureFlow/releases/tag/v0.6.5) · [安装说明](docs/USER_GUIDE.md#安装)
 
 <details>
 <summary><strong>从源码启动</strong></summary>

@@ -70,8 +70,8 @@ LectureFlow 自有代码采用 **GPL-3.0-only**，全文见根目录 [LICENSE](.
 保留的标准文本：[GPL v2](GPL-2.0.txt)、[LGPL v3](LGPL-3.0.txt)、
 [Apache 2.0](Apache-2.0.txt)。GPL v3 见根目录 LICENSE。
 
-## 0.6.6 Mac 候选
+## 0.6.6 Mac 安装包
 
-Mac 候选使用项目绘制的发布图标，安装包随附独立构建的 FFmpeg 7.1.5、其对应源码及构建脚本。Windows 原有二进制、模型及历史素材的核查单独保留。
+Mac 版使用项目绘制的发布图标，安装包随附独立构建的 FFmpeg 7.1.5、其对应源码及构建脚本。Windows 原有二进制、模型及历史素材的核查单独保留。
 
-包内识别运行时实际加载 regex 2026.9.29。它声明继承的代码适用 CNRI Python 1.6 条款，新增部分使用 Apache-2.0。上游对继承代码的具体分发依据仍待澄清，项目尚未确认正式安装包的分发条件。[上游许可](https://github.com/mrabarnett/mrab-regex/blob/hg/LICENSE.txt) · [上游问题](https://github.com/mrabarnett/mrab-regex/issues/622)
+包内识别运行时实际加载 regex 2026.9.29。它声明继承的代码适用 CNRI Python 1.6 条款，新增部分使用 Apache-2.0。项目保留上游声明，并随附元数据标识 CNRI-Python 对应的 [SPDX 参考文本](CNRI-Python.txt)。维护者决定从 0.6.6 起将上游历史条款问题作为来源记录，移出发布阻塞清单。[上游许可](https://github.com/mrabarnett/mrab-regex/blob/hg/LICENSE.txt) · [上游问题](https://github.com/mrabarnett/mrab-regex/issues/622)

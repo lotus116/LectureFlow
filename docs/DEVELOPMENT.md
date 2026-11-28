@@ -61,7 +61,7 @@ zsh scripts/package-app --zip
 
 VERSION、pyproject.toml、uv.lock 与 Python 包版本保持一致。更新版本号不自动发布；用户明确要求正式交付后，先确认目标平台。现有 Release macOS and Windows 工作流会同时构建并发布两端，仅适用于双平台正式发布。Mac 单独发布须逐项核对 Mac 实际产物。工作流读取 `docs/RELEASE-版本号.md`，因此发布说明原路径保留；不要因整理文档触发发布或覆盖公开附件。
 
-发布前先按[许可检查清单](licenses/RELEASE-CHECKLIST.md)核对对应源码、第三方声明与素材授权。`python3 scripts/check-licenses.py --release` 遇到未解决事项会阻止正式发行；普通结构检查通过不等于许可清理完成。两端打包生成 `Licenses/dependencies.json`，Windows 专用 pystray hook 外置源码仍需实际替换加载验收。
+发布前先按[许可检查清单](licenses/RELEASE-CHECKLIST.md)核对对应源码、第三方声明与素材授权。Mac 单平台先运行 `python3 scripts/check-licenses.py`，使用 `zsh scripts/package-app --zip --ffmpeg-root <独立构建目录>` 随包提供 FFmpeg 的对应源码和构建记录。双平台合发另运行 `python3 scripts/check-licenses.py --release` 检查两端的待办。两端打包生成 `Licenses/dependencies.json`，Windows 专用 pystray hook 外置源码仍需实际替换加载验收。
 
 发布检查包括代码／数据保护、相关行为测试、独立构建、签名、包内后端启动与源文件一致性；发布后核对标签提交、CI、下载附件版本与 SHA256SUMS。应用尚未 Apple 公证。0.6.3 的一次发布授权不表示未来每次修改均可正式发布。
 

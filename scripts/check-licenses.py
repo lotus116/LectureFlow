@@ -1,4 +1,4 @@
-"""Check licensing evidence integrity; --release fails closed on unresolved reviews."""
+"""Check licensing evidence integrity; --release also checks the combined macOS and Windows distribution."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 REQUIRED_ISSUES = {
     "ffmpeg-corresponding-source", "windows-frozen-source-notices",
-    "windows-qwen-provenance", "regex-license-provenance", "artwork-and-music-rights",
+    "windows-qwen-provenance", "artwork-and-music-rights",
 }
 
 REQUIRED_MODEL_EVIDENCE = {
@@ -70,7 +70,7 @@ def main() -> None:
         raise SystemExit("\n".join(errors))
     print("PASS: licensing files and evidence are intact." +
           (" Release review has no recorded blockers." if args.release else
-           " This is not binary redistribution clearance; run --release before publishing."))
+           " For a joint macOS and Windows release, also run --release."))
 
 
 if __name__ == "__main__":
