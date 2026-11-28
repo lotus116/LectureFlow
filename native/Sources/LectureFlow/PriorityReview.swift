@@ -31,10 +31,14 @@ struct PriorityReview: View {
     @FocusState private var focusedControl: String?
 
     private var focusOrder: [String] {
-        guard let detail else { return items.map { "priority-item-" + $0.id } + ["priority-done"] }
+        Self.keyboardOrder(itemIDs: items.map(\.id), state: detail?.state)
+    }
+
+    static func keyboardOrder(itemIDs: [String], state: String?) -> [String] {
+        guard let state else { return itemIDs.map { "priority-item-" + $0 } + ["priority-done"] }
         var controls = ["priority-play", "priority-back"]
-        if detail.state == "ready" { controls += ["priority-accept", "priority-ignore"] }
-        if ["accepted", "ignored"].contains(detail.state) { controls.append("priority-undo") }
+        if state == "ready" { controls += ["priority-accept", "priority-ignore"] }
+        if ["accepted", "ignored"].contains(state) { controls.append("priority-undo") }
         return controls + ["priority-done"]
     }
 

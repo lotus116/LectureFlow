@@ -4,6 +4,19 @@ import XCTest
 @testable import LectureFlow
 
 final class PresentationTests: XCTestCase {
+    func testKeyboardReviewOrderOnlyIncludesVisibleDecisions() {
+        XCTAssertEqual(PriorityReview.keyboardOrder(itemIDs: ["a", "b"], state: nil),
+                       ["priority-item-a", "priority-item-b", "priority-done"])
+        XCTAssertEqual(PriorityReview.keyboardOrder(itemIDs: [], state: "ready"),
+                       ["priority-play", "priority-back", "priority-accept", "priority-ignore", "priority-done"])
+        for state in ["accepted", "ignored"] {
+            XCTAssertEqual(PriorityReview.keyboardOrder(itemIDs: [], state: state),
+                           ["priority-play", "priority-back", "priority-undo", "priority-done"])
+        }
+        XCTAssertEqual(PriorityReview.keyboardOrder(itemIDs: [], state: "same"),
+                       ["priority-play", "priority-back", "priority-done"])
+    }
+
     func testDiffSemanticsAreAvailableWithoutColor() {
         XCTAssertEqual(LFReviewChangeKind("- observations").accessibleDescription("- observations"), "删除，observations")
         XCTAssertEqual(LFReviewChangeKind("+ measurements").accessibleDescription("+ measurements"), "新增，measurements")

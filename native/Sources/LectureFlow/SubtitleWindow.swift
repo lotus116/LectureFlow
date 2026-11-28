@@ -181,10 +181,12 @@ private struct FloatingSubtitlesRoot: View {
                     Slider(value: $fontSize, in: 16...56)
                         .focusable(true, interactions: .edit).focused($displayFocus, equals: "font")
                         .accessibilityLabel("字幕字号")
+                        .adjustWithArrows($fontSize, range: 16...56, step: 1)
                     Text("背景透明度")
                     Slider(value: $opacity, in: 0.2...1)
                         .focusable(true, interactions: .edit).focused($displayFocus, equals: "opacity")
                         .accessibilityLabel("背景透明度")
+                        .adjustWithArrows($opacity, range: 0.2...1, step: 0.05)
                     Text("拉高窗口可多看几句；默认约 1 句。")
                         .font(.caption)
                         .foregroundStyle(.secondary)
@@ -363,5 +365,19 @@ private struct FloatingSubtitlesRoot: View {
             return workspace.session.desired.recording ? "已暂停" : "不保存音频"
         }
         return "已停止"
+    }
+}
+
+
+private extension View {
+    func adjustWithArrows(_ value: Binding<Double>, range: ClosedRange<Double>, step: Double) -> some View {
+        onKeyPress(keys: [.leftArrow, .rightArrow], phases: [.down, .repeat]) { event in
+            guard event.modifiers.isDisjoint(with: [.command, .control, .option, .shift]) else {
+                return .ignored
+            }
+            let next = value.wrappedValue + (event.key == .rightArrow ? step : -step)
+            value.wrappedValue = min(range.upperBound, max(range.lowerBound, next))
+            return .handled
+        }
     }
 }
