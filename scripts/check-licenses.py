@@ -1,4 +1,4 @@
-"""Check licensing evidence integrity; --release also checks the combined macOS and Windows distribution."""
+"""Check license evidence and, with --release, the joint macOS and Windows release."""
 
 from __future__ import annotations
 
