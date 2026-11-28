@@ -886,13 +886,23 @@ struct LibraryView: View {
                 .disabled(model.busy || lecture.segments.isEmpty || model.live.pendingSaves > 0)
             }
             if lecture.segments.isEmpty {
-                EmptyPanel(
-                    title: "还没有录音",
-                    systemImage: "waveform",
-                    description: "开始采集，或导入已有音频文件。",
-                    actionTitle: "导入录音",
-                    action: { importing = true }
-                )
+                if model.live.lectureID == lecture.id && model.session.hasSession {
+                    EmptyPanel(
+                        title: "暂无已保存录音",
+                        systemImage: "waveform",
+                        description: model.session.desired.recording
+                            ? "当前录音保存后会显示在这里。"
+                            : "当前记录方式不保存录音。"
+                    )
+                } else {
+                    EmptyPanel(
+                        title: "还没有录音",
+                        systemImage: "waveform",
+                        description: "开始采集，或导入已有音频文件。",
+                        actionTitle: "导入录音",
+                        action: { importing = true }
+                    )
+                }
             } else {
                 List {
                     ForEach(Array(lecture.segments.enumerated()), id: \.element.id) { index, segment in

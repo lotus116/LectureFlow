@@ -365,6 +365,13 @@ lib.close()
             #endif
             workspace.pauseSession()
             try await snapshot("04-paused-small-light")
+            workspace.configureSession(CapturePreset.subtitles.flags)
+            try await snapshot("04b-paused-subtitles-empty")
+            guard !workspace.session.desired.recording, workspace.session.state == .paused,
+                  workspace.lecture?.segments.isEmpty == true else {
+                throw BackendError.unavailable("Paused subtitle-only empty-state fixture changed capture or saved audio")
+            }
+            workspace.configureSession(CapturePreset.recording.flags)
             workspace.primarySessionAction()
             await settle(1)
             workspace.endSession()
