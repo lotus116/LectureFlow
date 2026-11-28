@@ -53,13 +53,13 @@ struct LiveTranscriptView: View {
                 }
                 if live.flags.translate && live.pendingChinese > 0 {
                     Text("中文处理队列 · \(live.pendingChinese) 段")
-                        .font(.caption).foregroundStyle(.secondary)
+                        .font(.caption).foregroundStyle(palette.secondaryText)
                 }
                 if !follow {
                     Text("已停止跟随 · 点“返回最新”继续")
                         .accessibilityIdentifier("caption-follow-paused")
                         .font(.system(size: LFChrome.captionSize))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(palette.secondaryText)
                 }
                 if live.displayCaptions.isEmpty {
                     EmptyPanel(
@@ -142,7 +142,7 @@ struct LiveTranscriptView: View {
             TextField("搜索字幕", text: $search)
                 .accessibilityIdentifier("caption-search")
                 .textFieldStyle(.roundedBorder)
-                .frame(minWidth: 56, maxWidth: 160)
+                .frame(minWidth: 100, maxWidth: 200)
                 .layoutPriority(0)
             TranscriptFontControls(size: $textSize)
         }
@@ -190,6 +190,7 @@ struct LiveTranscriptView: View {
                     }
                 }
             }
+            .buttonStyle(.bordered)
             .help(follow ? "正在跟随最新字幕" : "已停止跟随，点击返回最新字幕")
             .accessibilityValue(follow ? "正在跟随" : "已停止跟随")
             .accessibilityIdentifier("caption-latest")
@@ -221,7 +222,7 @@ struct TranscriptFontControls: View {
             Button {
                 size = max(range.lowerBound, size - 1)
             } label: {
-                Image(systemName: "textformat.size.smaller")
+                Image(systemName: "textformat.size.smaller").frame(width: 26, height: 24).contentShape(Rectangle())
             }
             .disabled(size <= range.lowerBound)
             .help("减小转写字号")
@@ -231,7 +232,7 @@ struct TranscriptFontControls: View {
             Button {
                 size = min(range.upperBound, size + 1)
             } label: {
-                Image(systemName: "textformat.size.larger")
+                Image(systemName: "textformat.size.larger").frame(width: 26, height: 24).contentShape(Rectangle())
             }
             .disabled(size >= range.upperBound)
             .help("增大转写字号")

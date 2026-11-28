@@ -31,11 +31,11 @@ struct PriorityReview: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("优先复核").font(.title2.bold())
+                Text("优先复核").font(.system(size: LFChrome.sheetTitleSize, weight: .semibold))
                 Spacer()
                 Button("完成") { dismiss() }.keyboardShortcut(.cancelAction)
             }
-            if let error { Text(error).foregroundStyle(.red).textSelection(.enabled) }
+            if let error { LFStatusBanner(error, tone: .failure).textSelection(.enabled) }
             if busy { ProgressView("正在读取本机资料…").controlSize(.small) }
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
@@ -47,7 +47,18 @@ struct PriorityReview: View {
                         Text(detail.candidate).font(.system(size: LFChrome.bodySize))
                             .lineSpacing(3).fixedSize(horizontal: false, vertical: true)
                         if !detail.changes.isEmpty {
-                            Text(detail.changes.joined(separator: "   ")).font(.body.monospaced())
+                            ViewThatFits(in: .horizontal) {
+                                HStack(spacing: 8) {
+                                    ForEach(Array(detail.changes.enumerated()), id: \.offset) { _, change in
+                                        LFReviewChange(change: change).fixedSize(horizontal: true, vertical: false)
+                                    }
+                                }
+                                VStack(alignment: .leading, spacing: 6) {
+                                    ForEach(Array(detail.changes.enumerated()), id: \.offset) { _, change in
+                                        LFReviewChange(change: change)
+                                    }
+                                }
+                            }.accessibilityElement(children: .contain).accessibilityLabel("英文改动")
                         }
 
                     } else if items.isEmpty && !busy && error == nil {
@@ -59,7 +70,7 @@ struct PriorityReview: View {
                             } label: {
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(String(format: "%.1f 秒 · %.2f 撤回词/秒", item.start, item.score))
-                                        .foregroundStyle(.secondary)
+                                        .foregroundStyle(palette.secondaryText)
                                     Text(item.original).lineLimit(2)
                                     Text(label(item.state)).font(.caption)
                                 }.frame(maxWidth: .infinity, alignment: .leading)
@@ -77,7 +88,7 @@ struct PriorityReview: View {
             }
         }
         .padding(20).frame(minWidth: 410, idealWidth: 550, minHeight: 320, idealHeight: 460)
-        .background(palette.canvas)
+        .background(palette.canvas).foregroundStyle(palette.bodyText)
         .tint(palette.accent)
         .task { await refresh() }
         .onDisappear { playback.stop() }
@@ -96,8 +107,7 @@ struct PriorityReview: View {
                 }.buttonStyle(.borderless).accessibilityIdentifier("priority-back")
             }
             if let message = playback.error {
-                Text(message).foregroundStyle(.red).font(.callout)
-                    .fixedSize(horizontal: false, vertical: true)
+                LFStatusBanner(message, tone: .failure)
             }
             HStack(spacing: 10) {
                 if detail.state == "ready" {
@@ -107,7 +117,7 @@ struct PriorityReview: View {
                         .accessibilityIdentifier("priority-ignore")
                 } else if detail.state == "same" {
                     Label("候选与原稿相同", systemImage: "equal.circle")
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(palette.secondaryText)
                 } else {
                     Button(detail.state == "accepted" ? "撤销接受" : "撤销忽略") {
                         Task { await act(selected, "undo") }

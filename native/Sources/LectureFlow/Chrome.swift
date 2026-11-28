@@ -27,6 +27,7 @@ enum LFChrome {
     static let windowMinHeight: CGFloat = 520
     static let readingMeasure: CGFloat = 680
 
+    static let sheetTitleSize: CGFloat = 20
     static let titleSize: CGFloat = 23
     static let sectionSize: CGFloat = 13
     static let bodySize: CGFloat = 14
@@ -49,6 +50,31 @@ struct EmptyPanel: View {
     var useAppIcon: Bool = false
 
     var body: some View {
+        GeometryReader { geometry in
+            if geometry.size.height < 210 {
+                ScrollView {
+                    HStack(alignment: .top, spacing: 12) {
+                        Image(systemName: systemImage)
+                            .font(.system(size: 24, weight: .medium))
+                            .foregroundStyle(palette.accentInk)
+                            .frame(width: 36, height: 36)
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text(title).font(.system(size: 15, weight: .semibold))
+                            Text(description).font(.system(size: 12)).foregroundStyle(palette.secondaryText)
+                                .fixedSize(horizontal: false, vertical: true)
+                            if let actionTitle, let action {
+                                Button(actionTitle, action: action).buttonStyle(.borderedProminent)
+                            }
+                        }
+                    }
+                    .padding(12).frame(maxWidth: 520, alignment: .leading)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                }
+            } else { fullContent }
+        }
+    }
+
+    private var fullContent: some View {
         ContentUnavailableView {
             Group {
                 if useAppIcon {
@@ -64,6 +90,7 @@ struct EmptyPanel: View {
                         .foregroundStyle(palette.accentInk)
                         .frame(width: 52, height: 52)
                         .background(palette.iconWell, in: RoundedRectangle(cornerRadius: LFChrome.radiusM, style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: LFChrome.radiusM).stroke(palette.accent.opacity(0.18)))
                 }
             }
             Text(title)
@@ -72,7 +99,7 @@ struct EmptyPanel: View {
         } description: {
             Text(description)
                 .font(.system(size: LFChrome.bodySize))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(palette.secondaryText)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 320)
         } actions: {
@@ -89,6 +116,7 @@ struct EmptyPanel: View {
 
 /// Lecture / audio row with ice icon well — flat, not a card.
 struct LFListRow<Leading: View, Trailing: View>: View {
+    @ThemePalette private var palette
     let title: String
     var subtitle: String? = nil
     @ViewBuilder var leading: () -> Leading
@@ -100,14 +128,14 @@ struct LFListRow<Leading: View, Trailing: View>: View {
             VStack(alignment: .leading, spacing: 3) {
                 Text(title)
                     .font(.system(size: LFChrome.bodySize, weight: .medium))
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(palette.bodyText)
                     .lineLimit(2)
                     .truncationMode(.tail)
                     .help(title)
                 if let subtitle, !subtitle.isEmpty {
                     Text(subtitle)
                         .font(.system(size: LFChrome.captionSize))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(palette.secondaryText)
                         .monospacedDigit()
                 }
             }
@@ -134,11 +162,12 @@ struct LFIconWell: View {
 }
 
 struct LFSectionLabel: View {
+    @ThemePalette private var palette
     let text: String
     var body: some View {
         Text(text)
             .font(.system(size: LFChrome.sectionSize, weight: .semibold))
-            .foregroundStyle(.secondary)
+            .foregroundStyle(palette.secondaryText)
             .tracking(0.2)
             .textCase(nil)
     }

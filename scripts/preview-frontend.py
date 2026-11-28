@@ -35,7 +35,10 @@ def main() -> None:
     parser.add_argument(
         "--baseline", action="store_true", help="Use tracked HEAD UI sources for comparison"
     )
+    parser.add_argument("--python", type=Path, default=ROOT / ".venv/bin/python")
     args = parser.parse_args()
+    interpreter = args.python.absolute()
+    assert interpreter.is_file(), "Supply an existing local interpreter with --python"
     assert args.name.replace("-", "").isalnum()
     root = ROOT / "dist/frontend-preview" / args.name
     project = root / "project"
@@ -76,9 +79,9 @@ def main() -> None:
             view_file.write_text(
                 view_file.read_text().replace(
                     "@Environment(\\.accessibilityReduceMotion) private var reduceMotion",
-                    'private var reduceMotion: Bool { '
+                    "private var reduceMotion: Bool { "
                     'CommandLine.arguments.contains("--floating-audit") || '
-                    'NSWorkspace.shared.accessibilityDisplayShouldReduceMotion }',
+                    "NSWorkspace.shared.accessibilityDisplayShouldReduceMotion }",
                 )
             )
     (project / "Package.swift").write_text("""// swift-tools-version: 5.10
@@ -145,17 +148,35 @@ extension LiveController {
         "Text(workspace.backend.paths.library.path)",
         'Text("/Preview/Library")',
     )
+    # Preview-only import isolation: reuse dependencies, never another checkout's package.
+    replace_once(
+        source / "RuntimePaths.swift",
+        'python = project.appendingPathComponent(".venv/bin/python")',
+        "python = URL(fileURLWithPath: " + json.dumps(str(interpreter)) + ")",
+    )
+    replace_once(
+        source / "RuntimePaths.swift",
+        'environment.removeValue(forKey: "PYTHONPATH")',
+        'environment["PYTHONPATH"] = ' + json.dumps(str(ROOT / "src")),
+    )
     runtime = root / "runtime"
     runtime.mkdir(parents=True, exist_ok=True)
-    if not (runtime / ".venv").exists():
-        (runtime / ".venv").symlink_to(ROOT / ".venv", target_is_directory=True)
     output = root / "evidence"
     output.mkdir(exist_ok=True)
     env = {
         **os.environ,
+        "PYTHONPATH": str(ROOT / "src"),
+        "PYTHONDONTWRITEBYTECODE": "1",
         "CLANG_MODULE_CACHE_PATH": str(ROOT / ".cache/clang"),
         "SWIFTPM_MODULECACHE_OVERRIDE": str(ROOT / ".cache/swift"),
     }
+    origin = subprocess.check_output(
+        [str(interpreter), "-c", "import lectureflow; print(lectureflow.__file__)"],
+        env=env,
+        text=True,
+    ).strip()
+    assert Path(origin).is_relative_to(ROOT / "src"), origin
+    print("Verified candidate backend import", flush=True)
     command = ["swift", "build", "-j", "2", "--disable-sandbox", "--package-path", str(project)]
     if not args.baseline:
         command += ["-Xswiftc", "-DISOLATION_PREVIEW", "-Xswiftc", "-DTHEME_PREVIEW"]
@@ -192,6 +213,7 @@ extension LiveController {
         "NSHighResolutionCapable": True,
         "LectureFlowProjectRoot": str(runtime),
         "PreviewRoot": str(root),
+        "PreviewSourceRoot": str(ROOT),
     }
     with (app / "Contents/Info.plist").open("wb") as stream:
         plistlib.dump(info, stream)

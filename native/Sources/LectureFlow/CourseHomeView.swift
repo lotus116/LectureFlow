@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct CourseHomeView: View {
+struct CourseHomeView<Status: View>: View {
     @ThemePalette private var palette
     @ObservedObject var workspace: Workspace
     let course: Course
@@ -8,6 +8,7 @@ struct CourseHomeView: View {
     var onStartNew: () -> Void
     var onCreateLecture: () -> Void
     var onImportAudio: () -> Void
+    @ViewBuilder var status: () -> Status
     @State private var documentCount = 0
     @State private var termCount = 0
 
@@ -26,7 +27,7 @@ struct CourseHomeView: View {
                             .help(course.name)
                         Text(metaLine)
                             .font(.system(size: LFChrome.captionSize))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(palette.secondaryText)
                     }
                     Spacer(minLength: LFChrome.space8)
                     Button {
@@ -39,6 +40,8 @@ struct CourseHomeView: View {
                     .help(termCount == 0 ? "管理课件与辅助术语" : "\(documentCount) 份资料 · \(termCount) 个术语")
                     .accessibilityLabel("课程资料，\(documentCount) 份")
                 }
+
+                status().padding(.top, LFChrome.space12)
 
                 ViewThatFits(in: .horizontal) {
                     HStack(spacing: LFChrome.space12) {
@@ -65,7 +68,7 @@ struct CourseHomeView: View {
                     EmptyPanel(
                         title: "还没有 Lecture",
                         systemImage: "waveform",
-                        description: "开始新 Lecture 即可采集。也可以先建空记录，或导入已有录音。"
+                        description: "录音与转写会保存在这里，课件可以随时添加。"
                     )
                 } else {
                     lectureList
@@ -74,7 +77,7 @@ struct CourseHomeView: View {
             .lfContentPadding()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(palette.canvas)
+        .background(palette.canvas).foregroundStyle(palette.bodyText)
         .task(id: course.id) { await loadCounts() }
         .onChange(of: workspace.overview.courses.map(\.id)) { _, _ in Task { await loadCounts() } }
     }
@@ -82,7 +85,7 @@ struct CourseHomeView: View {
     private var recordingMode: some View {
         Text(workspace.session.modeTitle)
             .font(.system(size: LFChrome.captionSize))
-            .foregroundStyle(.secondary)
+            .foregroundStyle(palette.secondaryText)
             .fixedSize(horizontal: false, vertical: true)
             .accessibilityLabel("记录方式：\(workspace.session.modeTitle)")
     }

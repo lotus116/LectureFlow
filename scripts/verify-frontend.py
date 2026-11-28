@@ -26,6 +26,7 @@ args = parser.parse_args()
 assert args.name.replace("-", "").isalnum()
 assert args.probe in (
     "--suite",
+    "--presentation-audit",
     "--classroom-flow",
     "--audit-only",
     "--floating-audit",

@@ -8,11 +8,12 @@ enum LFFloatingContrast {
     static let englishOpacity = 0.85
 }
 
+// `forest` remains the stored identifier for existing users; its light palette is now Amber.
 enum LFTheme: String, CaseIterable, Identifiable {
     case ice, forest
     static let preferenceKey = "colorTheme"
     var id: String { rawValue }
-    var title: String { self == .ice ? "冰蓝（默认）" : "暖石白 · 墨绿" }
+    var title: String { self == .ice ? "冰蓝（默认）" : "琥珀" }
     init(preference: String?) { self = LFTheme(rawValue: preference ?? "") ?? .ice }
 }
 
@@ -36,11 +37,14 @@ struct LFPalette {
     enum Role: CaseIterable {
         case accent, accentInk, ink, canvas, sidebar, panel, selection, recorder
         case recordSignal, saved, translation, floating
+        case warningInk, dangerInk, diffRemoved, diffAdded
     }
 
     func hex(_ role: Role) -> UInt32 {
         // Keep the complete legacy ice palette when no preference is saved.
         let ice: [Role: (UInt32, UInt32)] = [
+            .warningInk: (0x805412, 0xF3CB7A), .dangerInk: (0xAA273A, 0xFFADB5),
+            .diffRemoved: (0x9B2539, 0xFFADB5), .diffAdded: (0x205D3D, 0xA1DFB2),
             .accent: (0x2563EB, 0x3671DB), .accentInk: (0x1D4ED8, 0xB5D6FF),
             .ink: (0x17345C, 0xE5EEFF), .canvas: (0xF8FBFF, 0x101827),
             .sidebar: (0xEEF5FC, 0x0C1422), .panel: (0xFFFFFF, 0x172438),
@@ -49,12 +53,14 @@ struct LFPalette {
             .translation: (0x43546A, 0xC3D0E0), .floating: (0x0F141F, 0x0F141F)
         ]
         let forest: [Role: (UInt32, UInt32)] = [
-            .accent: (0x24634E, 0x38785F), .accentInk: (0x205840, 0xACDEC3),
-            .ink: (0x283D32, 0xE6EDE5), .canvas: (0xF8F6F0, 0x171D19),
-            .sidebar: (0xEBEEE5, 0x121A15), .panel: (0xFFFEFA, 0x202A23),
-            .selection: (0xD9E8DC, 0x2B4A38), .recorder: (0xEFF2E8, 0x28362B),
+            .warningInk: (0x805412, 0xF3CB7A), .dangerInk: (0xAA273A, 0xFFADB5),
+            .diffRemoved: (0x9B2539, 0xFFADB5), .diffAdded: (0x205D3D, 0xA1DFB2),
+            .accent: (0xB45309, 0x38785F), .accentInk: (0x92400E, 0xACDEC3),
+            .ink: (0x1C1410, 0xE6EDE5), .canvas: (0xFAF7F4, 0x171D19),
+            .sidebar: (0xEDE7DF, 0x121A15), .panel: (0xF4EFE8, 0x202A23),
+            .selection: (0xFAECD4, 0x2B4A38), .recorder: (0xFFF5E8, 0x28362B),
             .recordSignal: (0xE64D31, 0xFF8B69), .saved: (0x28724F, 0x92D3AC),
-            .translation: (0x4B5B4D, 0xC7D4C6), .floating: (0x141D17, 0x141D17)
+            .translation: (0x78614F, 0xC7D4C6), .floating: (0x141D17, 0x141D17)
         ]
         if increasedContrast {
             switch role {
@@ -72,6 +78,12 @@ struct LFPalette {
                      green: Double((value >> 8) & 255) / 255,
                      blue: Double(value & 255) / 255, opacity: 1)
     }
+    var bodyText: Color { theme == .forest && !dark ? ink : .primary }
+    var secondaryText: Color { theme == .forest && !dark ? transcriptTranslation : .secondary }
+    var warningInk: Color { color(.warningInk) }
+    var dangerInk: Color { color(.dangerInk) }
+    var diffRemoved: Color { color(.diffRemoved) }
+    var diffAdded: Color { color(.diffAdded) }
     var accent: Color { color(.accent) }
     var accentInk: Color { color(.accentInk) }
     var ink: Color { color(.ink) }
@@ -92,7 +104,12 @@ struct LFPalette {
     var dropHighlight: Color { accent.opacity(0.14) }
     var dropStroke: Color { accent.opacity(0.55) }
     var hairline: Color { Color.primary.opacity(increasedContrast ? 0.5 : 0.07) }
-    var rowHover: Color { accent.opacity(increasedContrast ? 0.18 : 0.08) }
+    var rowHover: Color {
+        if theme == .forest && !dark && !increasedContrast {
+            return Color(.sRGB, red: 245.0 / 255, green: 238.0 / 255, blue: 228.0 / 255)
+        }
+        return accent.opacity(increasedContrast ? 0.18 : 0.08)
+    }
     var iconWell: Color { accent.opacity(0.12) }
     var softStroke: Color { hairline }
 

@@ -53,7 +53,7 @@ struct BackgroundQueueView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
-                Text("后台任务").font(.title2.bold())
+                Text("后台任务").font(.system(size: LFChrome.sheetTitleSize, weight: .semibold))
                 Spacer()
                 Button("全部暂停") { Task { await pauseAll() } }
                     .disabled(working || !workspace.backgroundItems.contains { $0.active })
@@ -61,13 +61,13 @@ struct BackgroundQueueView: View {
             }
             Text("暂停保留进度；实时字幕优先时冲突任务会让路。")
                 .font(.system(size: LFChrome.captionSize))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(palette.secondaryText)
             List(workspace.backgroundItems) { item in
                 HStack(spacing: 12) {
                     Image(systemName: item.kind == "audio" ? "waveform" : "character.book.closed")
                     VStack(alignment: .leading, spacing: 4) {
                         Text(item.title + " · " + item.owner).lineLimit(1)
-                        Text("\(item.label) · \(item.done)/\(item.total)").font(.caption).foregroundStyle(.secondary)
+                        Text("\(item.label) · \(item.done)/\(item.total)").font(.caption).foregroundStyle(palette.secondaryText)
                     }
                     Spacer()
                     Button(item.active ? "暂停" : item.state == "failed" ? "重试" : "继续") {
@@ -81,7 +81,7 @@ struct BackgroundQueueView: View {
             }
             if working { ProgressView().controlSize(.small) }
         }.padding(22).frame(width: 680, height: 440)
-            .background(palette.canvas).tint(palette.accent)
+            .background(palette.canvas).foregroundStyle(palette.bodyText).tint(palette.accent)
             .alert("操作未完成", isPresented: Binding(get: { error != nil }, set: { if !$0 { error = nil } })) {
                 Button("知道了") { error = nil }
             } message: { Text(error ?? "") }

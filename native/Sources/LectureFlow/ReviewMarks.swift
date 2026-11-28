@@ -264,16 +264,16 @@ struct ReviewMarksView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
-                Label("复习标记", systemImage: "bookmark.fill").font(.title2.bold())
+                Label("复习标记", systemImage: "bookmark.fill").font(.system(size: LFChrome.sheetTitleSize, weight: .semibold))
                 Spacer()
                 Toggle("已移除", isOn: $store.showingRemoved).toggleStyle(.checkbox)
                 Button("刷新") { Task { await store.refresh(); store.loadDetail() } }
                 Button("完成") { dismiss() }.keyboardShortcut(.cancelAction)
             }
-            Text(workspace.lecture?.title ?? "Lecture").foregroundStyle(.secondary)
+            Text(workspace.lecture?.title ?? "Lecture").foregroundStyle(palette.secondaryText)
             if let error = store.error {
                 HStack {
-                    Text(error).foregroundStyle(.red).textSelection(.enabled)
+                    LFStatusBanner(error, tone: .failure).textSelection(.enabled)
                     if store.hasUnsavedChanges { Button("重试保存") { store.retryFailed() }.disabled(store.saving) }
                 }.font(.callout)
             }
@@ -290,7 +290,7 @@ struct ReviewMarksView: View {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(reviewClock(mark.capture_time)).monospacedDigit().fontWeight(.medium)
                                 Text(reviewDate(mark.created_at))
-                                    .font(.caption).foregroundStyle(.secondary)
+                                    .font(.caption).foregroundStyle(palette.secondaryText)
                             }
                             Spacer()
                         }
@@ -302,7 +302,7 @@ struct ReviewMarksView: View {
             }
         }
         .padding(20).frame(minWidth: 620, idealWidth: 760, minHeight: 400, idealHeight: 540)
-        .background(palette.canvas).tint(palette.accent)
+        .background(palette.canvas).foregroundStyle(palette.bodyText).tint(palette.accent)
         .task { await store.refresh(); store.loadDetail() }
         .onDisappear { playback.stop() }
         .onReceive(store.$detail) { updated in
@@ -346,12 +346,12 @@ struct ReviewMarksView: View {
                             playback.playReview(audio, markID: detail.mark.id)
                         }.disabled(workspace.live.isCapturing)
                         Text(workspace.live.isCapturing ? "结束采集后可回听" : audio.last_end != nil ? "播放所示字幕对应的原音" : "从标记前\(Int(audio.pre_roll_seconds))秒开始")
-                            .font(.caption).foregroundStyle(.secondary)
+                            .font(.caption).foregroundStyle(palette.secondaryText)
                     }
                 } else {
-                    Text(detail.audio_message).font(.callout).foregroundStyle(.secondary)
+                    Text(detail.audio_message).font(.callout).foregroundStyle(palette.secondaryText)
                 }
-                if let error = playback.error { Text(error).foregroundStyle(.red) }
+                if let error = playback.error { LFStatusBanner(error, tone: .failure) }
                 ReviewSpellingView(backend: workspace.backend, detail: detail)
                     .id(detail.mark.id)
                 Spacer(minLength: 0)
@@ -363,7 +363,7 @@ struct ReviewMarksView: View {
             }.padding(.leading, 14)
         } else {
             Text(store.selectedID == nil ? "选择一个标记开始复习" : "正在查找对应内容…")
-                .foregroundStyle(.secondary)
+                .foregroundStyle(palette.secondaryText)
         }
     }
 }

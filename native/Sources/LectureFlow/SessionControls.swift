@@ -48,11 +48,7 @@ struct SessionControlBar: View {
             }
 
             if let notice = inlineNotice {
-                Text(notice)
-                    .font(.system(size: LFChrome.captionSize))
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                LFStatusBanner(notice, tone: noticeTone)
                     .accessibilityIdentifier("session-notice")
             }
 
@@ -65,7 +61,7 @@ struct SessionControlBar: View {
             HStack(spacing: 10) {
                 if readingMode {
                     Text(workspace.session.modeTitle)
-                        .font(.caption).foregroundStyle(.secondary)
+                        .font(.caption).foregroundStyle(palette.secondaryText)
                         .lineLimit(2).fixedSize(horizontal: false, vertical: true)
                 }
                 if !workspace.session.desired.needsASR && !hasLiveCaptionControls {
@@ -77,7 +73,7 @@ struct SessionControlBar: View {
                 .disabled(workspace.lecture == nil || workspace.isExiting)
                 .accessibilityIdentifier("review-marks-open")
                 if let feedback = workspace.reviews.feedback {
-                    Text(feedback).font(.caption).foregroundStyle(.secondary)
+                    Text(feedback).font(.caption).foregroundStyle(palette.secondaryText)
                 }
                 if workspace.reviews.hasUnsavedChanges && !workspace.reviews.saving {
                     Button("重试保存标记") { workspace.reviews.retryFailed() }
@@ -112,7 +108,7 @@ struct SessionControlBar: View {
             TimelineView(.periodic(from: .now, by: 0.5)) { _ in
                 Text(clock(workspace.session.duration(at: ProcessInfo.processInfo.systemUptime)))
                     .font(.system(size: compact ? 26 : 34, weight: .semibold).monospacedDigit())
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(palette.bodyText)
                     .fixedSize(horizontal: true, vertical: true)
                     .accessibilityLabel("采集计时")
             }
@@ -151,11 +147,11 @@ struct SessionControlBar: View {
                     case .running, .preparing:
                         Image(systemName: "pause.fill")
                             .font(.system(size: readingMode ? 12 : 17, weight: .semibold))
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(palette.bodyText)
                     case .paused:
                         Image(systemName: "play.fill")
                             .font(.system(size: readingMode ? 12 : 17, weight: .semibold))
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(palette.bodyText)
                             .offset(x: 1)
                     }
                 }
@@ -179,7 +175,7 @@ struct SessionControlBar: View {
             VStack(spacing: 4) {
                 ZStack {
                     Circle()
-                        .strokeBorder(Color.primary.opacity(0.5), lineWidth: 2.5)
+                        .strokeBorder(palette.dangerInk.opacity(0.75), lineWidth: 2.5)
                         .frame(width: transportSize, height: transportSize)
                     RoundedRectangle(cornerRadius: 3, style: .continuous)
                         .fill(palette.recordSignal)
@@ -188,6 +184,7 @@ struct SessionControlBar: View {
                 .frame(width: transportSize, height: transportSize)
                 Text("结束 Lecture")
                     .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(palette.dangerInk)
             }
             .contentShape(Rectangle())
         }
@@ -229,7 +226,7 @@ struct SessionControlBar: View {
                 .frame(width: 7, height: 7)
             Text(status)
                 .font(.system(size: LFChrome.captionSize, weight: .semibold))
-                .foregroundStyle(.primary)
+                .foregroundStyle(palette.bodyText)
                 .lineLimit(1)
         }
         .accessibilityElement(children: .combine)
@@ -242,7 +239,7 @@ struct SessionControlBar: View {
             }
             Text(audioHint)
                 .font(.system(size: LFChrome.captionSize))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(palette.secondaryText)
                 .lineLimit(1)
                 .truncationMode(.tail)
         }
@@ -286,7 +283,7 @@ struct SessionControlBar: View {
             endedStatusLabel
             Text("最近采集 " + clock(workspace.session.duration(at: ProcessInfo.processInfo.systemUptime)))
                 .font(.system(size: LFChrome.captionSize).monospacedDigit())
-                .foregroundStyle(.secondary)
+                .foregroundStyle(palette.secondaryText)
         }
     }
 
@@ -319,6 +316,7 @@ struct SessionControlBar: View {
                     .disabled(workspace.lecture?.segments.isEmpty != false || workspace.busy || live.pendingSaves > 0)
             }
         }
+        .buttonStyle(.bordered).controlSize(.regular)
         .fixedSize(horizontal: true, vertical: false)
     }
 
@@ -341,6 +339,14 @@ struct SessionControlBar: View {
     private var audioHint: String {
         if !workspace.session.desired.recording { return "不保存音频 · \(workspace.session.modeTitle)" }
         return workspace.session.modeTitle
+    }
+
+    private var noticeTone: LFStatusTone {
+        if live.recoveryExhausted { return .failure }
+        if workspace.captionsWaiting { return .information }
+        // Opaque backend text remains unchanged; classify only its visual emphasis.
+        if let notice = inlineNotice, notice.contains("中断") || notice.contains("恢复") { return .attention }
+        return live.pendingSaves > 0 ? .working : .information
     }
 
     private var secondaryDetail: String? {

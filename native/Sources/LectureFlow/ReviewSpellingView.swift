@@ -75,7 +75,7 @@ struct ReviewSpellingView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
                 if detail.captions.isEmpty {
-                    Text("此位置暂无已保存字幕。").foregroundStyle(.secondary)
+                    Text("此位置暂无已保存字幕。").foregroundStyle(palette.secondaryText)
                 }
                 ForEach(detail.captions) { line in
                     Button {
@@ -83,7 +83,7 @@ struct ReviewSpellingView: View {
                     } label: {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(line.id == detail.target_caption_id ? "标记时的当前句" : "上一句")
-                                .font(.caption).foregroundStyle(.secondary)
+                                .font(.caption).foregroundStyle(palette.secondaryText)
                             if !line.english.isEmpty { Text(line.english).lineSpacing(3) }
                             if !line.chinese.isEmpty {
                                 Text(line.chinese).foregroundStyle(palette.transcriptTranslation).lineSpacing(3)
@@ -109,21 +109,21 @@ struct ReviewSpellingView: View {
                         }
                     }
                     if let error = materialError {
-                        Text(error).foregroundStyle(.red)
+                        LFStatusBanner(error, tone: .failure)
                         Button("重新读取课件") { retry += 1 }
                     } else if ready && documents.isEmpty {
-                        Text("可在所属课程的资料中导入 PPT 或 PDF。").foregroundStyle(.secondary)
+                        Text("可在所属课程的资料中导入 PPT 或 PDF。").foregroundStyle(palette.secondaryText)
                     } else if let selected, selected.english.isEmpty {
-                        Text("这句没有保存英文，无法查英文拼写。").foregroundStyle(.secondary)
+                        Text("这句没有保存英文，无法查英文拼写。").foregroundStyle(palette.secondaryText)
                     } else if let query {
                         if !words.isEmpty { wordPicker }
                         if completed != query { ProgressView("正在查课件…") }
                         else if let error = lookupError {
-                            Text(error).foregroundStyle(.red)
+                            LFStatusBanner(error, tone: .failure)
                             Button("重新查找") { retry += 1 }
                         } else if let hits { results(hits) }
                     } else if ready {
-                        Text("回听后，点要核对的那一句。").foregroundStyle(.secondary)
+                        Text("回听后，点要核对的那一句。").foregroundStyle(palette.secondaryText)
                     }
                 }
             }.frame(maxWidth: .infinity, alignment: .leading)
@@ -187,7 +187,7 @@ struct ReviewSpellingView: View {
             Text(s.line).textSelection(.enabled)
             source(s.source)
         } else {
-            Text("没有找到足够明确的拼写依据。").foregroundStyle(.secondary)
+            Text("没有找到足够明确的拼写依据。").foregroundStyle(palette.secondaryText)
         }
         let others = result.pages.filter { $0.id != result.spelling?.source.id }
         if !others.isEmpty {

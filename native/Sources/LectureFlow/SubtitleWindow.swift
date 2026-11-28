@@ -218,6 +218,9 @@ private struct FloatingSubtitlesRoot: View {
                     .help(compactStatus)
             }
         }
+        .font(.system(size: 11, weight: .medium))
+        .padding(.horizontal, includeText ? 6 : 2).padding(.vertical, 3)
+        .background(.white.opacity(includeText ? 0.12 : 0), in: Capsule())
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(compactStatus)
     }

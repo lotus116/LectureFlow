@@ -167,12 +167,14 @@ struct PreviewAnchor: NSViewRepresentable {
         clickAnchor("caption-actions")
         await settle()
         guard let sheet = main.sheets.first else {
-            print("UNVERIFIED: native transcript menu selection did not open priority sheet"); return
+            throw BackendError.unavailable("Native transcript menu did not open priority sheet")
         }
-        try await snapshot("31-priority-user-entry", window: sheet)
-        clickAnchor("priority-item-preview-0", window: sheet)
+        try await snapshot(UserDefaults.standard.bool(forKey: "previewDark") ? "66-priority-dark-list" : "31-priority-user-entry", window: sheet)
+        guard clickAnchor("priority-item-preview-0", window: sheet) else {
+            throw BackendError.unavailable("Synthetic priority item was not reachable through the user entry")
+        }
         await settle()
-        try await snapshot("32-priority-user-compare", window: sheet)
+        try await snapshot(UserDefaults.standard.bool(forKey: "previewDark") ? "67-priority-dark-compare" : "32-priority-user-compare", window: sheet)
         auditKey(53, characters: "\u{1b}", window: sheet)
         await settle()
         print("AUDIT priority Escape dismissed=\(main.sheets.isEmpty) playbackStopped=\(workspace.playback.reviewID == nil)")
@@ -184,7 +186,7 @@ struct PreviewAnchor: NSViewRepresentable {
         do {
             await settle(2)
             await workspace.refresh()
-            guard let course = workspace.overview.courses.first, let lecture = course.lectures.first else {
+            guard let course = workspace.overview.courses.first(where: { $0.name == "合成课程 · 课堂阅读" }), let lecture = course.lectures.first else {
                 throw BackendError.unavailable("No existing synthetic fixture")
             }
             workspace.selectCourse(course.id)
@@ -314,6 +316,7 @@ struct PreviewAnchor: NSViewRepresentable {
 
 @MainActor extension PreviewSuite {
     func snapshotWhiteBackdrop(_ name: String, window: NSWindow) async throws {
+        window.orderFrontRegardless()
         await settle()
         let windows = CGWindowListCopyWindowInfo(.optionAll, kCGNullWindowID) as? [[String: Any]] ?? []
         guard let info = windows.first(where: { ($0[kCGWindowNumber as String] as? Int) == window.windowNumber }),
@@ -341,7 +344,7 @@ struct PreviewAnchor: NSViewRepresentable {
         do {
             await settle(2)
             await workspace.refresh()
-            guard let course = workspace.overview.courses.first, let lecture = course.lectures.first else {
+            guard let course = workspace.overview.courses.first(where: { $0.name == "合成课程 · 课堂阅读" }), let lecture = course.lectures.first else {
                 throw BackendError.unavailable("No synthetic lecture for floating audit")
             }
             workspace.selectCourse(course.id); workspace.selectLecture(lecture.id)
@@ -354,8 +357,12 @@ struct PreviewAnchor: NSViewRepresentable {
             backdrop.isReleasedWhenClosed = false
             backdrop.backgroundColor = .white
             backdrop.isOpaque = true
-            backdrop.contentView = NSHostingView(rootView: Color.white)
-            backdrop.makeKeyAndOrderFront(nil)
+            let white = NSView(frame: NSRect(x: 0, y: 0, width: 380, height: 650))
+            white.wantsLayer = true
+            white.layer?.backgroundColor = NSColor.white.cgColor
+            backdrop.contentView = white
+            backdrop.level = NSWindow.Level(rawValue: NSWindow.Level.statusBar.rawValue - 1)
+            backdrop.orderFrontRegardless()
             let keyBefore = NSApp.keyWindow
             workspace.openSubtitles()
             await settle()
@@ -401,8 +408,8 @@ struct PreviewAnchor: NSViewRepresentable {
                 floating.orderFrontRegardless()
                 try await snapshot("52-\(theme)-floating-local-render", window: floating)
                 try await snapshotWhiteBackdrop("50-\(theme)-white-min-opacity", window: backdrop)
-                // Show old English text too, still at maximum font and minimum width.
-                scroll.contentView.scroll(to: NSPoint(x: 0, y: 650))
+                // Scroll within the existing bilingual mode to inspect old English.
+                scroll.contentView.scroll(to: NSPoint(x: 0, y: 420))
                 scroll.reflectScrolledClipView(scroll.contentView)
                 await settle()
                 try await snapshotWhiteBackdrop("51-\(theme)-white-old-english", window: backdrop)
@@ -427,5 +434,73 @@ struct PreviewAnchor: NSViewRepresentable {
             print("FAIL: \(error)"); fflush(stdout)
             await workspace.prepareForExit(); exit(1)
         }
+    }
+}
+
+
+@MainActor extension PreviewSuite {
+    func anchorVisible(_ id: String) -> Bool {
+        PreviewAnchors.views[id, default: []].compactMap(\.view).contains {
+            $0.window == main && !$0.isHiddenOrHasHiddenAncestor && !$0.visibleRect.isEmpty
+        }
+    }
+    func runPresentationAudit() async {
+        do {
+            await settle(2)
+            await workspace.refresh()
+            guard let course = workspace.overview.courses.first(where: { $0.name == "合成课程 · 课堂阅读" }),
+                  let lecture = course.lectures.first else { throw BackendError.unavailable("Missing synthetic fixture") }
+            workspace.selectCourse(course.id); workspace.selectLecture(lecture.id)
+            await settle(1)
+            main.setContentSize(NSSize(width: 740, height: 520))
+            clickAnchor("content-tab-audio"); await settle()
+            guard !anchorVisible("caption-search"), !anchorVisible("transcript-source-live") else {
+                throw BackendError.unavailable("Audio tab exposed transcript-only controls")
+            }
+            try await snapshot("60-navigation-audio")
+            clickAnchor("content-tab-transcript"); await settle()
+            guard anchorVisible("transcript-source-live"), anchorVisible("transcript-source-offline") else {
+                throw BackendError.unavailable("Transcript tab lost its subordinate source controls")
+            }
+            clickAnchor("transcript-source-live"); await settle()
+            guard anchorVisible("caption-search") else { throw BackendError.unavailable("Live source did not open") }
+            try await snapshot("61-navigation-live")
+            clickAnchor("transcript-source-offline"); await settle()
+            guard !anchorVisible("caption-search"), anchorVisible("transcript-source-live") else {
+                throw BackendError.unavailable("Offline source changed the primary navigation")
+            }
+            try await snapshot("62-navigation-offline")
+            clickAnchor("transcript-source-live"); await settle()
+            guard workspace.lecture?.id == lecture.id else { throw BackendError.unavailable("Navigation changed the lecture") }
+            try await checkPriorityEntry()
+            UserDefaults.standard.set(true, forKey: "previewDark")
+            await settle()
+            try await checkPriorityEntry()
+            UserDefaults.standard.set(false, forKey: "previewDark")
+            let sample = NSWindow(contentRect: NSRect(x: 180, y: 180, width: 360, height: 390),
+                styleMask: [.titled, .closable], backing: .buffered, defer: false)
+            sample.isReleasedWhenClosed = false; sample.title = "合成状态与差异样例"
+            sample.contentView = NSHostingView(rootView: VStack(alignment: .leading, spacing: 12) {
+                LFStatusBanner(message: "本地模型尚未就绪", tone: .information) { Button("继续下载") {} }
+                LFStatusBanner("字幕处理中断，正在自动恢复；少量译文可能未完成，可用录音课后转写。This long synthetic message must wrap without losing its final sentence.", tone: .attention)
+                LFStatusBanner("合成错误：本次操作未完成。已有录音保留。", tone: .failure)
+                LFReviewChange(change: "- original observations")
+                LFReviewChange(change: "+ revised measurements with a deliberately long phrase")
+            }.padding(16).frame(width: 360, height: 390, alignment: .topLeading))
+            sample.setContentSize(NSSize(width: 360, height: 390))
+            sample.makeKeyAndOrderFront(nil)
+            for theme in ["ice", "forest"] {
+                UserDefaults.standard.set(theme, forKey: LFTheme.preferenceKey)
+                sample.appearance = NSAppearance(named: .aqua)
+                try await snapshot("64-\(theme)-adaptive-status-light", window: sample)
+                sample.appearance = NSAppearance(named: .darkAqua)
+                try await snapshot("65-\(theme)-adaptive-status-dark", window: sample)
+            }
+            sample.close()
+            UserDefaults.standard.set("ice", forKey: LFTheme.preferenceKey)
+            print("PASS: independent primary tabs/source switches; same lecture; long status and diff component windows")
+            fflush(stdout)
+            await workspace.prepareForExit(); NSApp.terminate(nil)
+        } catch { print("FAIL: \(error)"); fflush(stdout); await workspace.prepareForExit(); exit(1) }
     }
 }

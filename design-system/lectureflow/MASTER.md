@@ -28,7 +28,7 @@
 | Record | `#E64D31` | `#FF8B69` | Existing capture signal |
 | Caution | system orange | system orange | Pause / attention |
 
-**Do not use:** teal wash, orange CTA, neon, glass over transcripts, full-page gradients, emoji icons.
+**Do not use:** teal wash, neon, glass over transcripts, full-page gradients, emoji icons. Ice retains its blue CTA; the authorized Amber alternative uses its own warm accent.
 
 ### Typography
 
@@ -86,11 +86,26 @@ Evidence and remaining limits: [native frontend review](../../docs/design/FRONTE
 
 ## Two light palettes · 2026-11-28
 
-Ice remains the default without migration. The optional warm-stone / forest palette is now
-implemented under the user's authorization for Codex to finish the design; no external-review gate remains.
-Semantic colors live in `Theme.swift`; geometry and typography remain in `LFChrome`.
-No system/light/dark selector is added. Dark floating subtitles retain adjustable translucent edges,
-with a local contrast floor behind text and controls. Streaming updates never animate scrolling.
+Ice remains the Cirno-inspired default with its exact existing colors. The optional light palette is
+Opus-directed **Amber / 琥珀**, replacing warm-stone / forest while retaining the stored `forest` identifier.
+No migration or system/light/dark selector is added. The existing alternative dark palette and dark
+floating backing remain unchanged. Semantic colors live in `Theme.swift`; geometry and typography in `LFChrome`.
 
-Use the [surface inventory](../../docs/design/UI-SURFACES-2026-11-28.md) for primary, secondary and destructive
-controls, and [theme validation](../../docs/design/THEMES.md) for evidence and limits.
+Amber light: canvas `#FAF7F4`, sidebar `#EDE7DF`, panel `#F4EFE8`, selection `#FAECD4`, recorder `#FFF5E8`,
+accent `#B45309`, link `#92400E`, body `#1C1410`, secondary/translation `#78614F`, hover `#F5EEE4`.
+Use `bodyText`/`secondaryText` for the alternative light palette; keep Ice and existing dark system labels.
+Do not reuse the rejected low-contrast metadata proposal `#9C7B65`.
+
+`LFStatusBanner`: 13-point text; adaptive horizontal/stacked actions; 10×8 inset; no fixed height.
+Information/working use a quiet neutral surface, attention/error add a semantic marker and symbol.
+`LFReviewChange`: 13-point monospaced text, wrapping +/- content, explicit accessible added/removed labels.
+Diff semantic inks are independent of theme accents; recording/end remain red.
+Primary content tabs (audio/transcript) are distinct from subordinate transcript source choices.
+Sheet titles use 20-point semibold; native grouped forms, menus and confirmation panels remain native.
+
+Dark floating subtitles retain adjustable translucent edges with a local contrast floor behind text
+and controls. Streaming updates never animate scrolling. No new motion was added this round.
+
+Use the [surface inventory](../../docs/design/UI-SURFACES-2026-11-28.md),
+[theme specification](../../docs/design/THEMES.md), and
+[current implementation and evidence](../../docs/design/OPUS-FRONTEND-2026-11-28.md).

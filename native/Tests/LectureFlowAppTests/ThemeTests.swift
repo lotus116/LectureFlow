@@ -63,6 +63,20 @@ final class ThemeTests: XCTestCase {
         }
     }
 
+    func testAmberKeepsLegacySelectionAndDarkFloatingPalette() {
+        XCTAssertEqual(LFTheme(preference: "forest").title, "琥珀")
+        let light = LFPalette(theme: .forest, dark: false)
+        let expected: [LFPalette.Role: UInt32] = [.accent: 0xB45309, .accentInk: 0x92400E,
+            .ink: 0x1C1410, .translation: 0x78614F, .canvas: 0xFAF7F4, .sidebar: 0xEDE7DF,
+            .panel: 0xF4EFE8, .selection: 0xFAECD4, .recorder: 0xFFF5E8]
+        for (role, value) in expected { XCTAssertEqual(light.hex(role), value) }
+        let dark = LFPalette(theme: .forest, dark: true)
+        XCTAssertEqual(dark.hex(.accent), 0x38785F)
+        XCTAssertEqual(dark.hex(.canvas), 0x171D19)
+        XCTAssertEqual(dark.hex(.floating), 0x141D17)
+        XCTAssertEqual(light.hex(.recordSignal), 0xE64D31)
+    }
+
     private func ratio(_ a: UInt32, _ b: UInt32) -> Double {
         func luminance(_ hex: UInt32) -> Double {
             let channels = [16, 8, 0].map { shift -> Double in

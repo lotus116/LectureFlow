@@ -12,6 +12,9 @@ import SwiftUI
     init() {
         let root = Bundle.main.object(forInfoDictionaryKey: "PreviewRoot") as! String
         setenv("LECTUREFLOW_PROJECT_ROOT", root + "/runtime", 1)
+        let sourceRoot = Bundle.main.object(forInfoDictionaryKey: "PreviewSourceRoot") as! String
+        setenv("PYTHONPATH", sourceRoot + "/src", 1)
+        setenv("PYTHONDONTWRITEBYTECODE", "1", 1)
         let library: String
         if CommandLine.arguments.contains("--suite") {
             UserDefaults.standard.set("ice", forKey: "colorTheme")
@@ -42,6 +45,9 @@ import SwiftUI
                     #if THEME_PREVIEW
                     if CommandLine.arguments.contains("--floating-audit") {
                         Task { await PreviewSuite(workspace).runFloatingAudit() }
+                    }
+                    if CommandLine.arguments.contains("--presentation-audit") {
+                        Task { await PreviewSuite(workspace).runPresentationAudit() }
                     }
                     if CommandLine.arguments.contains("--classroom-flow") {
                         Task { await PreviewSuite(workspace).runClassroomFlow() }

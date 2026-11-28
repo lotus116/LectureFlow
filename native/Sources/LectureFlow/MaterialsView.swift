@@ -106,7 +106,7 @@ struct MaterialsView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Text("\(materials.documents.count) 份课程资料 · \(materials.documents.reduce(0) { $0 + $1.page_count }) 页 · \(activeTerms) 个辅助术语")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .font(.caption).foregroundStyle(palette.secondaryText)
                 Spacer()
                 Menu {
                     Toggle("PDF 强制 OCR", isOn: $forceOCR)
@@ -119,7 +119,7 @@ struct MaterialsView: View {
             }
             Text("本课程共享 · 自动术语，相关时辅助识别与翻译")
                 .font(.system(size: LFChrome.captionSize))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(palette.secondaryText)
             if working { HStack { ProgressView().controlSize(.mini); Text(progress) }.font(.caption) }
             if let report = importReport { importSummary(report) }
             HSplitView {
@@ -129,7 +129,7 @@ struct MaterialsView: View {
                         ForEach(materials.documents) { document in
                             VStack(alignment: .leading, spacing: 3) {
                                 Text(document.original_name).lineLimit(2)
-                                Text("\(document.page_count) 页").font(.caption2).foregroundStyle(.secondary)
+                                Text("\(document.page_count) 页").font(.caption2).foregroundStyle(palette.secondaryText)
                             }.padding(.vertical, 4).tag(Optional(document.id))
                                 .contextMenu {
                                     Button("查看文字") { previewing = document }
@@ -214,11 +214,11 @@ struct MaterialsView: View {
                         }
                         ForEach(document.outline.prefix(80)) { entry in
                             HStack(alignment: .top, spacing: 8) {
-                                Text("\(entry.page)").font(.caption.monospaced()).foregroundStyle(.secondary).frame(width: 28, alignment: .trailing)
+                                Text("\(entry.page)").font(.caption.monospaced()).foregroundStyle(palette.secondaryText).frame(width: 28, alignment: .trailing)
                                 Text(entry.title.isEmpty ? "本页无可提取文字" : entry.title).lineLimit(2)
                             }
                         }
-                        if document.outline.count > 80 { Text("其余页面可在提取文字中查看").font(.caption).foregroundStyle(.secondary) }
+                        if document.outline.count > 80 { Text("其余页面可在提取文字中查看").font(.caption).foregroundStyle(palette.secondaryText) }
                     }
                     .padding(.vertical, LFChrome.space12)
                     Divider().opacity(0.5)
@@ -239,7 +239,7 @@ struct MaterialsView: View {
                 Button(selectedTerms.count == visibleTerms.count && !visibleTerms.isEmpty ? "取消全选" : "全选") {
                     selectedTerms = selectedTerms.count == visibleTerms.count ? [] : Set(visibleTerms.map(\.id))
                 }
-                Text("\(selectedTerms.count) 项").font(.caption).foregroundStyle(.secondary)
+                Text("\(selectedTerms.count) 项").font(.caption).foregroundStyle(palette.secondaryText)
                 Spacer(minLength: 0)
                 Button("补全中文") { Task { await batch("translate") } }.disabled(selectedTerms.isEmpty || working)
                 Menu {
@@ -259,21 +259,21 @@ struct MaterialsView: View {
                 TableColumn("状态") { term in
                     Text(term.status).font(.caption).foregroundStyle(term.excluded == 1 ? Color.secondary : Color.teal)
                 }.width(90)
-                TableColumn("出处") { term in Text(source(term)).font(.caption).foregroundStyle(.secondary).help(source(term)) }.width(min: 70, ideal: 120)
+                TableColumn("出处") { term in Text(source(term)).font(.caption).foregroundStyle(palette.secondaryText).help(source(term)) }.width(min: 70, ideal: 120)
             }
             Text("英文按相关性辅助拼写；自动译名仅供参考，不约束翻译。课件中英对照及人工校正才参与翻译。双击编辑，停用后不再参与。")
-                .font(.caption2).foregroundStyle(.secondary)
+                .font(.caption2).foregroundStyle(palette.secondaryText)
         }
     }
 
     private var termEditor: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("编辑辅助术语").font(.title2.bold())
+            Text("编辑辅助术语").font(.system(size: LFChrome.sheetTitleSize, weight: .semibold))
             TextField("英文术语或缩写", text: $english).textFieldStyle(.roundedBorder)
             TextField("中文对照（可留空）", text: $chinese).textFieldStyle(.roundedBorder)
             if let term = materials.terms.first(where: { $0.id == editID }) {
-                Text(source(term)).font(.caption).foregroundStyle(.secondary)
-                if !term.definition.isEmpty { Text(term.definition).font(.callout).foregroundStyle(.secondary).textSelection(.enabled) }
+                Text(source(term)).font(.caption).foregroundStyle(palette.secondaryText)
+                if !term.definition.isEmpty { Text(term.definition).font(.callout).foregroundStyle(palette.secondaryText).textSelection(.enabled) }
             }
             HStack { Spacer(); Button("取消") { editing = false }
                 Button("保存") {
@@ -296,14 +296,15 @@ struct MaterialsView: View {
             HStack {
                 Image(systemName: "character.book.closed")
                 Text(job.state == "queued" && !workspace.hasModel("translate") ? "等待下载本地翻译模型" : job.label)
-                Text("\(job.next_unit)/\(job.total_units)").monospacedDigit().foregroundStyle(.secondary)
+                Text("\(job.next_unit)/\(job.total_units)").monospacedDigit().foregroundStyle(palette.secondaryText)
                 Spacer()
                 if ["queued", "running"].contains(job.state) { Button("暂停") { Task { await control(job, "pause") } } }
                 if ["paused", "failed"].contains(job.state) { Button(job.state == "paused" ? "继续" : "重试") { Task { await control(job, job.state == "paused" ? "resume" : "retry") } } }
                 if ["queued", "running", "paused", "failed"].contains(job.state) { Button("取消") { Task { await control(job, "cancel") } } }
             }.font(.caption)
             if job.state == "running" { ProgressView(value: Double(job.next_unit) / Double(max(1, job.total_units))).controlSize(.mini) }
-            if let error = job.error { Text(error).font(.caption2).foregroundStyle(.red).lineLimit(2) }
+            if let error = job.error { Label(error, systemImage: "exclamationmark.triangle").font(.caption)
+                .foregroundStyle(.red).fixedSize(horizontal: false, vertical: true) }
         }
     }
     private func reload() async {
