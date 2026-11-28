@@ -1,8 +1,9 @@
 """Build a separate native UI preview; fixtures and capture stay local and synthetic.
 
 The copied app retains the real views, session controller, writer, storage and
-playback. Only its microphone input is replaced with silent PCM. No inference or
-downloads are started. These substitutions never enter the product sources.
+playback. Only its microphone input is replaced with generated PCM (silent by
+default). No inference or downloads are started. These substitutions never enter
+the product sources.
 """
 
 from __future__ import annotations
@@ -67,7 +68,7 @@ def main() -> None:
                     continue
                 file.write_bytes(
                     subprocess.check_output(
-                        ["git", "show", "HEAD:native/Sources/" + module + "/" + file.name], cwd=ROOT
+                        ["git", "show", tracked], cwd=ROOT
                     )
                 )
     shutil.copy2(ROOT / "scripts/frontend-preview.swift", source / "FrontendPreview.swift")

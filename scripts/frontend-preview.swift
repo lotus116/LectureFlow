@@ -16,7 +16,7 @@ import SwiftUI
         setenv("PYTHONPATH", sourceRoot + "/src", 1)
         setenv("PYTHONDONTWRITEBYTECODE", "1", 1)
         let library: String
-        if CommandLine.arguments.contains("--suite") || CommandLine.arguments.contains("--layout-audit") {
+        if CommandLine.arguments.contains("--suite") || CommandLine.arguments.contains("--layout-audit") || CommandLine.arguments.contains("--interaction-audit") {
             UserDefaults.standard.set("ice", forKey: "colorTheme")
             library = root + "/runtime/Library-" + UUID().uuidString
             UserDefaults.standard.set(library, forKey: "previewLibraryPath")
@@ -48,6 +48,24 @@ import SwiftUI
                     #if THEME_PREVIEW
                     if CommandLine.arguments.contains("--floating-audit") {
                         Task { await PreviewSuite(workspace).runFloatingAudit() }
+                    }
+                    if CommandLine.arguments.contains("--verify-sidebar-persistence") {
+                        Task {
+                            let suite = PreviewSuite(workspace)
+                            await suite.settle(2)
+                            suite.main.setContentSize(NSSize(width: 1080, height: 700)); await suite.settle()
+                            guard UserDefaults.standard.double(forKey: "librarySidebarWidth") == 280,
+                                  let divider = suite.sidebarDivider(),
+                                  (divider.accessibilityValue() as? NSNumber)?.doubleValue == 280 else {
+                                print("FAIL: persisted sidebar width not restored after restart"); fflush(stdout); exit(1)
+                            }
+                            print("PASS: sidebar width 280 re-read and rendered after process restart")
+                            UserDefaults.standard.removeObject(forKey: "librarySidebarWidth")
+                            fflush(stdout); await workspace.prepareForExit(); exit(0)
+                        }
+                    }
+                    if CommandLine.arguments.contains("--interaction-audit") {
+                        Task { await PreviewSuite(workspace).runInteractionAudit() }
                     }
                     if CommandLine.arguments.contains("--layout-audit") {
                         Task { await PreviewSuite(workspace).runLayoutAudit() }
@@ -86,7 +104,9 @@ import SwiftUI
         .defaultSize(width: 1080, height: 700)
         .commands {
             CommandMenu("合成预览") {
-                Text("隔离资料库 · 静音输入 · 不加载模型")
+                Text("隔离资料库 · 生成音频 · 不加载模型")
+                Button("输入：变化音量（合成）") { PreviewInput.signal = .varying }
+                Button("输入：静音") { PreviewInput.signal = .silence }
                 Button("显示合成字幕") {
                     workspace.requestedTab = "live"
                     workspace.openSubtitles()
@@ -100,18 +120,34 @@ import SwiftUI
 }
 
 @MainActor enum PreviewInput {
+    enum Signal { case silence, varying, low, medium, high }
+    static var signal: Signal = .silence
     static var timer: Timer?
     static func feed(_ pump: CapturePump, clock: Double) {
         timer?.invalidate()
         // A hardware tap supplies a continuous sample clock. Timer scheduling
         // jitter must not introduce artificial holes in the capture mapping.
         var sampleTime = ProcessInfo.processInfo.systemUptime
+        var tick = 0
         timer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak pump] _ in
             guard let pump else { return }
             let format = AVAudioFormat(standardFormatWithSampleRate: 16000, channels: 1)!
             let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 4000)!
             buffer.frameLength = 4000
-            buffer.floatChannelData![0].initialize(repeating: 0, count: 4000)
+            let amplitudes: [Float] = [0.006, 0.035, 0.15, 0.07]
+            let amplitude: Float
+            let sourceSignal = MainActor.assumeIsolated { signal }
+            switch sourceSignal {
+            case .silence: amplitude = 0
+            case .varying: amplitude = amplitudes[(tick / 4) % amplitudes.count]
+            case .low: amplitude = 0.006
+            case .medium: amplitude = 0.06
+            case .high: amplitude = 0.16
+            }
+            for i in 0..<4000 {
+                buffer.floatChannelData![0][i] = amplitude * sin(2 * Float.pi * 440 * Float(i) / 16000)
+            }
+            tick += 1
             pump.submit(buffer, hostTime: sampleTime)
             sampleTime += 0.25
         }

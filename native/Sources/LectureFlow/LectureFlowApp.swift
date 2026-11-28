@@ -520,6 +520,7 @@ struct LibraryView: View {
                 Button { showQueue = true } label: {
                     Label("后台 \(model.backgroundItems.count)", systemImage: "list.bullet.rectangle")
                 }.help("查看、暂停和继续所有课程的后台任务")
+                .accessibilityIdentifier("queue-open").accessibilityLabel("后台任务")
             }
         }
         .safeAreaInset(edge: .bottom) {
@@ -547,11 +548,18 @@ struct LibraryView: View {
                 .help(sidebarVisible ? "收起课程列表" : "显示课程列表")
                 .accessibilityLabel(sidebarVisible ? "收起课程列表" : "显示课程列表")
                 .accessibilityValue(sidebarVisible ? "已展开" : "已收起")
+                .accessibilityIdentifier("rail-sidebar-toggle")
             Button { newName = ""; form = "course" } label: { railLabel("新建", systemImage: "folder.badge.plus") }
                 .help("新建课程").accessibilityLabel("新建课程")
             Spacer()
-            Button { showQueue = true } label: { railLabel("任务", systemImage: "list.bullet.rectangle") }
-                .help("后台任务").accessibilityLabel("后台任务").accessibilityIdentifier("queue-open")
+            Button { model.toggleSubtitles() } label: {
+                railLabel("悬浮字幕", systemImage: model.floatingSubtitlesVisible ? "captions.bubble.fill" : "captions.bubble")
+            }
+                .help(model.floatingSubtitlesVisible ? "隐藏悬浮字幕窗口" : "打开悬浮字幕窗口")
+                .accessibilityLabel(model.floatingSubtitlesVisible ? "隐藏悬浮字幕" : "显示悬浮字幕")
+                .accessibilityValue(model.floatingSubtitlesVisible ? "已显示" : "已隐藏")
+                .accessibilityIdentifier("floating-open")
+                .accessibilityAddTraits(model.floatingSubtitlesVisible ? .isSelected : [])
             Button { showTrash = true } label: { railLabel("废纸篓", systemImage: "trash") }
                 .help("废纸篓").accessibilityLabel("废纸篓").accessibilityIdentifier("trash-open")
             Button { openSettings() } label: { railLabel("设置", systemImage: "gearshape") }
@@ -578,14 +586,15 @@ struct LibraryView: View {
 
     @ViewBuilder
     private func courseHeader(_ course: Course) -> some View {
-        HStack(spacing: LFChrome.space4) {
+        HStack(alignment: .top, spacing: LFChrome.space4) {
             Button {
                 if collapsedCourses.contains(course.id) { collapsedCourses.remove(course.id) }
                 else { collapsedCourses.insert(course.id) }
             } label: {
                 Image(systemName: collapsedCourses.contains(course.id) ? "chevron.right" : "chevron.down")
                     .font(.system(size: 10, weight: .semibold))
-                    .frame(width: 14, height: 40).contentShape(Rectangle())
+                    .frame(width: 14, height: 16)
+                    .frame(height: 40, alignment: .top).contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .help(collapsedCourses.contains(course.id) ? "展开课程" : "折叠课程")
@@ -597,7 +606,7 @@ struct LibraryView: View {
                 model.selectLecture(nil)
             } label: {
                 HStack(alignment: .top, spacing: 6) {
-                    Image(systemName: "folder.fill").padding(.top, 2)
+                    Image(systemName: "folder.fill").frame(height: 16)
                     Text(course.name).lineLimit(2, reservesSpace: true).truncationMode(.tail)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -611,7 +620,7 @@ struct LibraryView: View {
             }
             .buttonStyle(.plain)
             .help(course.name).accessibilityLabel(course.name)
-            .frame(minHeight: 40)
+            .frame(minHeight: 40, alignment: .top)
             .accessibilityIdentifier("course-\(course.id)")
         }
         .padding(.vertical, LFChrome.space4)
@@ -759,21 +768,6 @@ struct LibraryView: View {
                 .controlSize(.small)
                 .help("课程资料")
             }
-            Button {
-                model.toggleSubtitles()
-            } label: {
-                headerActionLabel(
-                    model.floatingSubtitlesVisible ? "关闭字幕" : "悬浮字幕",
-                    systemImage: model.floatingSubtitlesVisible ? "captions.bubble.fill" : "captions.bubble"
-                )
-            }
-            .buttonStyle(.borderless)
-            .foregroundStyle(palette.accentInk)
-            .controlSize(.small)
-            .help(model.floatingSubtitlesVisible ? "隐藏悬浮字幕窗口" : "打开悬浮字幕窗口")
-            .accessibilityLabel(model.floatingSubtitlesVisible ? "关闭悬浮字幕" : "悬浮字幕")
-            .accessibilityIdentifier("floating-open")
-            .accessibilityAddTraits(model.floatingSubtitlesVisible ? .isSelected : [])
 
             Menu {
                 Button("仅显示字幕窗口", systemImage: "pip") {

@@ -791,3 +791,165 @@ struct PreviewAnchor: NSViewRepresentable {
         } catch { print("FAIL: \(error)"); fflush(stdout); await workspace.prepareForExit(); exit(1) }
     }
 }
+
+@MainActor extension PreviewSuite {
+    func nativeDescendants(_ view: NSView) -> [NSView] { [view] + view.subviews.flatMap(nativeDescendants) }
+    func sidebarDivider() -> NSView? {
+        nativeDescendants(main.contentView!).first { $0.accessibilityIdentifier() == "library-sidebar-divider" }
+    }
+    func dragDivider(_ delta: Double) async throws {
+        guard let view = sidebarDivider() else { throw BackendError.unavailable("Missing native splitter") }
+        let start = view.convert(NSPoint(x: view.bounds.midX, y: view.bounds.midY), to: nil)
+        main.makeKeyAndOrderFront(nil)
+        print("SPLITTER drag start=\(start) frame=\(view.frame) value=\(view.accessibilityValue() ?? "nil") hit=\(String(describing: main.contentView!.hitTest(main.contentView!.convert(start, from: nil))))")
+        for (type, offset) in [(NSEvent.EventType.leftMouseDown, 0.0), (.leftMouseDragged, delta), (.leftMouseUp, delta)] {
+            let event = NSEvent.mouseEvent(with: type, location: NSPoint(x: start.x + offset, y: start.y),
+                modifierFlags: [], timestamp: ProcessInfo.processInfo.systemUptime,
+                windowNumber: main.windowNumber, context: nil, eventNumber: 1, clickCount: 1, pressure: 1)!
+            main.sendEvent(event)
+        }
+        await settle()
+        print("SPLITTER drag end value=\(view.accessibilityValue() ?? "nil") preference=\(UserDefaults.standard.double(forKey: "librarySidebarWidth"))")
+    }
+    func choosePreviewInput(_ title: String) throws {
+        func search(_ menu: NSMenu) -> NSMenuItem? {
+            for item in menu.items {
+                if item.title == title { return item }
+                if let sub = item.submenu, let result = search(sub) { return result }
+            }
+            return nil
+        }
+        guard let menu = NSApp.mainMenu, let item = search(menu), let owner = item.menu else {
+            throw BackendError.unavailable("Missing preview input menu: " + title)
+        }
+        owner.performActionForItem(at: owner.index(of: item))
+        print("PREVIEW MENU invoked: " + title)
+    }
+    func waveImage(_ name: String) throws -> Data {
+        let rect = try layoutRect("session-waveform")
+        let view = main.contentView!
+        view.displayIfNeeded()
+        guard let bitmap = view.bitmapImageRepForCachingDisplay(in: rect) else { throw BackendError.unavailable("Waveform render missing") }
+        view.cacheDisplay(in: rect, to: bitmap)
+        guard let data = bitmap.representation(using: .png, properties: [:]) else { throw BackendError.unavailable("Waveform PNG missing") }
+        try data.write(to: root.appendingPathComponent("evidence/" + name + ".wave.png"))
+        return data
+    }
+    func runInteractionAudit() async {
+        do {
+            await settle(2)
+            UserDefaults.standard.set(true, forKey: "librarySidebarVisible")
+            UserDefaults.standard.removeObject(forKey: "librarySidebarWidth")
+            let names = ["线性代数", "机器学习与统计推断专题 Machine Learning and Statistical Inference", "计算机系统与并行架构 Advanced Computer Systems", "面向复杂真实环境的智能系统研究方法与课堂实践"]
+            var ids: [(String,String)] = []
+            for (i,name) in names.enumerated() {
+                await workspace.createCourse(name); await workspace.refresh()
+                guard let course = workspace.overview.courses.first(where: { $0.name == name }),
+                    let lecture = await workspace.createLecture(course.id, title: i == 0 ? "第一讲 · 向量空间" : "第十二讲 · 复杂模型的推导与课堂实例 Long Lecture Title and Evidence") else { throw BackendError.unavailable("Missing synthetic course") }
+                ids.append((course.id,lecture))
+            }
+            workspace.selectCourse(ids[1].0); workspace.selectLecture(ids[1].1); await settle()
+            workspace.configureSession(CapturePreset.recording.flags); await settle()
+            let resizable = sidebarDivider() != nil
+            for width in [740.0,820.0,1080.0] {
+                UserDefaults.standard.removeObject(forKey: "librarySidebarWidth")
+                main.setContentSize(NSSize(width: width, height: 700)); await settle()
+                try await snapshot("100-courses-\(Int(width))")
+                for (course,lecture) in ids { _ = try layoutRect("course-" + course); _ = try layoutRect("lecture-" + lecture) }
+                if resizable {
+                    let before = sidebarDivider()!.accessibilityValue() as! NSNumber
+                    try await dragDivider(-20)
+                    let after = sidebarDivider()!.accessibilityValue() as! NSNumber
+                    guard abs(after.doubleValue - (before.doubleValue - 20)) < 1 else { throw BackendError.unavailable("Actual drag did not resize") }
+                    try await dragDivider(1000)
+                    let divider = sidebarDivider()!
+                    let maximum = min(360.0, width - 45 - 6 - 480)
+                    guard abs((divider.accessibilityValue() as! NSNumber).doubleValue - maximum) < 1 else { throw BackendError.unavailable("Main reading width not protected") }
+                    let r = divider.convert(divider.bounds, to: main.contentView)
+                    guard width - r.maxX >= 479.5 else { throw BackendError.unavailable("Reading pane below minimum") }
+                    try await snapshot("101-dragged-\(Int(width))")
+                    main.makeFirstResponder(divider)
+                    auditKey(123, characters: "\u{F702}")
+                    await settle()
+                    guard abs((divider.accessibilityValue() as! NSNumber).doubleValue - (maximum - 10)) < 1 else { throw BackendError.unavailable("Keyboard resize failed") }
+                    guard divider.accessibilityPerformIncrement() else { throw BackendError.unavailable("AX adjustment missing") }
+                    await settle()
+                    guard abs((divider.accessibilityValue() as! NSNumber).doubleValue - maximum) < 1 else { throw BackendError.unavailable("AX increment failed") }
+                    print("PASS splitter width=\(width): mouse drag \(before)→\(after), limit=\(maximum), main>=480, arrow key and AX increment")
+                }
+            }
+            if resizable {
+                UserDefaults.standard.set(280.0, forKey: "librarySidebarWidth"); await settle()
+                clickAnchor("rail-sidebar-toggle"); await settle()
+                guard sidebarDivider() == nil else { throw BackendError.unavailable("Sidebar did not hide") }
+                clickAnchor("rail-sidebar-toggle"); await settle()
+                guard abs((sidebarDivider()!.accessibilityValue() as! NSNumber).doubleValue - 280) < 1 else { throw BackendError.unavailable("Width not restored") }
+            }
+            clickAnchor("course-disclosure-" + ids[1].0); await settle()
+            guard !PreviewAnchors.views["lecture-" + ids[1].1,default:[]].compactMap(\.view).contains(where: { $0.window == main && !$0.visibleRect.isEmpty }) else { throw BackendError.unavailable("Collapse failed") }
+            clickAnchor("course-disclosure-" + ids[1].0); await settle()
+            guard workspace.selectedLecture == ids[1].1 else { throw BackendError.unavailable("Selection changed") }
+            // Existing toggle only: no recording is started, even with no lecture selected.
+            if resizable {
+                workspace.selectLecture(nil); await settle()
+                guard clickAnchor("floating-open") else { throw BackendError.unavailable("Rail subtitle toggle absent on course") }
+                await settle(); guard workspace.floatingSubtitlesVisible && !workspace.live.isCapturing else { throw BackendError.unavailable("Floating toggle changed capture") }
+                try await snapshot("102-floating-from-course")
+                clickAnchor("floating-open"); await settle()
+                guard !workspace.floatingSubtitlesVisible else { throw BackendError.unavailable("Floating toggle did not hide") }
+                workspace.selectLecture(ids[1].1); await settle()
+                clickAnchor("floating-open"); await settle()
+                guard workspace.floatingSubtitlesVisible else { throw BackendError.unavailable("Lecture floating entry missing") }
+                try await snapshot("103-floating-from-lecture")
+                clickAnchor("floating-open"); await settle()
+                guard clickAnchor("queue-open") else { throw BackendError.unavailable("Toolbar queue entry missing") }
+                await settle(); guard main.sheets.count == 1 else { throw BackendError.unavailable("Queue sheet missing") }
+                auditKey(53, characters: "\u{1b}", window: main.sheets.first!)
+                await settle(); guard main.sheets.isEmpty else { throw BackendError.unavailable("Queue Escape did not dismiss") }
+                print("PASS rail floating on course and lecture; no capture; toolbar queue opens one sheet")
+            }
+            UserDefaults.standard.removeObject(forKey: "librarySidebarWidth")
+            main.setContentSize(NSSize(width: 1080, height: 700)); await settle()
+            workspace.configureSession(CapturePreset.recording.flags)
+            PreviewInput.signal = .low
+            guard clickAnchor("session-primary") else { throw BackendError.unavailable("Missing recorder start") }
+            for _ in 0..<30 where !workspace.live.isCapturing { await settle(0.2) }
+            guard workspace.live.isCapturing else { throw BackendError.unavailable("Capture not started: state=\(workspace.session.state) sheets=\(main.sheets.count) error=\(workspace.error ?? "nil")") }
+            var frames: [Data] = [], levels: [Float] = []
+            for (name, signal) in [("110-low", PreviewInput.Signal.low), ("111-medium", .medium), ("112-high", .high)] {
+                PreviewInput.signal = signal; await settle(3.5)
+                levels.append(workspace.live.level)
+                try await snapshot(name)
+                frames.append(try waveImage(name))
+            }
+            guard levels[0] > 0 && levels[0] < levels[1] && levels[1] < levels[2], frames[0] != frames[1], frames[1] != frames[2] else { throw BackendError.unavailable("Amplitude did not reach rendered waveform") }
+            print("PASS PCM→CapturePump RMS→LiveController.level→waveform: \(levels), 3 distinct native region renders")
+            clickAnchor("session-primary"); await settle(0.5)
+            guard workspace.session.state == .paused else { throw BackendError.unavailable("Pause failed") }
+            let p1 = try waveImage("113-paused-a"); try choosePreviewInput("输入：变化音量（合成）"); await settle(1.5)
+            let p2 = try waveImage("113-paused-b")
+            guard p1 == p2 else { throw BackendError.unavailable("Paused waveform not frozen") }
+            try await snapshot("113-paused")
+            clickAnchor("session-primary"); await settle(3.5)
+            guard workspace.live.isCapturing else { throw BackendError.unavailable("Resume failed") }
+            let r1 = try waveImage("114-resumed-a"); await settle(1.2)
+            let r2 = try waveImage("114-resumed-b")
+            guard r1 != r2 else { throw BackendError.unavailable("Resumed waveform static") }
+            try await snapshot("114-resumed")
+            try choosePreviewInput("输入：静音"); await settle(5.5)
+            let s1 = try waveImage("115-silence-a"); await settle(1)
+            let s2 = try waveImage("115-silence-b")
+            print("SILENCE level=\(workspace.live.level), stableRender=\(s1 == s2)")
+            guard workspace.live.level == 0, s1 == s2 else { throw BackendError.unavailable("Silence shows fabricated activity") }
+            try await snapshot("115-silence")
+            clickAnchor("session-end")
+            for _ in 0..<40 where workspace.live.pendingSaves > 0 { await settle(0.2) }
+            await workspace.refresh(); await settle()
+            guard workspace.session.state == .ended, workspace.lecture?.segments.count == 1 else { throw BackendError.unavailable("Generated audio did not seal") }
+            try await snapshot("116-ended")
+            UserDefaults.standard.set(280.0, forKey: "librarySidebarWidth")
+            print("PASS waveform pauses frozen, resumes changing, silence level=0/stable, end seals 1 recording; synthetic PCM only")
+            fflush(stdout); await workspace.prepareForExit(); exit(0)
+        } catch { print("FAIL: \(error)"); fflush(stdout); await workspace.prepareForExit(); exit(1) }
+    }
+}

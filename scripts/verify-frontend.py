@@ -61,6 +61,8 @@ assert args.probe in (
     "--presentation-audit",
     "--empty-audit",
     "--layout-audit",
+    "--interaction-audit",
+    "--verify-sidebar-persistence",
     "--classroom-flow",
     "--audit-only",
     "--floating-audit",
